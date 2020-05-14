@@ -1,0 +1,64 @@
+
+.dso-nav {
+  list-style: none;
+  margin-bottom: 0;
+  padding-left: 0
+}
+
+@media screen and (min-width: 768px) {
+  .dso-nav {
+    border-bottom: 1px solid #ccc
+  }
+}
+
+.dso-nav > li > a {
+  display: block
+}
+
+.dso-nav > li > a, .dso-nav > li > a:focus, .dso-nav > li > a:hover, .dso-nav > li > a:visited {
+  color: #275937
+}
+
+.dso-nav > li.dso-active > a, .dso-nav > li.is-active > a {
+  border-bottom: 4px solid #8b4a6a;
+  font-weight: 700
+}
+
+.dso-nav.dso-nav-main {
+  margin-bottom: 8px
+}
+
+.dso-nav.dso-nav-main > li {
+  display: block
+}
+
+@media screen and (min-width: 768px) {
+  .dso-nav.dso-nav-main > li {
+    display: inline-block
+  }
+}
+
+.dso-nav.dso-nav-main > li > a {
+  font-size: 1.25em;
+  line-height: 1;
+  margin-top: 8px;
+  padding: 8px 16px 7px
+}
+
+.dso-nav.dso-nav-sub > li {
+  display: inline-block
+}
+
+.dso-nav.dso-nav-sub > li > a {
+  font-size: 16px;
+  margin-top: 4px;
+  padding: 4px 8px 3px
+}
+
+.spinner-area {
+  height: 10px;
+}
+
+.scrollheader {
+  margin-bottom: 10px;
+}

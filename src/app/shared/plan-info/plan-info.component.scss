@@ -1,0 +1,28 @@
+.highlight-box {
+  background-color: #e5e5e5;
+  margin-top: 10px;
+  padding: 25px 25px 10px;
+  margin-left: -16px;
+  margin-right: -16px;
+
+  h1 {
+    margin-top: 0;
+    display: inline-block;
+    margin-bottom: 15px;
+    font-size: 32px;
+    font-family: 'Asap' ,sans-serif;
+    font-weight: 700;
+  }
+
+  p {
+    margin: initial;
+  }
+}
+
+.grid {
+  display: grid;
+}
+
+.gridrow {
+  grid-column: 1;
+}

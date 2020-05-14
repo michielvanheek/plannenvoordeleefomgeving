@@ -1,0 +1,34 @@
+<ng-container *ngTemplateOutlet="treeItem; context: { item: item, state: 1 }"></ng-container>
+
+<ng-template #treeItem let-item="item" let-state="state">
+  <div *ngIf="item._embedded; else content">
+
+    <div *ngFor="let element of item._embedded.documentstructuurelementen">
+
+      <div *ngIf="element.opschrift" class="accordion-title clickable" [ngClass]="'title-' + state"
+           (click)="openElement(element)">
+        <span class="accordion-title__chevron fa"
+              title="Zoom naar plangeometrie" appTippy
+              [tippyOptions]="{arrow: true, theme: 'dso'}"
+              [ngClass]="element.isOpen || state == 1 ? 'fa-angle-down' :'fa-angle-right'"></span>{{element.nummer}} {{element.opschrift}}
+      </div>
+
+      <div *ngIf="!element.opschrift && element.inhoud" class="textflex text-lid-grid">
+        <div class="text-lid-title">{{element.nummer}}</div>
+        <div class="text-lid-content" [innerHTML]="element.inhoud"></div>
+      </div>
+
+      <div class="accordion-content" *ngIf="(element.opschrift && element.isOpen) || state == 1">
+        <ng-container *ngTemplateOutlet="treeItem; context:{ item : element, state: state + 1 }"></ng-container>
+      </div>
+    </div>
+  </div>
+  <ng-template #content>
+    <div *ngIf="item.isOpen" class="inhoud">
+      <div *ngIf="item.status" [innerHTML]="item.status"></div>
+      <div *ngIf="item.inhoud" [innerHTML]="item.inhoud"></div>
+    </div>
+  </ng-template>
+</ng-template>
+
+

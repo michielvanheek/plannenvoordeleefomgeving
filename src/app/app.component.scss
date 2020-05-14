@@ -1,0 +1,21 @@
+.main-container {
+  height: calc(100vh - 20px);
+}
+
+.disclaimer {
+  height: 20px;
+  background-color: #fff3cd;
+  right: 0;
+  font-size: 10px;
+  padding: 2px;
+  text-align: center;
+}
+
+.extern:after {
+  background: url('../assets/icons.svg#img-external-link') no-repeat;
+  background-position: 50%;
+  background-size: cover;
+  height: 1.5em;
+  vertical-align: top;
+  width: 1.5em;
+}

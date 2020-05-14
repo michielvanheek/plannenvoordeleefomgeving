@@ -1,0 +1,59 @@
+.accordion-title {
+  color: #275937;
+  margin-bottom: 4px;
+  line-height: 1.1;
+  padding: 5px 0 10px 0;
+
+  &__chevron {
+    width: 18px;
+    margin-right: 6px;
+  }
+
+  &.title-1 {
+    display: none;
+  }
+
+  &.title-2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  &.title-3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  &.title-4 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+.inhoud {
+  margin-left: 18px;
+}
+
+.od-Al, .od-Begrip, .od-Definitie, .od-Li, .od-Lidnr, .od-Lijst, .od-Lijstsluiting, .od-LiNr, .od-Term, .od-Tussenkop, table {
+  margin-left: 1em;
+}
+
+.textflex {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.text-lid-grid {
+  display: grid;
+  padding-left: 22px;
+  grid-template-columns: auto auto 40px;
+  grid-template-rows: auto;
+  grid-template-areas: "text-lid-title-area text-lid-content-area text-lid-slider-area";
+}
+
+.text-lid-title {
+  grid-area: text-lid-title-area
+}
+
+.text-lid-content {
+  grid-area: text-lid-content-area;
+}
