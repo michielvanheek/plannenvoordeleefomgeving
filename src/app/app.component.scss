@@ -19,3 +19,18 @@
   vertical-align: top;
   width: 1.5em;
 }
+
+:host {
+  as-split {
+    overflow: inherit;
+
+    ::ng-deep .as-split-gutter {
+      background-color: transparent !important;
+
+    }
+    ::ng-deep .as-split-gutter.as-dragged {
+      background-color: darkgray !important;
+
+    }
+  }
+}

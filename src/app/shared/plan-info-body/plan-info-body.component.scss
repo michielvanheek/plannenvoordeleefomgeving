@@ -59,6 +59,10 @@
   height: 10px;
 }
 
-.scrollheader {
-  margin-bottom: 10px;
+.sticktotop {
+  position: absolute;
+  width: 100%;
+  background-color: #fff;
+  z-index: 99999;
+  left: 0;
 }

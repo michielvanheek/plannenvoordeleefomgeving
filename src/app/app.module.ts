@@ -14,6 +14,7 @@ import {AngularSvgIconModule} from 'angular-svg-icon';
 import {PlanInfoBodyComponent} from './shared/plan-info-body/plan-info-body.component';
 import {LoaderComponent} from './shared/loader/loader.component';
 import {PlanAccordionComponent} from './shared/plan-accordion/plan-accordion.component';
+import {AngularSplitModule} from "angular-split";
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import {PlanAccordionComponent} from './shared/plan-accordion/plan-accordion.com
     AppRoutingModule,
     HttpClientModule,
     AngularSvgIconModule.forRoot(),
+    AngularSplitModule.forRoot(),
     TippyModule
   ],
   providers: [],

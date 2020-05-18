@@ -1,9 +1,12 @@
 <div class="panel-group dso-content">
-  <div class="scrollheader">
+  <div #scrollHeader class="scrollheader" [ngClass]="{sticktotop: scrolledTop >= startOffsetOfScrollbar}" [style.top.px]="scrolledTop">
     <ul role="tablist" class="dso-nav dso-nav-sub">
-      <li aria-valuetext="screen reader only label" role="tab" class="clickable dso-outline dso-active ng-star-inserted"
-          tabindex="50">
-        <a class="active">Regels</a>
+      <li *ngFor="let tab of headers" role="tab"
+          class="clickable dso-outline dso-active"
+          [ngClass]="{'dso-active': tab === activeHeader}"
+          tabindex="50"
+          (click)="onChangeTab(tab)">
+        <a class="active">{{tab.label}}</a>
       </li>
     </ul>
     <div class="spinner-area">
@@ -11,5 +14,5 @@
     </div>
   </div>
 
-  <dso-plan-accordion [item]="plan" state="1"></dso-plan-accordion>
+  <dso-plan-accordion [item]="tabData" state="1"></dso-plan-accordion>
 </div>

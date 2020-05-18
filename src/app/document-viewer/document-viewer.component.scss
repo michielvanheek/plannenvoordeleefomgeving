@@ -1,4 +1,3 @@
-
 .back-icon {
   margin-right: 5px;
 }
@@ -13,4 +12,7 @@
   position: relative;
   overflow-y: scroll;
   overflow-x: hidden;
+  z-index: 2;
+  box-shadow: 2px -5px 5px #999;
+  background: #fff;
 }

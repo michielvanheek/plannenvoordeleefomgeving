@@ -2,7 +2,6 @@
   color: #275937;
   margin-bottom: 4px;
   line-height: 1.1;
-  padding: 5px 0 10px 0;
 
   &__chevron {
     width: 18px;
@@ -10,10 +9,11 @@
   }
 
   &.title-1 {
-    display: none;
+    // display: none;
   }
 
   &.title-2 {
+    padding: 4px 0;
     font-size: 1.5rem;
     font-weight: 700;
   }
@@ -21,15 +21,18 @@
   &.title-3 {
     font-size: 1.25rem;
     font-weight: 600;
+    padding-bottom: 4px;
   }
 
   &.title-4 {
     font-size: 1rem;
     font-weight: 600;
+    padding-bottom: 8px;
   }
 }
 
 .inhoud {
+  margin-top: -4px;
   margin-left: 18px;
 }
 
@@ -37,17 +40,42 @@
   margin-left: 1em;
 }
 
+.od-LiNummer {
+  float: left;
+}
+
+.od-Term {
+  font-weight: 700;
+}
+
 .textflex {
   margin-top: 12px;
   width: 100%;
 }
 
-.text-lid-grid {
+.text-default__grid {
+  display: grid;
+  grid-auto-flow: dense;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas: "text-default-title-area text-default-meta-area";
+}
+
+.text-default__title {
+  grid-area: text-default-title-area;
+}
+
+.text-default__meta {
+  grid-area: text-default-meta-area;
+}
+
+.text-lid__grid--opschriftless {
+  margin-top: 8px;
   display: grid;
   padding-left: 22px;
   grid-template-columns: auto auto 40px;
   grid-template-rows: auto;
-  grid-template-areas: "text-lid-title-area text-lid-content-area text-lid-slider-area";
+  grid-template-areas: "text-lid-title-area text-lid-content-area";
 }
 
 .text-lid-title {
