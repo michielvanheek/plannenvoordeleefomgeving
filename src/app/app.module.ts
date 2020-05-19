@@ -15,6 +15,7 @@ import {PlanInfoBodyComponent} from './shared/plan-info-body/plan-info-body.comp
 import {LoaderComponent} from './shared/loader/loader.component';
 import {PlanAccordionComponent} from './shared/plan-accordion/plan-accordion.component';
 import {AngularSplitModule} from "angular-split";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import {AngularSplitModule} from "angular-split";
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
+    FormsModule,
     HttpClientModule,
     AngularSvgIconModule.forRoot(),
     AngularSplitModule.forRoot(),

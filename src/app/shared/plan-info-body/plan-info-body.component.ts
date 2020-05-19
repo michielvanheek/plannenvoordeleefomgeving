@@ -12,9 +12,9 @@ export class PlanInfoBodyComponent implements OnInit {
   @Input() scrolledTop;
 
   headers = [
-    {label: 'Regels', type: 'LICHAAM'},
-    {label: 'Toelichting', type: ''},
-    {label: 'Bijlagen', type: 'BIJLAGE'}
+    {id: 1, label: 'Regels', type: 'LICHAAM' },
+    {id: 2, label: 'Toelichting', type: '' },
+    {id: 3, label: 'Bijlagen', type: 'BIJLAGE'}
   ]
   activeHeader;
 
@@ -32,13 +32,14 @@ export class PlanInfoBodyComponent implements OnInit {
   }
 
   onChangeTab(tab) {
-    this.activeHeader = tab;
+    this.activeHeader = null;
     this.tabData = {
       _embedded: {
-        documentstructuurelementen: this.plan._embedded.documentstructuurelementen.filter(d => d.soort === this.activeHeader.type)
+        documentstructuurelementen: this.plan._embedded.documentstructuurelementen.filter(d => d.soort === tab.type)
       }
     };
-    console.log(this.tabData)
+    this.activeHeader = tab;
+
   }
 
 

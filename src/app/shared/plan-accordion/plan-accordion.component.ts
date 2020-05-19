@@ -1,4 +1,5 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {AppService} from "../../app.service";
 
 @Component({
   selector: 'dso-plan-accordion',
@@ -10,7 +11,7 @@ export class PlanAccordionComponent implements OnInit {
   @Input() item;
   @Input() state;
 
-  constructor() {
+  constructor(public appService: AppService) {
   }
 
   ngOnInit(): void {

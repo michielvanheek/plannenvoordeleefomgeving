@@ -14,5 +14,7 @@
     </div>
   </div>
 
-  <dso-plan-accordion [item]="tabData" state="1"></dso-plan-accordion>
+  <dso-plan-accordion *ngIf="activeHeader.id === 1" [item]="tabData" [state]="1"></dso-plan-accordion>
+
+  <dso-plan-accordion *ngIf="activeHeader.id === 3" [item]="tabData" [state]="3"></dso-plan-accordion>
 </div>

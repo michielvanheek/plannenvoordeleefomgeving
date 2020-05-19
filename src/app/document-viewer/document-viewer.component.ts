@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'dso-document-viewer',
@@ -10,15 +11,26 @@ export class DocumentViewerComponent implements OnInit {
   planInfo;
   plan;
   scrolledTop = 0;
-  constructor(private http: HttpClient) { }
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private http: HttpClient) {
+  }
 
   ngOnInit(): void {
-    this.http.get('https://demo.milav.eu/api.php/presenteren/v4/documenten/findById?identificatie=/akn/nl/act/mn002/2019/reg0001')
+    const query = this.activatedRoute.snapshot.params.path;
+    const structurePath = query.replace(/\//g, '_');
+    const local = this.activatedRoute.snapshot.data.local;
+    const structureApiPath = local
+      ? `/assets/${structurePath}.json`
+      : `https://demo.milav.eu/api.php/presenteren/v4/documenten/${structurePath}/structuur`;
+
+    this.http.get('https://demo.milav.eu/api.php/presenteren/v4/documenten/findById?identificatie=' + query)
       .subscribe(response => {
         this.planInfo = response;
       });
 
-    this.http.get('https://demo.milav.eu/api.php/presenteren/v4/documenten/_akn_nl_act_mn002_2019_reg0001/structuur')
+    this.http.get(structureApiPath)
       .subscribe(response => {
         this.plan = response;
       });

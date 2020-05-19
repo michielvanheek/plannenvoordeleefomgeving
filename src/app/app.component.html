@@ -1,7 +1,7 @@
 <div class="main-container">
   <as-split direction="horizontal">
     <as-split-area maxSize="60">
-      <dso-document-viewer></dso-document-viewer>
+      <router-outlet></router-outlet>
     </as-split-area>
     <as-split-area>
       map
@@ -14,5 +14,12 @@
   <a href="http://www.ruimtelijkeplannen.nl" class="extern">http://www.ruimtelijkeplannen.nl</a>
   voor de juiste informatie. Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de
   omgevingswet.
+  <div class="setting-btn" (click)="showSettings = !showSettings">Settings</div>
 </div>
+
+<div *ngIf="showSettings" class="setting-ct">
+  <h4>Settings</h4>
+  <label for="headertype"><input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header</label>
+</div>
+
 

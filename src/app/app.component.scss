@@ -9,6 +9,26 @@
   font-size: 10px;
   padding: 2px;
   text-align: center;
+  position: relative;
+  .setting-btn {
+    cursor: pointer;
+    position: absolute;
+    top: 3px;
+    right: 10px;
+  }
+}
+
+.setting-ct {
+  position: fixed;
+  background-color: white;
+  min-height: 50px;
+  min-width: 300px;
+  right: 10px;
+  bottom: 30px;
+  padding: 10px;
+  -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 }
 
 .extern:after {
