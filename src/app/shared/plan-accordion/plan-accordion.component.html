@@ -11,7 +11,7 @@
           <span class="accordion-title__chevron fa" title="Zoom naar plangeometrie"
                 appTippy [tippyOptions]="{arrow: true, theme: 'dso'}"
                 [ngClass]="element.isOpen ? 'fa-angle-down' :'fa-angle-right'">
-          </span>{{ appService.settings.planTypeInHeader && element.soort || ''}} {{element.nummer}} {{element.opschrift}}
+          </span>{{ appService.settings.planTypeInHeader && appService.titleSymbols[element.soort] || ''}} {{element.nummer}} {{element.opschrift}}
         </div>
         <div class="text-default__meta"></div>
       </div>
