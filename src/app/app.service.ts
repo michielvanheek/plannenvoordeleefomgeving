@@ -13,6 +13,7 @@ export class AppService {
     SUBPARAGRAAF: '§',
     SUBSUBPARAGRAAF: '§',
     ARTIKEL: 'Artikel',
-    LID: ''
+    LID: '',
+    BIJLAGE: 'BIJLAGE'
   }
 }
