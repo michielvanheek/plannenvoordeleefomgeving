@@ -22,7 +22,7 @@
       </div>
 
       <div class="accordion-content" *ngIf="(element.nummer && element.soort != 'LID' && element.isOpen) || (element._embedded && !element.opschrift)">
-        <div *ngIf="element.inhoud" [innerHTML]="item.inhoud"></div>
+        <div *ngIf="element.inhoud" [innerHTML]="element.inhoud"></div>
         <ng-container *ngTemplateOutlet="treeItem; context:{ item : element, state: state + 1 }"></ng-container>
       </div>
     </div>
