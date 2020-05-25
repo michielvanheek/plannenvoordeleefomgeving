@@ -19,7 +19,9 @@ export class DocumentViewerComponent implements OnInit {
 
   ngOnInit(): void {
     const query = this.activatedRoute.snapshot.params.path;
+    console.log(query);
     const structurePath = query.replace(/\//g, '_');
+    console.log(structurePath);
     const local = this.activatedRoute.snapshot.data.local;
     const structureApiPath = local
       ? `/assets/${structurePath}.json`
