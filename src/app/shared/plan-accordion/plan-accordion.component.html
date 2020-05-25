@@ -1,7 +1,7 @@
 <ng-container *ngTemplateOutlet="treeItem; context: { item: item, state: state }"></ng-container>
 
 <ng-template #treeItem let-item="item" let-state="state">
-  <div *ngIf="item._embedded; else content">
+  <div *ngIf="item._embedded">
 
     <div *ngFor="let element of item._embedded.documentstructuurelementen">
 
@@ -22,17 +22,12 @@
       </div>
 
       <div class="accordion-content" *ngIf="(element.nummer && element.soort != 'LID' && element.isOpen) || (element._embedded && !element.opschrift)">
-        <div *ngIf="element.inhoud" [innerHTML]="element.inhoud"></div>
+          <div *ngIf="element.status" class="inhoud"><div [innerHTML]="element.status"></div></div>
+          <div *ngIf="element.inhoud" class="inhoud"><div [innerHTML]="element.inhoud"></div></div>
         <ng-container *ngTemplateOutlet="treeItem; context:{ item : element, state: state + 1 }"></ng-container>
       </div>
     </div>
   </div>
-  <ng-template #content>
-    <div *ngIf="item.isOpen" class="inhoud">
-      <div *ngIf="item.status" [innerHTML]="item.status"></div>
-      <div *ngIf="item.inhoud" [innerHTML]="item.inhoud"></div>
-    </div>
-  </ng-template>
 </ng-template>
 
 
