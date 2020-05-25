@@ -5,7 +5,7 @@
 
     <div *ngFor="let element of item._embedded.documentstructuurelementen">
 
-      <div *ngIf="element.opschrift" class="textflex text-default__grid accordion-title clickable" [ngClass]="'title-' + state"
+      <div *ngIf="element.nummer && element.soort != 'LID'" class="textflex text-default__grid accordion-title clickable" [ngClass]="'title-' + state"
            (click)="openElement(element)">
         <div class="text-default__title">
           <span class="accordion-title__chevron fa" title="Zoom naar plangeometrie"
@@ -16,12 +16,13 @@
         <div class="text-default__meta"></div>
       </div>
 
-      <div *ngIf="!element.opschrift && element.inhoud" class="textflex text-lid__grid--opschriftless">
+      <div *ngIf="!element.opschrift && element.inhoud && element.soort == 'LID'" class="textflex text-lid__grid--opschriftless">
         <div class="text-lid-title">{{element.nummer}}</div>
         <div class="text-lid-content" [innerHTML]="element.inhoud"></div>
       </div>
 
-      <div class="accordion-content" *ngIf="(element.opschrift && element.isOpen) || (element._embedded && !element.opschrift)">
+      <div class="accordion-content" *ngIf="(element.nummer && element.soort != 'LID' && element.isOpen) || (element._embedded && !element.opschrift)">
+        <div *ngIf="element.inhoud" [innerHTML]="item.inhoud"></div>
         <ng-container *ngTemplateOutlet="treeItem; context:{ item : element, state: state + 1 }"></ng-container>
       </div>
     </div>
