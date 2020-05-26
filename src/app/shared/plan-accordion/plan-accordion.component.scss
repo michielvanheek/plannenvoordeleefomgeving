@@ -6,6 +6,7 @@
   &__chevron {
     width: 18px;
     margin-right: 6px;
+    text-align: center;
   }
 
   &.title-1 {
@@ -27,6 +28,19 @@
   &.title-4 {
     font-size: 1rem;
     font-weight: 600;
+    padding-bottom: 8px;
+  }
+
+  &.title-5 {
+    font-size: 1rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    color: black;
+  }
+
+  &.title-6 {
+    font-size: 1rem;
+    font-weight: 700;
     padding-bottom: 8px;
   }
 }
@@ -86,10 +100,19 @@
   grid-template-areas: "text-lid-title-area text-lid-content-area";
 }
 
+.text-lid__flex--opschriftless {
+  display: flex;
+  margin-left: 22px;
+}
+
 .text-lid-title {
   grid-area: text-lid-title-area
 }
 
 .text-lid-content {
   grid-area: text-lid-content-area;
+}
+
+.accordion-content {
+  margin-top: -4px;
 }

@@ -11,12 +11,12 @@
           <span class="accordion-title__chevron fa" title="Zoom naar plangeometrie"
                 appTippy [tippyOptions]="{arrow: true, theme: 'dso'}"
                 [ngClass]="element.isOpen ? 'fa-angle-down' :'fa-angle-right'">
-          </span>{{ appService.settings.planTypeInHeader && appService.titleSymbols[element.soort] || ''}} {{element.nummer}} {{element.opschrift}}
+          </span>{{appService.settings.planTypeInHeader && appService.titleSymbols[element.soort] + ' ' || ''}}{{element.nummer}} {{element.opschrift}}
         </div>
         <div class="text-default__meta"></div>
       </div>
 
-      <div *ngIf="!element.opschrift && element.inhoud && element.soort == 'LID'" class="textflex text-lid__grid--opschriftless">
+      <div *ngIf="!element.opschrift && element.inhoud && element.soort == 'LID'" class="textflex text-lid__flex--opschriftless">
         <div class="text-lid-title">{{element.nummer}}</div>
         <div class="text-lid-content" [innerHTML]="element.inhoud"></div>
       </div>
