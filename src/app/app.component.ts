@@ -7,8 +7,7 @@ import {AppService} from "./app.service";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'dso';
-  showSettings = false;
+  settingsVisible = false;
 
   constructor(public appService: AppService) {
   }

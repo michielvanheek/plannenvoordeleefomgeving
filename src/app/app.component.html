@@ -1,25 +1,26 @@
 <div class="main-container">
   <as-split direction="horizontal">
-    <as-split-area maxSize="60">
+    <as-split-area minSize="10">
       <router-outlet></router-outlet>
     </as-split-area>
-    <as-split-area>
+    <as-split-area minSize="10">
       map
     </as-split-area>
+    <as-split-area minSize="10">
+      info
+    </as-split-area>
   </as-split>
-
 </div>
 <div class="disclaimer">
-  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg
-  <a href="http://www.ruimtelijkeplannen.nl" class="extern">http://www.ruimtelijkeplannen.nl</a>
-  voor de juiste informatie. Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de
-  omgevingswet.
-  <div class="setting-btn" (click)="showSettings = !showSettings">Settings</div>
+  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl" class="extern">https://www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
+  Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de Omgevingswet.
+  <div (click)="settingsVisible = !settingsVisible" class="setting-btn">Instellingen</div>
 </div>
-
-<div *ngIf="showSettings" class="setting-ct">
+<div *ngIf="settingsVisible" class="setting-ct">
   <h4>Settings</h4>
-  <label for="headertype"><input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header</label>
+  <label for="headertype">
+    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header
+  </label>
 </div>
 
 

@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 
 @Component({
   selector: 'dso-plan-info-body',
@@ -35,12 +35,9 @@ export class PlanInfoBodyComponent implements OnInit {
     this.activeHeader = null;
     this.tabData = {
       _embedded: {
-        documentstructuurelementen: this.plan._embedded.documentstructuurelementen.filter(d => d.soort === tab.type)
+        documentComponenten: this.plan._embedded.documentComponenten.filter(d => d.type === tab.type)
       }
     };
     this.activeHeader = tab;
-
   }
-
-
 }

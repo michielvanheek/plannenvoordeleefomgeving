@@ -2,26 +2,24 @@
 
 <ng-template #treeItem let-item="item" let-state="state">
   <div *ngIf="item._embedded">
-
-    <div *ngFor="let element of item._embedded.documentstructuurelementen">
-
-      <div *ngIf="element.nummer && element.soort != 'LID'" class="textflex text-default__grid accordion-title clickable" [ngClass]="'title-' + state"
+    <div *ngFor="let element of item._embedded.documentComponenten">
+      <div *ngIf="element.nummer && element.type != 'LID'" class="textflex text-default__grid accordion-title clickable" [ngClass]="'title-' + state"
            (click)="openElement(element)">
         <div class="text-default__title">
           <span class="accordion-title__chevron fa" title="Zoom naar plangeometrie"
                 appTippy [tippyOptions]="{arrow: true, theme: 'dso'}"
                 [ngClass]="element.isOpen ? 'fa-angle-down' :'fa-angle-right'">
-          </span>{{appService.settings.planTypeInHeader && appService.titleSymbols[element.soort] + ' ' || ''}}{{element.nummer}} {{element.opschrift}}
+          </span>{{appService.settings.planTypeInHeader && appService.titleSymbols[element.type] + ' ' || ''}}{{element.nummer}} {{element.opschrift}}
         </div>
         <div class="text-default__meta"></div>
       </div>
 
-      <div *ngIf="!element.opschrift && element.inhoud && element.soort == 'LID'" class="textflex text-lid__flex--opschriftless">
+      <div *ngIf="!element.opschrift && element.inhoud && element.type == 'LID'" class="textflex text-lid__flex--opschriftless">
         <div class="text-lid-title">{{element.nummer}}</div>
         <div class="text-lid-content" [innerHTML]="element.inhoud"></div>
       </div>
 
-      <div class="accordion-content" *ngIf="(element.nummer && element.soort != 'LID' && element.isOpen) || (element._embedded && !element.opschrift)">
+      <div class="accordion-content" *ngIf="(element.nummer && element.type != 'LID' && element.isOpen) || (element._embedded && !element.opschrift)">
           <div *ngIf="element.status" class="inhoud"><div [innerHTML]="element.status"></div></div>
           <div *ngIf="element.inhoud" class="inhoud"><div [innerHTML]="element.inhoud"></div></div>
         <ng-container *ngTemplateOutlet="treeItem; context:{ item : element, state: state + 1 }"></ng-container>
