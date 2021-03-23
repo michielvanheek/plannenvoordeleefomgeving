@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  position: relative;
+  height: 100%;
+}
+.loader {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  font-size: 10px;
+  text-shadow: 0 0 2px #fff;
+}
+.coordinates {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 10px;
+  text-shadow: 0 0 2px #fff;
+}
+.box-sm {
+  position: absolute;
+  right: 30px;
+  top: 15px;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: rgba(243, 243, 243, 0.8);
+}
+.box-sm .btn-sm {
+  display: block;
+  margin: 0;
+}

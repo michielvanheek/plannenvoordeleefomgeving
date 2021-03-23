@@ -23,6 +23,7 @@
     "angular-split": "^3.0.3",
     "angular-svg-icon": "^9.2.0",
     "bootstrap": "^4.5.0",
+    "ng-niney": "^1.0.6",
     "ng-tippy": "^3.2.2",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
