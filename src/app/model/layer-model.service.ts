@@ -12,8 +12,7 @@ export class LayerModelService {
     null,                        // WMTS: selected vormvrij-plan contents
     new Layer("bp_grenzen_all"), // WMTS
     null,                        // WMS: selected plan boundaries
-    new Layer("HighlightLayer"),
-    new Layer("MarkerLayer")
+    new Layer("HighlightLayer")
   ];
   planOpacity = 100;
   otherPlansOpacity = 60;

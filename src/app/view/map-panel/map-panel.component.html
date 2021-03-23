@@ -1,5 +1,5 @@
 <!--<n-map n-tap="measureModel.geometry? measureModel.addXY: mark" n-mousemove="measureModel.geometry? measureModel.setXY: null" ng-dblclick="measureModel.reset()" class="fullheight">-->
-<n-map class="h-100">
+<n-map [nTap]="mark.bind(this)" class="h-100">
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
   <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
@@ -12,10 +12,8 @@
   <mapfeaturelayer layer="layerModel.layers[5]" featuremodel="highlightModel.highlights[1]">
     <canvassymbolizer class="whitehighlight"></canvassymbolizer>
   </mapfeaturelayer>
-  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>
-  <mapfeaturelayer layer="layerModel.layers[6]" featuremodel="markerModel">
-    <imagesymbolizer propertyindex="0" asset="images/marker.png" class="centerimage"></imagesymbolizer>
-  </mapfeaturelayer>-->
+  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
+  <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>
 <div *ngIf="loader.numLoading == 1" class="loader">
   <span class="fa fa-spinner"></span> nog 1 plaatje aan het laden...
@@ -44,10 +42,10 @@
   </button>
   <button ng-if="planModel.plan" ng-click="planModel.zoomToPlan()" title="Naar het (hele) gekozen plan zoomen" class="btn btn-default btn-sm">
     <span class="glyphicon glyphicon-fullscreen"></span>
-  </button>
-  <button ng-if="markerModel.features.length > 0" ng-click="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="btn btn-default btn-sm">
-    <span class="glyphicon glyphicon-map-marker"></span>
   </button>-->
+  <button *ngIf="markerModel.xy" (click)="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="btn btn-default btn-sm">
+    <span class="fa fa-map-marker"></span>
+  </button>
 </div>
 <!--<div ng-if="measureModel.geometry" class="box-md">
   <h5>RD-coördinaten</h5>

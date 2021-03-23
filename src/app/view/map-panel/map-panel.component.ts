@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { CenterScale, Envelope, FocusModel, Loader, ZoomLevel } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
+import { MarkerModelService } from "src/app/model/marker-model.service";
 
 @Component({
   selector: "dso-map-panel",
@@ -13,7 +14,8 @@ export class MapPanelComponent {
 
   constructor(
     public nineyDefaultService: NineyDefaultService,
-    public layerModel: LayerModelService
+    public layerModel: LayerModelService,
+    public markerModel: MarkerModelService
   ) {
     const focusModel = this.nineyDefaultService.defaultFocusModel;
     focusModel.srs.srid = 28992;
@@ -40,6 +42,10 @@ export class MapPanelComponent {
     focusModel.minScale = 595.275215575;
     focusModel.maxScale = 2438247.282993837;
     focusModel.setCenterScale(new CenterScale(148000, 465000, 1219123.641496919));
+  }
+
+  mark(x, y) {
+    this.markerModel.setXY(x, y, null);
   }
 
   zoomIn() {

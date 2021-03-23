@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+.btn-rnd {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  padding: 0;
+  color: #275937;
+  background-color: rgb(243, 243, 243);
+}
+.btn-rnd:hover {
+  border: 4px solid #8b4a6a;
+}

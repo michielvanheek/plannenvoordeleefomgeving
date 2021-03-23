@@ -1,0 +1,20 @@
+<h3>Een plek zoeken
+  <button (click)="stateModel.toggleState()" title="Naar het scherm: Een plan zoeken" class="btn btn-rnd">
+    <span class="fa fa-caret-down"></span>
+  </button>
+</h3>
+<p>Vul een adres in, of wijs een plek aan op de kaart.</p>
+<input type="text" placeholder="Adres..." [(ngModel)]="s" (input)="suggest()"/>
+<div class="overflow-auto">
+  <ul class="list-group">
+    <a href="javascript:void(0)" *ngFor="let locatie of locaties" (click)="lookup(locatie.id)" class="list-group-item">{{locatie.weergavenaam}}</a>
+  </ul>
+</div>
+<div *ngIf="markerModel.xy || locatie" class="alert" [ngClass]="markerModel.xy? 'alert-success' : 'alert-warning'">
+  <span *ngIf="!markerModel.name && !locatie">De aangewezen plek is gemarkeerd.</span>
+  <span *ngIf="markerModel.name || locatie">De kaart is ingezoomd naar <strong>{{markerModel.name || locatie.weergavenaam}}</strong><span *ngIf="!markerModel.xy">, maar dat is niet specifiek genoeg om een plan te vinden. Vul een adres in met huisnummer, of wijs een plek aan op de kaart</span>.</span>
+  <span *ngIf="markerModel.xy">Op deze plek <a href="javascript:void(0)" (click)="stateModel.enterSelectPlan()" class="alert-link">een plan kiezen</a>.</span>
+</div>
+<button *ngIf="markerModel.xy" (click)="stateModel.enterSelectPlan()" title="Op de gemarkeerde plek een plan kiezen" class="btn btn-primary">
+  Een plan kiezen <span class="fa fa-caret-right"></span>
+</button>
