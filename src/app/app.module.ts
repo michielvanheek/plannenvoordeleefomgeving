@@ -19,6 +19,7 @@ import {AngularSplitModule} from "angular-split";
 import {FormsModule} from "@angular/forms";
 import { MapPanelComponent } from './view/map-panel/map-panel.component';
 import { SearchPlaceComponent } from './view/search-place/search-place.component';
+import { SelectPlanComponent } from './view/select-plan/select-plan.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { SearchPlaceComponent } from './view/search-place/search-place.component
     LoaderComponent,
     PlanAccordionComponent,
     MapPanelComponent,
-    SearchPlaceComponent
+    SearchPlaceComponent,
+    SelectPlanComponent
   ],
   imports: [
     BrowserModule,

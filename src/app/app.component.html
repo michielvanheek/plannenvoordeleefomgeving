@@ -1,14 +1,14 @@
 <div class="main-container">
   <as-split direction="horizontal">
-    <as-split-area minSize="10">
+    <as-split-area minSize="10" style="padding: 0 20px">
       <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
-      <router-outlet></router-outlet>
+      <dso-select-plan *ngIf="stateModel.state == 'SELECT_PLAN'"></dso-select-plan>
     </as-split-area>
-    <as-split-area minSize="10">
+    <as-split-area minSize="10" class="overflow-hidden">
       <dso-map-panel></dso-map-panel>
     </as-split-area>
-    <as-split-area minSize="10">
-      info
+    <as-split-area minSize="10" *ngIf="planModel.plan">
+      <router-outlet></router-outlet>
     </as-split-area>
   </as-split>
 </div>

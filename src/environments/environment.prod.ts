@@ -7,6 +7,7 @@ export const environment = {
   websiteProxyURL: "http://www.niney.org/rpftoproxy/",           // FTO
   geoURL: "http://afnemers.acceptatie.ruimtelijkeplannen.nl/"*/
   websiteURL: "https://www.ruimtelijkeplannen.nl/",
-  websiteProxyURL: "https://www.niney.org/rpproxy/",             // PROD
+//  websiteProxyURL: "https://www.niney.org/rpproxy/",             // PROD
+  websiteProxyURL: "https://www.ruimtelijkeplannen.nl/",         // PROD
   geoURL: "https://afnemers.ruimtelijkeplannen.nl/"
 };

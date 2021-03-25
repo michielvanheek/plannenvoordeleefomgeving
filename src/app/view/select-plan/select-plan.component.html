@@ -1,0 +1,29 @@
+<button (click)="stateModel.toggleState()" title="Terug naar: Een plek zoeken" class="btn btn-link" style="margin: 8px 0; border: 0; padding: 0; font-size: 1em; font-weight: 500; color: #39870c">
+  <span class="fa fa-angle-left" style="margin-right: 8px"></span> Terug
+</button>
+<h3>Een plan kiezen</h3>
+<p>
+  Op de gemarkeerde plek bevinden zich {{planModel.planalysis.getNumPlannenText()}}. Kies een plan om te bekijken.
+  <!--<span ng-if="planModel.planalysis.planItems[0][0].length > 0">Een <a href="" ng-click="windowModel.toggleVisible(0)">keuzehulp voor bestemmingsplannen</a> is beschikbaar.</span>-->
+</p>
+<ul class="dso-nav dso-nav-sub">
+  <li *ngFor="let planLevel of planLevelModel.planLevels" (click)="planLevelModel.setPlanLevel(planLevel)" class="dso-outline" [ngClass]="{'dso-active': (planLevel == planLevelModel.planLevel)}">
+    <a href="javascript:void(0)">{{planLevel.name}}</a>
+  </li>
+</ul>
+<div style="position: relative">
+  <ul class="list-group list-group-flush">
+    <ng-template ngFor let-i="index" let-planLevelType [ngForOf]="planLevelModel.planLevel.types">
+<!--      <div ng-if="planModel.planalysis.planItems[planLevelModel.planLevel.id][$index].length > 0">-->
+        <li class="list-group-item header">{{planLevelType.name}} <span class="small light">({{planModel.planalysis.planItems[planLevelModel.planLevel.id][i].length}})</span></li>
+<!--        <lio models="planModel.planalysis.planItems[planLevelModel.planLevel.id]" model-index="$index" text="planLevelType.name"></lio>
+      </div>-->
+      <li *ngFor="let planItem of planModel.planalysis.planItems[planLevelModel.planLevel.id][i]" title="Dit plan kiezen" class="list-group-item" [ngClass]="{active: (planModel.plan && (planItem.plan.identificatie == planModel.plan.identificatie))}">
+          <strong *ngIf="planItem.plan.viewPlanLevel == planLevelModel.planLevel">{{planItem.plan.naam}}</strong>
+          <div *ngIf="planItem.plan.viewPlanLevel != planLevelModel.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
+          <div [ngClass]="{small: planItem.plan.viewPlanLevel != planLevelModel.planLevel}">{{planItem.plan.typePlan}}, {{planItem.plan.viewStatus}} ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
+          <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false)" ng-mouseover="setHighlight(planItem.plan)" ng-mouseout="setHighlight(null)" class="overlay"></div>
+      </li>
+    </ng-template>
+  </ul>
+</div>

@@ -1,10 +1,4 @@
 <div class="container" *ngIf="plan || planInfo" (scroll)="onElementScroll($event)">
-  <span>
-    <span tabindex="1" class="clickable document-page__return dso-outline">
-      <span class="fa fa-angle-left back-icon"></span>
-      Zoeken
-    </span>
-  </span>
   <dso-plan-info *ngIf="planInfo" [planInfo]="planInfo"></dso-plan-info>
   <dso-plan-info-body *ngIf="plan" [plan]="plan" [scrolledTop]="scrolledTop"></dso-plan-info-body>
 </div>
