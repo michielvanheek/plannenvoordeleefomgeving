@@ -2,18 +2,29 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+import { HttpHeaders } from "@angular/common/http";
+
 export const environment = {
   production: false,
-/*  websiteURL: "http://pilot.test.ruimtelijkeplannen.nl/",
-  websiteProxyURL: "http://www.niney.org/rpintproxy/",           // INT
-  geoURL: "http://pilot.test.ruimtelijkeplannen.nl/"*/
-/*  websiteURL: "http://www.acceptatie.ruimtelijkeplannen.nl/",
-  websiteProxyURL: "http://www.niney.org/rpftoproxy/",           // FTO
-  geoURL: "http://afnemers.acceptatie.ruimtelijkeplannen.nl/"*/
-  websiteURL: "https://www.ruimtelijkeplannen.nl/",
-//  websiteProxyURL: "https://www.niney.org/rpproxy/",             // PROD
-  websiteProxyURL: "https://www.ruimtelijkeplannen.nl/",         // PROD
-  geoURL: "https://afnemers.ruimtelijkeplannen.nl/"
+/*  websiteUrl: "http://pilot.test.ruimtelijkeplannen.nl/",
+  websiteProxyUrl: "http://www.niney.org/rpintproxy/",           // INT
+  geoUrl: "http://pilot.test.ruimtelijkeplannen.nl/"*/
+/*  websiteUrl: "http://www.acceptatie.ruimtelijkeplannen.nl/",
+  websiteProxyUrl: "http://www.niney.org/rpftoproxy/",           // FTO
+  geoUrl: "http://afnemers.acceptatie.ruimtelijkeplannen.nl/"*/
+  websiteUrl: "https://www.ruimtelijkeplannen.nl/",
+//  websiteProxyUrl: "https://www.niney.org/rpproxy/",             // PROD
+  websiteProxyUrl: "https://www.ruimtelijkeplannen.nl/",         // PROD
+  geoUrl: "https://afnemers.ruimtelijkeplannen.nl/",
+  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v5/",
+  dsoOptions: {
+    headers: new HttpHeaders({
+      "Accept" : "application/json, application/hal+json",
+      "x-api-key": "f9303b04-8db4-4d34-b2a9-356ba490f977",
+      "Content-CRS": "EPSG:28992",
+      "Accept-CRS": "EPSG:28992"
+    })
+  }
 };
 
 /*

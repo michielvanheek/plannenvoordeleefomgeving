@@ -104,6 +104,22 @@ export class PlanDecoratorService {
     return "onbekend";
   }
 
+  decorateOmgevingsdocument(plan) {
+    plan.tabFilter = "DSO";
+    plan.typePlan = (plan.type.waarde == "AMvB")? "AMvB": plan.type.waarde.toLowerCase();
+    plan.naam = plan.citeertitel || plan.opschrift;
+    plan.datum = plan.inwerkingVanaf;
+    plan.naamOverheid = plan.aangeleverdDoorEen.naam;
+    plan.overheidsCode = (plan.aangeleverdDoorEen.bestuurslaag == "MNRE")? "0000": ((plan.aangeleverdDoorEen.bestuurslaag == "PV")? "99": "") + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "");
+    plan.planStatus = plan.procedurestatus;
+    plan.dossierId = plan.identificatie;
+    plan.dossierStatus = "vastgesteld";
+    plan.boundingBox = null;
+    plan.sourcetable = "dso";
+    plan.vormvrijType = false;
+    plan.kaarten = [];
+  }
+
   decoratePlan(plan, includeStatus) {
     plan.viewOverheidName = plan.naamOverheid;
     if ((plan.viewOverheidName == null) || (plan.viewOverheidName == "gemeente")) {

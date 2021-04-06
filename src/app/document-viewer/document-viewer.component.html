@@ -1,4 +1,4 @@
-<div class="container" *ngIf="plan || planInfo" (scroll)="onElementScroll($event)">
-  <dso-plan-info *ngIf="planInfo" [planInfo]="planInfo"></dso-plan-info>
-  <dso-plan-info-body *ngIf="plan" [plan]="plan" [scrolledTop]="scrolledTop"></dso-plan-info-body>
+<div class="container" (scroll)="onElementScroll($event)">
+  <dso-plan-info [planInfo]="planModel.plan"></dso-plan-info>
+  <dso-plan-info-body *ngIf="planModel.plan.structuur" [plan]="planModel.plan.structuur" [scrolledTop]="scrolledTop"></dso-plan-info-body>
 </div>

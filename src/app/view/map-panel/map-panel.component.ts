@@ -41,7 +41,6 @@ export class MapPanelComponent {
     focusModel.maxEnvelope = new Envelope(-285401.92, 0, 600000, 903401.9199999999);
     focusModel.minScale = 595.275215575;
     focusModel.maxScale = 2438247.282993837;
-    focusModel.setCenterScale(new CenterScale(148000, 465000, 1219123.641496919));
   }
 
   mark(x, y) {

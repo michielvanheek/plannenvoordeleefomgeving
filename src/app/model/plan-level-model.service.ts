@@ -6,51 +6,52 @@ import { Injectable } from "@angular/core";
 export class PlanLevelModelService {
   planLevels = [
     {id: 0, name: "Gemeente", adjective: "gemeentelijk plan", types: [{
-      name: "bestemmingsplannen",
+      name: "regelgeving",
       filter: val => {
         return (
-          ((val.viewPlanLevel.name == "Gemeente") && (val.typePlan != "structuurvisie")) ||
-          ((val.viewPlanLevel.name == "Provincie") && (val.typePlan != "provinciale verordening") && (val.typePlan != "structuurvisie")) ||
-          ((val.viewPlanLevel.name == "Rijk") && (val.typePlan != "amvb") && (val.typePlan != "regeling") && (val.typePlan != "structuurvisie"))
+          ((val.viewPlanLevel.name == "Gemeente") && (val.typePlan != "structuurvisie") && (val.typePlan != "omgevingsvisie")) ||
+          ((val.viewPlanLevel.name == "Provincie") && (val.typePlan != "provinciale verordening") && (val.typePlan != "structuurvisie") && (val.typePlan != "omgevingsverordening") && (val.typePlan != "omgevingsvisie")) ||
+          ((val.viewPlanLevel.name == "Rijk") && (val.typePlan != "amvb") && (val.typePlan != "regeling") && (val.typePlan != "structuurvisie") && (val.typePlan != "AMvB") && (val.typePlan != "ministeriële regeling") && (val.typePlan != "omgevingsvisie"))
         );
       }
     }, {
-      name: "structuurvisies",
+      name: "beleid",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Gemeente") && (val.typePlan == "structuurvisie"));
+        return ((val.viewPlanLevel.name == "Gemeente") && ((val.typePlan == "structuurvisie") || (val.typePlan == "omgevingsvisie")));
       }
     }]},
     {id: 1, name: "Provincie", adjective: "provinciaal plan", types: [{
-      name: "bestemmingsplannen",
+      name: "regelgeving",
       filter: val => {
-        return false;
+        return ((val.viewPlanLevel.name == "Provincie") && (val.typePlan == "omgevingsverordening"));
       }
     }, {
-      name: "verordeningen",
+      name: "beleid",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Provincie") && (val.typePlan == "provinciale verordening"));
-      }
-    }, {
-      name: "structuurvisies",
-      filter: val => {
-        return ((val.viewPlanLevel.name == "Provincie") && (val.typePlan == "structuurvisie"));
+        return ((val.viewPlanLevel.name == "Provincie") && (val.typePlan == "omgevingsvisie"));
       }
     }
     ]},
-    {id: 2, name: "Rijk", adjective: "rijksplan", types: [{
-      name: "bestemmingsplannen",
+    {id: 2, name: "Waterschap", adjective: "rijksplan", types: [{
+      name: "regelgeving",
       filter: val => {
         return false;
       }
     }, {
-      name: "regels",
+      name: "beleid",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Rijk") && ((val.typePlan == "amvb") || (val.typePlan == "regeling")));
+        return false;
+      }
+    }]},
+    {id: 3, name: "Rijk", adjective: "rijksplan", types: [{
+      name: "regelgeving",
+      filter: val => {
+        return ((val.viewPlanLevel.name == "Rijk") && ((val.typePlan == "AMvB") || (val.typePlan == "ministeriële regeling")) && (val.naam != "Voorlopige oplossing functionele structuur"));
       }
     }, {
-      name: "structuurvisies",
+      name: "beleid",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Rijk") && (val.typePlan == "structuurvisie"));
+        return ((val.viewPlanLevel.name == "Rijk") && (val.typePlan == "omgevingsvisie"));
       }
     }]}
   ];
@@ -62,19 +63,14 @@ export class PlanLevelModelService {
 
   getPlanLevel(plan) {
     if (plan.overheidsCode == "0000") {
-      return this.planLevels[2];
+      return this.planLevels[3];  // rijk
+    }
+    if (plan.overheidsCode == "XXXX") {
+      return this.planLevels[2];  // waterschap
     }
     if (plan.overheidsCode >= "9900") {
-      return this.planLevels[1];
+      return this.planLevels[1];  // provincie
     }
-    /*if (plan.naamOverheid != null) {
-      if (plan.naamOverheid.toLowerCase().indexOf("provincie") == 0) {
-        return "PROVINCIE";
-      }
-      if ((plan.naamOverheid.toLowerCase().indexOf("rijksoverheid") == 0) || (plan.naamOverheid.toLowerCase().indexOf("ministerie") == 0)) {
-        return "RIJK";
-      }
-    }*/
-    return this.planLevels[0];
+    return this.planLevels[0];    // gemeente
   }
 }

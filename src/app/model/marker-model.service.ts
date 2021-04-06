@@ -27,12 +27,20 @@ export class MarkerModelService {
   }
 
   setXY = function(x, y, name) {
+    if ((this.xy != null) && (this.xy.x == x) && (this.xy.y == y)) {
+      return;
+    }
+
     this.xy = new Point(x, y);
     this.name = name;
     this.setOutOfBounds();
   }
 
   clear = function() {
+    if (this.xy == null) {
+      return;
+    }
+
     this.xy = null;
     this.name = null;
     this.setOutOfBounds();

@@ -1,14 +1,17 @@
 <div class="main-container">
   <as-split direction="horizontal">
-    <as-split-area minSize="10" style="padding: 0 20px">
+    <as-split-area size="33.3333" minSize="10">
       <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
       <dso-select-plan *ngIf="stateModel.state == 'SELECT_PLAN'"></dso-select-plan>
     </as-split-area>
-    <as-split-area minSize="10" class="overflow-hidden">
-      <dso-map-panel></dso-map-panel>
+    <as-split-area size="66.6667"  minSize="10">
+      <dso-map-panel *ngIf="nineyDefault.defaultFocusModel.animationCenterScale"></dso-map-panel>
+    </as-split-area>
+    <as-split-area size="0" minSize="0" *ngIf="!planModel.plan">
     </as-split-area>
     <as-split-area minSize="10" *ngIf="planModel.plan">
-      <router-outlet></router-outlet>
+      <div *ngIf="planModel.plan.versieImro">{{planModel.plan.identificatie}}</div>
+      <dso-document-viewer *ngIf="!planModel.plan.versieImro"></dso-document-viewer>
     </as-split-area>
   </as-split>
 </div>
@@ -23,3 +26,4 @@
     <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header
   </label>
 </div>
+<router-outlet></router-outlet>

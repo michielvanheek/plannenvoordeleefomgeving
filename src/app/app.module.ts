@@ -20,6 +20,7 @@ import {FormsModule} from "@angular/forms";
 import { MapPanelComponent } from './view/map-panel/map-panel.component';
 import { SearchPlaceComponent } from './view/search-place/search-place.component';
 import { SelectPlanComponent } from './view/select-plan/select-plan.component';
+import { RoutingComponent } from './view/routing/routing.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { SelectPlanComponent } from './view/select-plan/select-plan.component';
     PlanAccordionComponent,
     MapPanelComponent,
     SearchPlaceComponent,
-    SelectPlanComponent
+    SelectPlanComponent,
+    RoutingComponent
   ],
   imports: [
     BrowserModule,

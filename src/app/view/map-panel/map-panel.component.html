@@ -1,5 +1,5 @@
 <!--<n-map n-tap="measureModel.geometry? measureModel.addXY: mark" n-mousemove="measureModel.geometry? measureModel.setXY: null" ng-dblclick="measureModel.reset()" class="fullheight">-->
-<n-map [nTap]="mark.bind(this)" class="h-100">
+<n-map [nTap]="mark.bind(this)">
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
   <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>

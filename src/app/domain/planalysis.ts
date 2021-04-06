@@ -1,43 +1,33 @@
 export class Planalysis {
-    planItems = [[[], []], [[], [], []], [[], [], []]];
+    planItems = null;
     dossierSupersets = {};
     dossierSets = {};
 
     constructor(plannen, planLevels, parapluItems) {
-        this.addPlannen(plannen, planLevels);
-        this.analyze(parapluItems);
-    }
-
-    addPlannen(plannen, planLevels) {
         if (plannen == null) {
             return;
         }
 
-        for (let i = 0; i < planLevels.length; i++) {
-            for (let j = 0; j < planLevels[i].types.length; j++) {
-                const filteredPlannen = plannen.filter(planLevels[i].types[j].filter);
-                const orderedPlannen = filteredPlannen.sort((a, b) => (a["datum"] > b["datum"])? -1: (a["datum"] < b["datum"])? 1: (a["identificatie"] < b["identificatie"])? -1: (a["identificatie"] > b["identificatie"])? 1: 0);
-                for (let k = 0; k < orderedPlannen.length; k++) {
-                    this.planItems[i][j].push({plan: orderedPlannen[k], rule: null, helpText: null});
-                }
-            }
-        }
+        this.addPlannen(plannen, planLevels);
+        this.analyze(parapluItems);
     }
 
-    analyze(parapluItems) {
-        let copyBestemmingsplannenToProvincie = false;
-        let copyBestemmingsplannenToRijk = false;
+    private addPlannen(plannen, planLevels) {
+        this.planItems = planLevels.map(planLevel => {
+            return planLevel.types.map(type => {
+                const filteredPlannen = plannen.filter(type.filter);
+                const sortedPlannen = filteredPlannen.sort((a, b) => (a["datum"] > b["datum"])? -1: (a["datum"] < b["datum"])? 1: (a["identificatie"] < b["identificatie"])? -1: (a["identificatie"] > b["identificatie"])? 1: 0);
+                return sortedPlannen.map(plan => {
+                    return { plan: plan, rule: null, helpText: null };
+                });
+            });
+        });
+    }
 
+    private analyze(parapluItems) {
         for (let i = 0; i < this.planItems[0][0].length; i++) {
             const planItem = this.planItems[0][0][i];
             const plan = planItem.plan;
-
-            if (plan.viewPlanLevel.name == "Provincie") {
-                copyBestemmingsplannenToProvincie = true;
-            }
-            if (plan.viewPlanLevel.name == "Rijk") {
-                copyBestemmingsplannenToRijk = true;
-            }
 
             if ((plan.dossierId != null) && (plan.viewStatus != "vervallen") && (plan.viewStatus != "geconsolideerd")) {
                 const dossierSuperset = this.dossierSupersets[plan.dossierId];
@@ -182,13 +172,6 @@ export class Planalysis {
             }
 
             planItem.helpText = text;
-        }
-
-        if (copyBestemmingsplannenToProvincie) {
-            this.planItems[1][0] = this.planItems[0][0];
-        }
-        if (copyBestemmingsplannenToRijk) {
-            this.planItems[2][0] = this.planItems[0][0];
         }
     }
 

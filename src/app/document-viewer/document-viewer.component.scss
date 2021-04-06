@@ -1,18 +1,7 @@
-.back-icon {
-  margin-right: 5px;
+:host {
+  display: block;
 }
-.document-page__return {
-  color: #39870c;
-}
-
 .container {
-  height: calc(100vh - 20px);
-  width: 100%;
-  padding-top: 5px;
   position: relative;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  z-index: 2;
-  box-shadow: 2px -5px 5px #999;
-  background: #fff;
+  padding: 0;
 }

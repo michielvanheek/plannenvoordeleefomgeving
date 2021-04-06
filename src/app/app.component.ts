@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { AppService } from "./app.service";
 import { PlanModelService } from "./model/plan-model.service";
 import { StateModelService } from "./model/state-model.service";
@@ -12,6 +13,7 @@ export class AppComponent {
   settingsVisible = false;
 
   constructor(
+    public nineyDefault: NineyDefaultService,
     public appService: AppService,
     public stateModel: StateModelService,
     public planModel: PlanModelService
