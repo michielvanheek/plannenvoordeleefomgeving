@@ -3,6 +3,7 @@
     <as-split-area size="33.3333" minSize="10">
       <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
       <dso-select-plan *ngIf="stateModel.state == 'SELECT_PLAN'"></dso-select-plan>
+      <dso-search-plan *ngIf="stateModel.state == 'SEARCH_PLAN'"></dso-search-plan>
     </as-split-area>
     <as-split-area size="66.6667"  minSize="10">
       <dso-map-panel *ngIf="nineyDefault.defaultFocusModel.animationCenterScale"></dso-map-panel>

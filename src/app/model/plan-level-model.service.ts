@@ -32,15 +32,15 @@ export class PlanLevelModelService {
       }
     }
     ]},
-    {id: 2, name: "Waterschap", adjective: "rijksplan", types: [{
+    {id: 2, name: "Waterschap", adjective: "waterschapsplan", types: [{
       name: "regelgeving",
       filter: val => {
-        return false;
+        return ((val.viewPlanLevel.name == "Waterschap") && (val.typePlan == "waterschapsverordening"));
       }
     }, {
       name: "beleid",
       filter: val => {
-        return false;
+        return ((val.viewPlanLevel.name == "Waterschap") && (val.typePlan == "omgevingsvisie"));
       }
     }]},
     {id: 3, name: "Rijk", adjective: "rijksplan", types: [{
@@ -65,11 +65,11 @@ export class PlanLevelModelService {
     if (plan.overheidsCode == "0000") {
       return this.planLevels[3];  // rijk
     }
-    if (plan.overheidsCode == "XXXX") {
-      return this.planLevels[2];  // waterschap
-    }
     if (plan.overheidsCode >= "9900") {
       return this.planLevels[1];  // provincie
+    }
+    if (plan.overheidsCode >= "9000") {
+      return this.planLevels[2];  // waterschap
     }
     return this.planLevels[0];    // gemeente
   }

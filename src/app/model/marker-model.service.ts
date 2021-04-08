@@ -27,7 +27,7 @@ export class MarkerModelService {
   }
 
   setXY = function(x, y, name) {
-    if ((this.xy != null) && (this.xy.x == x) && (this.xy.y == y)) {
+    if ((this.xy != null) && (this.xy.x == x) && (this.xy.y == y) && ((this.name == name) || (name == null))) {
       return;
     }
 

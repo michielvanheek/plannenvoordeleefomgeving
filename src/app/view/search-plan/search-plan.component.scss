@@ -31,17 +31,10 @@
 .list-group-item:hover {
   background-color: #f2f2f2;
 }
+.list-group-item strong {
+  color: rgb(39, 89, 55);
+  font-size: 18px;
+}
 .alert {
   margin-top: 1rem;
-}
-.btn-default {
-  height: 40px;
-  border: 1px solid #39870c;
-  border-radius: 4px;
-  padding: 0 16px;
-  color: #39870c;
-}
-.btn-default:focus, .btn-default:hover {
-  color: #fff;
-  background-color: #39870c;
 }

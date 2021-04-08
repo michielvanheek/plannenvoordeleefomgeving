@@ -22,7 +22,6 @@ export class RoutingComponent implements DoCheck {
     private planModel: PlanModelService
   ) {
     this.activatedRoute.params.subscribe(params => {
-      //const local = this.activatedRoute.snapshot.data.local;
       const centerX = parseFloat(params.centerX);
       const centerY = parseFloat(params.centerY);
       const scale = parseFloat(params.scale);
@@ -37,7 +36,8 @@ export class RoutingComponent implements DoCheck {
       }
       if (params.documentId != null) {
         const identificatie = decodeURIComponent(params.documentId);
-        setTimeout(() => { this.planModel.loadPlan(identificatie, null, false); });
+        const local = this.activatedRoute.snapshot.data.local;
+        setTimeout(() => { this.planModel.loadPlan(identificatie, null, false, local); });
       } else {
         setTimeout(() => { this.planModel.setPlan(null, null); });
       }
@@ -60,6 +60,9 @@ export class RoutingComponent implements DoCheck {
       }
       if (this.planModel.plan != null) {
         url += `/${encodeURIComponent(this.planModel.plan.identificatie)}`;
+      }
+      if (this.activatedRoute.snapshot.data.local) {
+        url += "/local";
       }
       this.router.navigateByUrl(url);
     }

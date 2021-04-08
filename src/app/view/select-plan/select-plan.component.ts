@@ -9,6 +9,8 @@ import { StateModelService } from "src/app/model/state-model.service";
   styleUrls: ["./select-plan.component.scss"]
 })
 export class SelectPlanComponent {
+  count = (numPlannen, levels) => numPlannen + levels.reduce(this.countPerLevel, 0);
+  countPerLevel = (numPlannen, plannen) => numPlannen + plannen.length;
 
   constructor(
     public stateModel: StateModelService,

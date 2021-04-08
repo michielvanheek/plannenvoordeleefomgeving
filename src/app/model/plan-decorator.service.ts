@@ -110,7 +110,12 @@ export class PlanDecoratorService {
     plan.naam = plan.citeertitel || plan.opschrift;
     plan.datum = plan.inwerkingVanaf;
     plan.naamOverheid = plan.aangeleverdDoorEen.naam;
-    plan.overheidsCode = (plan.aangeleverdDoorEen.bestuurslaag == "MNRE")? "0000": ((plan.aangeleverdDoorEen.bestuurslaag == "PV")? "99": "") + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "");
+    plan.overheidsCode =
+      (plan.aangeleverdDoorEen.bestuurslaag == "MNRE")? "0000": (
+        (plan.aangeleverdDoorEen.bestuurslaag == "WS")? "9": (plan.aangeleverdDoorEen.bestuurslaag == "PV")? "99": ""
+      ) + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
+        (plan.aangeleverdDoorEen.bestuurslaag == "WS")? 1: 0
+      );
     plan.planStatus = plan.procedurestatus;
     plan.dossierId = plan.identificatie;
     plan.dossierStatus = "vastgesteld";

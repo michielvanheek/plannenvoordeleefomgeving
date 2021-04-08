@@ -19,7 +19,7 @@ export class SearchPlaceComponent implements DoCheck {
 
   constructor(
     private http:HttpClient,
-    private nineyDefaultService:NineyDefaultService,
+    private nineyDefault:NineyDefaultService,
     public stateModel: StateModelService,
     public markerModel: MarkerModelService
   ) { }
@@ -49,8 +49,8 @@ export class SearchPlaceComponent implements DoCheck {
     });
   }
 
-  lookup(locatieId) {
-    this.s = "";
+  lookup(locatieId, locatieWeergavenaam) {
+    this.s = locatieWeergavenaam;
     this.locaties = [];
 
     const url = "https://geodata.nationaalgeoregister.nl/locatieserver/lookup?fl=id,weergavenaam,boundingbox_rd,geometrie_rd&id=" + locatieId;
@@ -58,14 +58,7 @@ export class SearchPlaceComponent implements DoCheck {
       const locatie = response["response"].docs[0];
       locatie.geometry = (new WKTConverter()).wktToGeometry(locatie.geometrie_rd);
 
-      const envelope = locatie.geometry.getEnvelope();
-      const centerX = envelope.minX + envelope.getWidth() / 2;
-      const centerY = envelope.minY + envelope.getHeight() / 2;
-      const scale = Math.max(
-        envelope.getWidth() / this.nineyDefaultService.defaultBoundsModel.bounds.width,
-        envelope.getHeight() / this.nineyDefaultService.defaultBoundsModel.bounds.height
-      ) / this.nineyDefaultService.defaultFocusModel.centerScale.coordPixFactor;
-      this.nineyDefaultService.defaultFocusModel.setCenterScale(new CenterScale(centerX, centerY, scale), FocusModel.IF_REQUIRED_UPPER);
+      this.zoomToLocatie(locatie);
 
       if (locatie.geometry instanceof Point) {
         this.markerModel.setXY(locatie.geometry.x, locatie.geometry.y, locatie.weergavenaam);
@@ -74,5 +67,16 @@ export class SearchPlaceComponent implements DoCheck {
         this.markerModel.clear();
       }
     });
+  }
+
+  zoomToLocatie(locatie) {
+    const envelope = locatie.geometry.getEnvelope();
+    const centerX = envelope.minX + envelope.getWidth() / 2;
+    const centerY = envelope.minY + envelope.getHeight() / 2;
+    const scale = Math.max(
+      envelope.getWidth() / this.nineyDefault.defaultBoundsModel.bounds.width,
+      envelope.getHeight() / this.nineyDefault.defaultBoundsModel.bounds.height
+    ) / this.nineyDefault.defaultFocusModel.centerScale.coordPixFactor;
+    this.nineyDefault.defaultFocusModel.setCenterScale(new CenterScale(centerX, centerY, scale), FocusModel.IF_REQUIRED_UPPER);
   }
 }

@@ -4,6 +4,7 @@ import { CenterScale, Envelope, FocusModel, Layer } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { LayerModelService } from "./layer-model.service";
 import { MarkerModelService } from "./marker-model.service";
+import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
 import { ParapluModelService } from "./paraplu-model.service";
 import { Planalysis } from "../domain/planalysis"
 import { PlanDecoratorService } from "./plan-decorator.service";
@@ -31,7 +32,8 @@ export class PlanModelService {
     private layerModel: LayerModelService,
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
-    private planDecorator: PlanDecoratorService
+    private planDecorator: PlanDecoratorService,
+    private omgevingsdocumentModel: OmgevingsdocumentModelService
   ) {
     this.zone.onMicrotaskEmpty.subscribe({
       next: () => {
@@ -108,7 +110,7 @@ export class PlanModelService {
 //    this.setPlanInPlanalysis();
   }
 
-  loadPlan(idn, dossierSet, zoomToPlan) {
+  loadPlan(idn, dossierSet, zoomToPlan, local) {
     if ((this.plan != null) && (idn == this.plan.identificatie)) {
       return;
     }
@@ -148,26 +150,18 @@ export class PlanModelService {
           this.zoomToPlan();
         }
       });
-    } else {
-      const local = false;
-      const underscoredDocumentId = idn.replace(/\//g, '_');
+    } else {  // AKN.
+      const plan = this.omgevingsdocumentModel.omgevingsdocumenten.find(omgevingsdocument => omgevingsdocument.identificatie == idn);
+      this.setPlan(plan, dossierSet);
+//      if (zoomToPlan) {
+//        this.zoomToPlan();
+//      }
+
+      const underscoredDocumentId = idn.replace(/[^a-zA-Z0-9]/g, "_");
       const options = environment.dsoOptions;
-  
-      const url = local? `/assets/${underscoredDocumentId}.meta.json`: environment.dsoUrl + "omgevingsdocumenten/findById?identificatie=" + idn;
+      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "omgevingsdocumenten/" + underscoredDocumentId + "/documentcomponenten";
       this.http.get(url, options).subscribe(response => {
-        const plan:any = response;
-        this.planDecorator.decorateOmgevingsdocument(plan);
-        this.planDecorator.decoratePlan(plan, true);
-
-        this.setPlan(plan, dossierSet);
-//        if (zoomToPlan) {
-//          this.zoomToPlan();
-//        }
-
-        const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "omgevingsdocumenten/" + underscoredDocumentId + "/documentcomponenten";
-        this.http.get(url, options).subscribe(response => {
-          plan.structuur = response;
-        });
+        plan.structuur = response;
       });
     }
 

@@ -1,0 +1,46 @@
+<h3>Een plan zoeken
+  <button (click)="stateModel.toggleState()" title="Naar het scherm: Een plek zoeken" class="btn btn-rnd">
+    <span class="fa fa-caret-down"></span>
+  </button>
+</h3>
+<!-- <h4 class="h34">Op nummer of naam
+  <button ng-click="statusModel.enterSearchPlanCriteria()" title="Plan zoeken op kenmerken" class="btn btn-rnd btn-sm">
+    <span class="glyphicon glyphicon-triangle-bottom"></span>
+  </button>
+</h4> -->
+<input type="text" placeholder="/akn/nl/act/... of NL.IMRO.... of naam..." [(ngModel)]="s" (input)="loadPlannen(null)" class="form-control"/>
+<ul *ngIf="idns.length" class="list-group overflow-auto">
+  <a *ngFor="let idn of idns" (click)="planModel.loadPlan(idn, null, true, false); s = idn; idns = []" class="list-group-item" [ngClass]="{active: (planModel.plan && (idn == planModel.plan.identificatie))}">{{idn}}</a>
+</ul>
+<ul *ngIf="plannen.length" class="list-group overflow-auto">
+  <a *ngFor="let plan of plannen" (click)="planModel.loadPlan(plan.identificatie, null, true, false); plannen = []" class="list-group-item" [ngClass]="{active: (planModel.plan && (plan.identificatie == planModel.plan.identificatie))}"><strong>{{plan.naam}}</strong><br/>{{plan.viewOverheidName}}<br/>{{plan.typePlan}}, {{plan.planStatus}} ({{plan.viewDate}})</a>
+</ul>
+<div *ngIf="!warning && !idns.length && !plannen.length && !plannenMessages.length" class="alert alert-info">
+  <span *ngIf="!planModel.plan">Vul het identificatienummer van een plan in. Of de naam van een plan, eventueel aangevuld met extra zoekwoorden. Een deel van de naam mag ook.</span>
+  <span *ngIf="planModel.plan">Het gekozen plan is <strong>{{planModel.plan.naam}}</strong>.<br/>Om een ander plan te zoeken, vul het identificatienummer van dat plan in. Of de naam van het plan, eventueel aangevuld met extra zoekwoorden.</span>
+</div>
+<div *ngIf="warning == 'WRONG_LEAD'" class="alert alert-warning">
+  Verkeerde zoektekst. De identificatie van een plan begint altijd met <strong>/akn/nl/act/</strong> of met <strong>NL.IMRO.</strong>
+</div>
+<div *ngIf="warning == 'TOO_SHORT_FOR_IDN'" class="alert alert-warning">
+  Te weinig tekens om te kunnen zoeken. Tenminste <strong>NL.IMRO.</strong> en daarachter 4 cijfers zijn nodig.
+</div>
+<div *ngIf="warning == 'TOO_SHORT_FOR_AKN'" class="alert alert-warning">
+  Te weinig tekens om te kunnen zoeken. Tenminste <strong>/akn/nl/act/</strong> en daarachter 4 letters of cijfers zijn nodig.
+</div>
+<div *ngIf="warning == 'TOO_SHORT_FOR_NAME'" class="alert alert-warning">
+  <strong>{{s}}</strong>: te weinig letters om te kunnen zoeken. Tenminste 4 letters zijn nodig.
+</div>
+<div *ngIf="warning == 'NO_PLANS_FOUND_BY_IDN_AKN'" class="alert alert-warning">
+  Geen plannen gevonden waarvan de identificatie begint met: <strong>{{s}}</strong>
+</div>
+<div *ngIf="warning == 'NO_PLANS_FOUND_BY_NAME'" class="alert alert-warning">
+  Geen plannen gevonden met <strong>{{s}}</strong> in de naam.
+</div>
+<div *ngIf="warning == 'TOO_MANY_PLANS_FOUND_BY_NAME'" class="alert alert-warning">
+  Te veel plannen gevonden met <strong>{{s}}</strong> in de naam. Heeft de naam nog meer letters?
+</div>
+<div *ngIf="warning && warning.indexOf('FOUND_BUT_FILTERED') == 0" class="alert alert-warning">
+  Wel plannen gevonden met <strong>{{warning.split(":")[1]}}</strong> in de naam, maar niet in combinatie met de zoekterm <strong>{{warning.split(":")[2]}}</strong>.
+</div>
+<!-- <messagebox messages="planModel.plannenMessages" messagetypes="planModel.plannenMessageTypes"></messagebox> -->

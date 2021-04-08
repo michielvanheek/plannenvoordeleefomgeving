@@ -3,12 +3,12 @@
 </button>
 <h3>Een plan kiezen</h3>
 <p>
-  Op de gemarkeerde plek bevinden zich {{planModel.planalysis.getNumPlannenText()}}. Kies een plan om te bekijken.
+  Op de gemarkeerde plek bevinden zich {{planModel.planalysis.planItems.reduce(count, 0)}} plannen:
   <!--<span ng-if="planModel.planalysis.planItems[0][0].length > 0">Een <a href="" ng-click="windowModel.toggleVisible(0)">keuzehulp voor bestemmingsplannen</a> is beschikbaar.</span>-->
 </p>
 <ul class="dso-nav dso-nav-sub">
   <li *ngFor="let planLevel of planLevelModel.planLevels" (click)="planLevelModel.setPlanLevel(planLevel)" class="dso-outline" [ngClass]="{'dso-active': (planLevel == planLevelModel.planLevel)}">
-    <a href="javascript:void(0)">{{planLevel.name}}</a>
+    <a href="javascript:void(0)">{{planLevel.name}} <span class="small light">({{planModel.planalysis.planItems[planLevel.id].reduce(countPerLevel, 0)}})</span></a>
   </li>
 </ul>
 <div style="position: relative">
@@ -22,7 +22,7 @@
           <strong *ngIf="planItem.plan.viewPlanLevel == planLevelModel.planLevel">{{planItem.plan.naam}}</strong>
           <div *ngIf="planItem.plan.viewPlanLevel != planLevelModel.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
           <div [ngClass]="{small: planItem.plan.viewPlanLevel != planLevelModel.planLevel}">{{planItem.plan.typePlan}}, {{planItem.plan.viewStatus}} ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
-          <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false)" ng-mouseover="setHighlight(planItem.plan)" ng-mouseout="setHighlight(null)" class="overlay"></div>
+          <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false, false)" ng-mouseover="setHighlight(planItem.plan)" ng-mouseout="setHighlight(null)" class="overlay"></div>
       </li>
     </ng-template>
   </ul>
