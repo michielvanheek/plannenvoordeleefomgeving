@@ -20,17 +20,6 @@
   border: 1px solid #275937;
   border-radius: 0;
 }
-.list-group-item {
-  cursor: pointer;
-}
-.list-group-item.active {
-  border-color: rgba(0, 0, 0, 0.125);
-  color: inherit;
-  background-color: #f2f2f2;
-}
-.list-group-item:hover {
-  background-color: #f2f2f2;
-}
 .alert {
   margin-top: 1rem;
 }

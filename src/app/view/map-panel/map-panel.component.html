@@ -6,13 +6,13 @@
   <tileslayer [layer]="layerModel.layers[2]" [loader]="loader" [protocol]="'WMTS'" [tilewidth]="512" [tileheight]="512" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></tileslayer>
   <tileslayer [layer]="layerModel.layers[3]" [loader]="loader" [protocol]="'WMTS'" [tilewidth]="512" [tileheight]="512" [ngStyle]="{opacity: layerModel.otherPlansOpacity / 100}"></tileslayer>
   <wmslayer [layer]="layerModel.layers[4]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
-<!--  <mapfeaturelayer layer="layerModel.layers[5]" featuremodel="highlightModel.highlights[0]">
+  <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[0]">
     <canvassymbolizer inversefill="true" class="blackhighlight"></canvassymbolizer>
   </mapfeaturelayer>
-  <mapfeaturelayer layer="layerModel.layers[5]" featuremodel="highlightModel.highlights[1]">
+  <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[1]">
     <canvassymbolizer class="whitehighlight"></canvassymbolizer>
   </mapfeaturelayer>
-  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
+<!--  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
   <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>
 <div *ngIf="loader.numLoading == 1" class="loader">

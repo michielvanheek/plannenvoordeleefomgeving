@@ -1,0 +1,62 @@
+<ul class="dso-nav dso-nav-sub">
+  <li (click)="navState = 'place-info'" class="dso-outline" [ngClass]="{'dso-active': (navState == 'place-info')}">
+    <a href="javascript:void(0)">Plekinfo</a>
+  </li>
+  <li (click)="navState = 'documents'" class="dso-outline" [ngClass]="{'dso-active': (navState == 'documents')}">
+    <a href="javascript:void(0)">Plandocumenten</a>
+  </li>
+</ul>
+<div *ngIf="(navState == 'place-info') && (planModel.plan.vormvrijType || (planModel.plan.kaarten.length > 0))">
+  <p *ngIf="planModel.plan.kaarten.length == 0">
+    Dit plan heeft geen interactieve kaarten. Raadpleeg de plandocumenten voor kaartmateriaal.
+  </p>
+  <p *ngIf="planModel.plan.kaarten.length == 1">
+    Dit plan heeft 1 kaart: <strong>{{planModel.plan.kaarten[0].kaartNaam}}</strong>
+  </p>
+  <ul *ngIf="planModel.plan.kaarten.length > 1" class="list-group list-group-flush">
+    <a href="javascript:void(0)" *ngFor="let kaart of planModel.plan.kaarten" (click)="planModel.setKaart(kaart)" title="Deze kaart kiezen" class="list-group-item" [ngClass]="{active: (kaart == planModel.kaart)}">{{kaart.kaartNummer}}. {{kaart.kaartNaam}}</a>
+  </ul>
+</div>
+<div *ngIf="(navState == 'place-info') && markerModel.xy">
+  <p *ngIf="!hasContents && !planModel.planInPlanalysis">
+    De gemarkeerde plek ligt buiten het plan <strong>{{planModel.plan.naam}}</strong>. Kies een plek die binnen het plan ligt, of kies een ander plan.
+  </p>
+  <p *ngIf="!hasContents && planModel.planInPlanalysis">
+    Op de gemarkeerde plek is geen informatie gevonden voor het gekozen plan.<span *ngIf="planModel.plan.vormvrijType && (planModel.plan.kaarten.length == 0)"> Het plan <strong>{{planModel.plan.naam}}</strong> heeft geen interactieve kaarten. Raadpleeg de plandocumenten voor plekinformatie.</span><span *ngIf="planModel.plan.sourcetable == 'plangebied_pcp'"> <strong>{{planModel.plan.naam}}</strong> is een plancontour-met-PDF-plan. Raadpleeg de plandocumenten voor plekinformatie.</span>
+  </p>
+  <p *ngIf="hasContents && (infos[0].length == 0) && (infos[1].length == 0) && (planModel.plan.kaarten.length > 0)">
+    Op de gemarkeerde plek is geen informatie gevonden voor kaart {{planModel.kaart.kaartNummer}}: <strong>{{planModel.kaart.kaartNaam}}</strong>. Andere kaarten van het gekozen plan bevatten wel informatie op deze plek.
+  </p>
+  <ul *ngFor="let infos1 of infos" class="list-group list-group-flush">
+    <ng-template [ngIf]="infos1.length">
+      <li *ngIf="infos1 == infos[0]" class="list-group-item header">kaart {{planModel.kaart.kaartNummer}}: {{planModel.kaart.kaartNaam}}</li>
+      <li *ngIf="infos1 == infos[1] && infos[0].length" class="list-group-item header">kaart-onafhankelijk (algemene plekinfo)</li>
+      <li *ngFor="let info of infos1" class="list-group-item info">
+        <div class="legend"><img [src]="info.viewLegendUrl"/></div>
+        <div>
+          <div [innerHTML]="info.viewContent"></div>
+          <div *ngIf="info.viewLinksVisible" class="links">
+            <div>{{info.viewLinks.length}} verwijzingen naar {{planTypeAdjective}}:</div>
+            <div *ngFor="let link of info.viewLinks">&#8226; <a [href]="link.url" target="_blank" [title]="'Deze ' + planTypeAdjective + ' openen (in een apart venster)'">{{link.title}}</a></div>
+            <a href="javascript:void(0)" (click)="info.viewLinksVisible = false" class="btn-close"><span class="fa fa-times"></span></a>
+          </div>
+        </div>
+        <div *ngIf="!info.viewLinks.length" (mouseover)="highlightModel.setHighlight(1, info.geometrie)" (mouseout)="highlightModel.setHighlight(1, null)" class="overlay no-pointer"></div>
+        <div *ngIf="info.viewLinks.length && !info.viewLinksVisible" (mouseover)="highlightModel.setHighlight(1, info.geometrie)" (mouseout)="highlightModel.setHighlight(1, null)" (click)="openInfo(info)" [title]="'Bijbehorende ' + planTypeAdjective + ' openen (in een apart venster)'" class="overlay"></div>
+      </li>
+    </ng-template>
+  </ul>
+</div>
+<div *ngIf="navState == 'documents'">
+  <ul class="list-group list-group-flush mb-2">
+    <ng-template ngFor let-document [ngForOf]="planModel.documents">
+      <a [href]="document.url" *ngIf="!document.expert || expertDocumentsVisible" target="_blank" title="Dit document openen (in een apart venster)" class="list-group-item">{{document.label}}</a>
+    </ng-template>
+<!--    <a *ngIf="expertDocumentsVisible" *ngFor="let oep of oepModel.oeps[planModel.plan.identificatie]" ng-href="{{oep.hyperlink}}" target="_blank" title="Dit document openen (in een apart venster)" class="list-group-item">bekendmaking in {{oep.docType}}<div class="small">{{oep.titel}}</div></a>
+    <a href="" *ngIf="expertDocumentsVisible" ng-click="downloadService.downloadGML()" title="GML-bestand openen of opslaan" class="list-group-item">GML-bestand</a> -->
+  </ul>
+  <a href="javascript:void(0)" (click)="expertDocumentsVisible = !expertDocumentsVisible">
+    <span *ngIf="!expertDocumentsVisible"><span class="fa fa-angle-right mr-2"></span>meer plandocumenten</span>
+    <span *ngIf="expertDocumentsVisible"><span class="fa fa-angle-left mr-2"></span>minder plandocumenten</span>
+  </a>
+</div>

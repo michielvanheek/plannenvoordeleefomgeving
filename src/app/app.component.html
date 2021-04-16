@@ -11,7 +11,8 @@
     <as-split-area size="0" minSize="0" *ngIf="!planModel.plan">
     </as-split-area>
     <as-split-area minSize="10" *ngIf="planModel.plan">
-      <div *ngIf="planModel.plan.versieImro">{{planModel.plan.identificatie}}</div>
+      <dso-plan-info></dso-plan-info>
+      <dso-plan-viewer *ngIf="planModel.plan.versieImro"></dso-plan-viewer>
       <dso-document-viewer *ngIf="!planModel.plan.versieImro"></dso-document-viewer>
     </as-split-area>
   </as-split>

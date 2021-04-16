@@ -1,4 +1,3 @@
 <div class="container" (scroll)="onElementScroll($event)">
-  <dso-plan-info [planInfo]="planModel.plan"></dso-plan-info>
   <dso-plan-info-body *ngIf="planModel.plan.structuur" [plan]="planModel.plan.structuur" [scrolledTop]="scrolledTop"></dso-plan-info-body>
 </div>

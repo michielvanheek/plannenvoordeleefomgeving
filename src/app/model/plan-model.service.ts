@@ -18,10 +18,12 @@ import { environment } from "../../environments/environment"
 export class PlanModelService {
   private markerXY = null;
 
-  planalysis = new Planalysis(null, null, null);
+  planalysis = null;
   plan = null;
   dossierSet = null;
+  planInPlanalysis = false;
   kaart = null;
+  documents = [];
 
   constructor(
     private zone: NgZone,
@@ -106,8 +108,12 @@ export class PlanModelService {
   }
 
   setPlanalysis(plannen) {
-    this.planalysis = new Planalysis(plannen, this.planLevelModel.planLevels, this.parapluModel.parapluItems);
-//    this.setPlanInPlanalysis();
+    if (plannen == null) {
+      this.planalysis = null;
+    } else {
+      this.planalysis = new Planalysis(plannen, this.planLevelModel.planLevels, this.parapluModel.parapluItems);
+    }
+    this.setPlanInPlanalysis();
   }
 
   loadPlan(idn, dossierSet, zoomToPlan, local) {
@@ -207,10 +213,28 @@ export class PlanModelService {
       layers[4].baseURL = environment.geoUrl + "afnemers/services";
       layers[4].styleURL = styleURL;
     }
-//    this.setPlanInPlanalysis();
-//    this.loadPlantekst();
-//    this.setDocuments();
+    this.setPlanInPlanalysis();
+    this.setDocuments();
 //    this.setOutOfBounds();
+  }
+
+  setPlanInPlanalysis() {
+    if ((this.planalysis == null) || (this.plan == null)) {
+      this.planInPlanalysis = false;
+      return;
+    }
+
+    for (let i = 0; i < this.planalysis.planItems.length; i++) {
+      for (let j = 0; j < this.planalysis.planItems[i].length; j++) {
+        for (let k = 0; k < this.planalysis.planItems[i][j].length; k++) {
+          if (this.plan.identificatie == this.planalysis.planItems[i][j][k].plan.identificatie) {
+            this.planInPlanalysis = true;
+            return;
+          }
+        }
+      }
+    }
+    this.planInPlanalysis = false;
   }
 
   setKaart(kaart) {
@@ -220,7 +244,45 @@ export class PlanModelService {
       this.layerModel.layers[2] = null;
     } else {
       this.layerModel.layers[2] = new Layer(this.plan.identificatie.replace(/\./g, "_") + "_" + kaart.kaartNummer);
-      this.layerModel.layers[2].baseURL = environment.geoUrl + "geowebcache/service/wms";
+      this.layerModel.layers[2].baseURL = environment.geoWebCacheUrl;
+    }
+  }
+
+  setDocuments() {
+    this.documents = [];
+
+    if ((this.plan == null) || (this.plan.versieImro == null)) {
+      return;
+    }
+
+    const documentTypes = [
+      ["plantekst", "regels", "bijlage bij regels", "voorschriften", "bijlage bij voorschriften", "toelichting", "bijlage bij toelichting", "beleidstekst", "bijlage bij beleidstekst", "beleidsdocument", "bijlage bij beleidsdocument", "beleidsteksten", "illustratie", "plankaart", "bijlage", "externe verwijzing"],
+      ["vaststellingsbesluit", "besluitdocument", "bijlage bij besluitdocument"]
+    ];
+    const urlPrefix = environment.websiteUrl + "documents/" + this.plan.identificatie + "/";
+    for (let i = 0; i < 2; i++) {  // 0: non-expert document types, 1: expert document types
+      for (let j = 0; j < documentTypes[i].length; j++) {
+        const documentType = documentTypes[i][j];
+        const documentObjects = this.plan.verwijzingen.verwijzingenPerType[documentType];
+        if (documentObjects != null) {
+          for (let k = 0; k < documentObjects.length; k++) {
+            const documentObject = documentObjects[k];
+            let labelPostfix = "";
+            if ((documentType == "bijlage") && (documentObject.label != null) && (documentObject.label.indexOf("rb") == 0)) {
+              labelPostfix = " bij de regels";
+            } else if ((documentType == "bijlage") && (documentObject.label != null) && (documentObject.label.indexOf("tb") == 0)) {
+              labelPostfix = " bij de toelichting";
+            } else if (documentObjects.length > 1) {
+              labelPostfix = " " + (k + 1);
+            }
+            this.documents.push({
+              "label": documentType + labelPostfix,
+              "url": ((documentType == "externe verwijzing")? "": urlPrefix) + documentObject.verwijzingLink,
+              "expert": (i == 1)
+            });
+          }
+        }
+      }
     }
   }
 

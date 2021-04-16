@@ -12,6 +12,7 @@ export const environment = {
 //  websiteProxyUrl: "https://www.niney.org/rpproxy/",             // PROD
   websiteProxyUrl: "https://www.ruimtelijkeplannen.nl/",         // PROD
   geoUrl: "https://afnemers.ruimtelijkeplannen.nl/",
+  geoWebCacheUrl: "https://www.ruimtelijkeplannen.nl/kaartservices/geowebcache/service/wms",
   dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v5/",
   dsoOptions: {
     headers: new HttpHeaders({

@@ -21,7 +21,7 @@ export class LayerModelService {
 
   constructor() {
     this.layers[0].baseURL = "https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wms";
-    this.layers[3].baseURL = environment.geoUrl + "geowebcache/service/wms";
+    this.layers[3].baseURL = environment.geoWebCacheUrl;
     this.layers[3].visible = false;
 
     this.backgroundLayers[0].baseURL = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=brtachtergrondkaart&STYLE=_null&TILEMATRIXSET=EPSG%3A28992&FORMAT=image%2Fpng";

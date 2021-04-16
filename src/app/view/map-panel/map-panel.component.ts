@@ -1,6 +1,7 @@
 import { Component } from "@angular/core";
 import { CenterScale, Envelope, FocusModel, Loader, ZoomLevel } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
+import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 
@@ -15,6 +16,7 @@ export class MapPanelComponent {
   constructor(
     public nineyDefaultService: NineyDefaultService,
     public layerModel: LayerModelService,
+    public highlightModel: HighlightModelService,
     public markerModel: MarkerModelService
   ) {
     const focusModel = this.nineyDefaultService.defaultFocusModel;

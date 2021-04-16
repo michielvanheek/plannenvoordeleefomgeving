@@ -1,26 +1,63 @@
-<div class="panel-group dso-content">
-  <div class="dso-regels">
-    <div class="highlight-box">
-      <div class="flex">
-        <div class="flexleft"><h1>{{planInfo.citeertitel}}</h1>
-        </div>
-        <div class="flexright" title="Zoom naar plangeometrie" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}">
-          <dso-svg-icon class="clickable" icon="/assets/icons.svg#map-location"></dso-svg-icon>
-        </div>
-      </div>
-      <div>
-        {{planInfo.opschrift}}
-      </div>
-      <div class="grid">
-        <div class="gridrow">
-          <p>{{planInfo.type.waarde}} - {{planInfo.aangeleverdDoorEen.naam}}
-            <span class="pull-right docid ng-star-inserted">{{planInfo.identificatie}}</span>
-          </p>
-        </div>
-        <div class="gridrow ng-star-inserted">
-          <p>{{planInfo.procedurestatus}} - {{planInfo.inwerkingVanaf}}</p>
-        </div>
-      </div>
-    </div>
+<h4>{{plan.naam}}</h4>
+<div title="Zoom naar plangeometrie" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn-zoom">
+  <dso-svg-icon class="clickable" icon="/assets/icons.svg#map-location"></dso-svg-icon>
+</div>
+<div *ngIf="!expertInfoVisible">
+  <div class="pr-sm">{{plan.viewOverheidName}}</div>
+  <div>{{plan.typePlan}}, {{statusText}}</div>
+</div>
+<div *ngIf="expertInfoVisible">
+  <div *ngIf="plan.opschrift && (plan.opschrift != plan.naam)" class="mb-2 pr-lg">
+    {{plan.opschrift}}
   </div>
+  <table>
+    <tr>
+      <td class="font-weight-bold">Eigenaar</td><td>{{plan.viewOverheidName}}</td>
+    </tr>
+    <tr>
+      <td class="font-weight-bold">Type plan</td><td>{{plan.typePlan}}</td>
+    </tr>
+    <tr>
+      <td class="font-weight-bold">Status</td>
+      <td>
+        <div *ngIf="!planModel.dossierSet || !dossierPlannenVisible" [ngClass]="{'mb-2': planModel.dossierSet}">{{statusText}}</div>
+        <table *ngIf="planModel.dossierSet && dossierPlannenVisible" class="innertable">
+          <tr *ngFor="let plan1 of planModel.dossierSet.plannen" (click)="planModel.loadPlan(plan1.identificatie, 'CURRENT', false, false)" [ngClass]="{active: (plan.identificatie == plan1.identificatie)}">
+            <td>{{(planModel.dossierSet.mainPlan.identificatie == plan1.identificatie)? plan1.viewStatus: plan1.planStatus}}</td><td>{{plan1.viewDate}}</td>
+          </tr>
+        </table>
+        <a *ngIf="planModel.dossierSet" href="javascript:void(0)" (click)="toggleDossierPlannenVisible()">
+          <span *ngIf="!dossierPlannenVisible"><span class="fa fa-angle-right mr-2"></span>oudere versies van dit plan</span>
+          <span *ngIf="dossierPlannenVisible"><span class="fa fa-angle-left mr-2"></span>alleen de nieuwste versie</span>
+        </a>
+      </td>
+    </tr>
+    <tr *ngIf="plan.versieImro">
+      <td class="font-weight-bold">Uitgebreide status</td><td>{{plan.planStatus}} (plan); {{plan.dossierStatus? plan.dossierStatus + " (dossier)": "geen dossier"}}</td>
+    </tr>
+    <tr *ngIf="plan.normAdressant">
+      <td class="font-weight-bold">Doelgroep</td><td>{{plan.normAdressant}}</td>
+    </tr>
+    <tr *ngIf="plan.versieImro">
+      <td class="font-weight-bold">IMRO-versie</td><td>{{plan.versieImro}}</td>
+    </tr>
+    <tr>
+      <td class="font-weight-bold">Identificatie</td><td style="word-break: break-all">{{plan.identificatie}}</td>
+    </tr>
+    <tr *ngIf="plan.besluitNummer">
+      <td class="font-weight-bold">Besluitnummer</td><td>{{plan.besluitNummer}}</td>
+    </tr>
+    <tr *ngIf="plan.ondergrond">
+      <td class="font-weight-bold">Ondergrond</td><td style="word-break: break-all">{{plan.ondergrond}}</td>
+    </tr>
+  </table>
+</div>
+<div *ngIf="planModel.dossierSet && (planModel.dossierSet.mainPlan.identificatie != plan.identificatie)" class="alert alert-warning">
+  Van dit plan is een <a href="javascript:void(0)" (click)="planModel.loadPlan(planModel.dossierSet.mainPlan.identificatie, 'CURRENT', false, false)" class="alert-link">nieuwere versie</a> beschikbaar.
+</div>
+<div class="expert">
+  <a href="javascript:void(0)" (click)="toggleExpertInfoVisible()">
+    <span *ngIf="!expertInfoVisible"><span class="fa fa-angle-right mr-2"></span>meer planinfo</span>
+    <span *ngIf="expertInfoVisible"><span class="fa fa-angle-down mr-2"></span>minder planinfo</span>
+  </a>
 </div>

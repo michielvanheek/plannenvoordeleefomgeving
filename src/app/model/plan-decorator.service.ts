@@ -81,7 +81,7 @@ export class PlanDecoratorService {
       return plan.planStatus;
     }
     if (plan.planStatus == "vastgesteld") {
-      if (plan.dossierStatus == null) {
+      if ((plan.dossierStatus == null) || (plan.versieImro < "IMRO2012")) {
         return "vastgesteld";
       }
       if ((plan.dossierStatus == "geheel onherroepelijk in werking") || (plan.dossierStatus == "vervallen")) {

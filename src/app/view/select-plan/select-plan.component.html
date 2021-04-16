@@ -1,5 +1,5 @@
 <button (click)="stateModel.toggleState()" title="Terug naar: Een plek zoeken" class="btn btn-link" style="margin: 8px 0; border: 0; padding: 0; font-size: 1em; font-weight: 500; color: #39870c">
-  <span class="fa fa-angle-left" style="margin-right: 8px"></span> Terug
+  <span class="fa fa-angle-left mr-2"></span>terug
 </button>
 <h3>Een plan kiezen</h3>
 <p>
@@ -22,7 +22,7 @@
           <strong *ngIf="planItem.plan.viewPlanLevel == planLevelModel.planLevel">{{planItem.plan.naam}}</strong>
           <div *ngIf="planItem.plan.viewPlanLevel != planLevelModel.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
           <div [ngClass]="{small: planItem.plan.viewPlanLevel != planLevelModel.planLevel}">{{planItem.plan.typePlan}}, {{planItem.plan.viewStatus}} ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
-          <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false, false)" ng-mouseover="setHighlight(planItem.plan)" ng-mouseout="setHighlight(null)" class="overlay"></div>
+          <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false, false)" (mouseover)="highlightModel.loadHighlight(planItem.plan)" (mouseout)="highlightModel.loadHighlight(null)" class="overlay"></div>
       </li>
     </ng-template>
   </ul>

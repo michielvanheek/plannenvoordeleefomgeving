@@ -7,6 +7,18 @@ n-map {
   height: 100%;
   margin: 0 -11px;
 }
+.blackhighlight {
+  stroke: #fff;
+  stroke-width: 8px;
+  --stroke-filter: blur(3px);
+  fill: rgba(0, 0, 0, 0.6);
+}
+.whitehighlight {
+  stroke: #fff;
+  stroke-width: 4px;
+  filter: blur(2px);
+  fill: rgba(255, 255, 255, 0.5);
+}
 .loader {
   position: absolute;
   left: 8px;

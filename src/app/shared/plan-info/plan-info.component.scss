@@ -1,26 +1,49 @@
-.highlight-box {
-  background-color: #e5e5e5;
-  padding: 30px 20px 20px;
+:host {
+  display: block;
+  position: relative;
   margin: 0 -20px;
-
-  h1 {
-    margin-top: 0;
-    display: inline-block;
-    margin-bottom: 15px;
-    font-size: 32px;
-    font-family: 'Asap' ,sans-serif;
-    font-weight: 700;
-  }
-
-  p {
-    margin: initial;
-  }
+  padding: 25px 20px;
+  background-color: #e5e5e5;
 }
-
-.grid {
-  display: grid;
+h4 {
+  margin: 0 0 15px;
+  font-size: 32px;
 }
-
-.gridrow {
-  grid-column: 1;
+.btn-zoom {
+  position: absolute;
+  right: 25px;
+  top: 30px;
+}
+.expert {
+  position: absolute;
+  right: 25px;
+  top: 75px;
+}
+.pr-sm {
+  padding-right: 120px;
+}
+.pr-lg {
+  padding-right: 132px;
+}
+table {
+  margin: 0;
+}
+td {
+  padding: 0 8px 8px 0;
+  vertical-align: top;
+}
+.innertable tr:not(.active) {
+  color: #39870c;
+}
+.innertable tr:not(.active):hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.innertable tr.active {
+  font-weight: bold;
+  color: #275937;
+  cursor: default;
+}
+.alert {
+  margin: 7px 0 0;
 }
