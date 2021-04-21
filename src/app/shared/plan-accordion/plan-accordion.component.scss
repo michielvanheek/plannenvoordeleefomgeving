@@ -1,57 +1,45 @@
-.accordion-title {
-  color: #275937;
-  margin-bottom: 4px;
-  line-height: 1.1;
+.document-element {
+  margin-bottom: .5rem;
 
-  &__chevron {
-    width: 18px;
-    margin-right: 6px;
-    text-align: center;
+  &__title {
+    display: flex;
+
+    &-container {
+      margin-bottom: .5rem;
+      width: 100%;
+      display: block;
+    }
+
+    &-header {
+      display: flex;
+      flex: 1;
+
+      &-item {
+        margin-right: 6px;
+      }
+    }
   }
 
-  &.title-1 {
-    // display: none;
+  &__inhoud {
+    display: flex;
+
+    &-text {
+      flex: 1;
+      padding-left: 1em;
+    }
   }
 
-  &.title-2 {
-    padding: 4px 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-
-  &.title-3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    padding-bottom: 4px;
-  }
-
-  &.title-4 {
-    font-size: 1rem;
-    font-weight: 600;
-    padding-bottom: 8px;
-  }
-
-  &.title-5 {
-    font-size: 1rem;
-    font-weight: 600;
-    padding-bottom: 8px;
-    color: black;
-  }
-
-  &.title-6 {
-    font-size: 1rem;
-    font-weight: 700;
-    padding-bottom: 8px;
+  &__number {
+    margin-left: 1.25rem
   }
 }
 
-.inhoud {
-  margin-top: -4px;
-  margin-left: 18px;
+.od-Inhoud, .od-Inhoud>.od-Lijst, .od-IntIoRef, .od-Lidnr, .od-LiNr, .od-Opschrift, .od-Tussenkop {
+  display: inline;
 }
 
 .od-Al, .od-Begrip, .od-Definitie, .od-Li, .od-Lidnr, .od-Lijst, .od-Lijstsluiting, .od-LiNr, .od-Term, .od-Tussenkop, table {
-  margin-left: 1em;
+  margin-bottom: .75em;
 }
 
 .od-LiNummer {
@@ -64,8 +52,10 @@
 
 .od-Figuur {
   width: 100%;
+
   img {
-    width: 100%;
+    margin-left: 25px;
+    max-width: 90%;
     height: auto;
   }
 }
@@ -111,8 +101,4 @@
 
 .text-lid-content {
   grid-area: text-lid-content-area;
-}
-
-.accordion-content {
-  margin-top: -4px;
 }

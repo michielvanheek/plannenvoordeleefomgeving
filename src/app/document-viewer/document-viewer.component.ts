@@ -1,5 +1,5 @@
-import { Component } from "@angular/core";
-import { PlanModelService } from "src/app/model/plan-model.service";
+import {Component} from "@angular/core";
+import {PlanModelService} from "src/app/model/plan-model.service";
 
 @Component({
   selector: "dso-document-viewer",
@@ -9,11 +9,7 @@ import { PlanModelService } from "src/app/model/plan-model.service";
 export class DocumentViewerComponent {
   planInfo;
   plan;
-  scrolledTop = 0;
 
-  constructor(public planModel: PlanModelService) { }
-
-  onElementScroll(event) {
-    this.scrolledTop = event.target.scrollTop;
+  constructor(public planModel: PlanModelService) {
   }
 }

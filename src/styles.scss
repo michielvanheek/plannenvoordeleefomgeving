@@ -295,7 +295,7 @@ li.list-group-item.active:hover {
   margin: -1px -16px 0;
   border-top: 1px solid rgb(139, 74, 106);
   border-bottom: 1px solid rgb(139, 74, 106);
-  padding: 0 16px 0;    
+  padding: 0 16px 0;
   line-height: 28px;
   color: rgb(139, 74, 106);
   background-color: rgb(243, 236, 240);
@@ -312,4 +312,14 @@ li.list-group-item.active:hover {
   width: 100%;
   height: calc(100% + 1px);
   cursor: pointer;
+}
+
+table.table {
+  margin-bottom: 24px;
+  max-width: 100%;
+  width: 100%;
+}
+
+table {
+  background-color: transparent;
 }

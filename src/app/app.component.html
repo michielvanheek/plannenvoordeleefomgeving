@@ -1,4 +1,4 @@
-<div class="main-container">
+<div class="main-container" xmlns="http://www.w3.org/1999/html">
   <as-split direction="horizontal">
     <as-split-area size="33.3333" minSize="10">
       <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
@@ -26,6 +26,10 @@
   <h4>Settings</h4>
   <label for="headertype">
     <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header
+  </label>
+  <br>
+  <label for="openmode">
+    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode"> Document open mode
   </label>
 </div>
 <router-outlet></router-outlet>

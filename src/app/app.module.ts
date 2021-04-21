@@ -23,7 +23,8 @@ import { SelectPlanComponent } from "./view/select-plan/select-plan.component";
 import { RoutingComponent } from "./view/routing/routing.component";
 import { SearchPlanComponent } from "./view/search-plan/search-plan.component";
 import { OmgevingsdocumentModelService } from "./model/omgevingsdocument-model.service";
-import { PlanViewerComponent } from './view/plan-viewer/plan-viewer.component';
+import { PlanViewerComponent } from "./view/plan-viewer/plan-viewer.component";
+import { DocumentElementTitleComponent } from "./shared/document-element-title/document-element-title.component";
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { PlanViewerComponent } from './view/plan-viewer/plan-viewer.component';
     SelectPlanComponent,
     RoutingComponent,
     SearchPlanComponent,
-    PlanViewerComponent
+    PlanViewerComponent,
+    DocumentElementTitleComponent
   ],
   imports: [
     BrowserModule,

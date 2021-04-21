@@ -1,10 +1,10 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from "@angular/core";
 import {AppService} from "../../app.service";
 
 @Component({
-  selector: 'dso-plan-accordion',
-  templateUrl: './plan-accordion.component.html',
-  styleUrls: ['./plan-accordion.component.scss'],
+  selector: "dso-plan-accordion",
+  templateUrl: "./plan-accordion.component.html",
+  styleUrls: ["./plan-accordion.component.scss"],
   encapsulation: ViewEncapsulation.None,
 })
 export class PlanAccordionComponent implements OnInit {
@@ -18,6 +18,9 @@ export class PlanAccordionComponent implements OnInit {
   }
 
   openElement(element) {
-    element.isOpen = !element.isOpen;
+    if (!element.gereserveerd && !element.vervallen && !this.appService.settings.documentOpenMode) {
+      element.isOpen = !element.isOpen;
+    }
   }
 }
+

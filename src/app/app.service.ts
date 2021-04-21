@@ -1,19 +1,20 @@
 import {Injectable} from "@angular/core";
 
-@Injectable({providedIn: 'root'})
+@Injectable({providedIn: "root"})
 export class AppService {
   settings = {
-    planTypeInHeader: false
+    planTypeInHeader: false,
+    documentOpenMode: false
   }
   titleSymbols = {
-    HOOFDSTUK: 'HOOFDSTUK',
-    TITEL: 'TITEL',
-    AFDELING: 'AFDELING',
-    PARAGRAAF: '§',
-    SUBPARAGRAAF: '§',
-    SUBSUBPARAGRAAF: '§',
-    ARTIKEL: 'Artikel',
-    LID: '',
-    BIJLAGE: 'BIJLAGE'
+    HOOFDSTUK: "HOOFDSTUK",
+    TITEL: "TITEL",
+    AFDELING: "AFDELING",
+    PARAGRAAF: "§",
+    SUBPARAGRAAF: "§",
+    SUBSUBPARAGRAAF: "§",
+    ARTIKEL: "Artikel",
+    LID: "",
+    BIJLAGE: "BIJLAGE"
   }
 }

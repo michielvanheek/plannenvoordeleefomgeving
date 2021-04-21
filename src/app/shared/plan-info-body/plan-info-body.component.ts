@@ -1,21 +1,20 @@
-import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, Input, OnInit, ViewChild} from "@angular/core";
 
 @Component({
-  selector: 'dso-plan-info-body',
-  templateUrl: './plan-info-body.component.html',
-  styleUrls: ['./plan-info-body.component.scss']
+  selector: "dso-plan-info-body",
+  templateUrl: "./plan-info-body.component.html",
+  styleUrls: ["./plan-info-body.component.scss"]
 })
 export class PlanInfoBodyComponent implements OnInit {
-  @ViewChild('scrollHeader', {static: true}) scrollHeader: ElementRef;
+  @ViewChild("scrollHeader", {static: true}) scrollHeader: ElementRef;
 
   @Input() plan;
-  @Input() scrolledTop;
 
   headers = [
-    {id: 1, label: 'Regels', type: 'LICHAAM' },
-    {id: 2, label: 'Toelichting', type: '' },
-    {id: 3, label: 'Bijlagen', type: 'BIJLAGE'}
-  ]
+    {id: 1, label: "Regels", type: "LICHAAM" },
+    {id: 2, label: "Toelichting", type: "" },
+    {id: 3, label: "Bijlagen", type: "BIJLAGE"}
+  ];
   activeHeader;
 
   tabData;
@@ -27,7 +26,6 @@ export class PlanInfoBodyComponent implements OnInit {
 
   ngOnInit(): void {
     this.startOffsetOfScrollbar = this.scrollHeader.nativeElement.offsetTop;
-    console.log('init', this.plan);
     this.onChangeTab(this.headers[0]);
   }
 
