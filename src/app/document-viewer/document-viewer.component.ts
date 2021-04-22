@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, OnInit} from "@angular/core";
 import {PlanModelService} from "src/app/model/plan-model.service";
 
 @Component({
@@ -6,10 +6,14 @@ import {PlanModelService} from "src/app/model/plan-model.service";
   templateUrl: "./document-viewer.component.html",
   styleUrls: ["./document-viewer.component.scss"]
 })
-export class DocumentViewerComponent {
+export class DocumentViewerComponent implements OnInit {
   planInfo;
   plan;
 
   constructor(public planModel: PlanModelService) {
+  }
+
+  ngOnInit() {
+    console.log(this.planModel.plan);
   }
 }

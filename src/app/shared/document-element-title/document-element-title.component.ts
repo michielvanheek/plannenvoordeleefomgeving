@@ -14,7 +14,6 @@ export class DocumentElementTitleComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log(this.element);
   }
 
   get isOpenable(): boolean {

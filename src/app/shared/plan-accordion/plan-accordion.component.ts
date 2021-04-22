@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from "@angular/core";
+import {Component, Input, OnInit, SkipSelf, ViewEncapsulation} from "@angular/core";
 import {AppService} from "../../app.service";
 
 @Component({
@@ -15,6 +15,7 @@ export class PlanAccordionComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log(this.item);
   }
 
   openElement(element) {
