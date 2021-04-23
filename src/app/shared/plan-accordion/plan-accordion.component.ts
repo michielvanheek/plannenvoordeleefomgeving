@@ -9,7 +9,7 @@ import {AppService} from "../../app.service";
 })
 export class PlanAccordionComponent implements OnInit {
   @Input() item;
-  @Input() state;
+  @Input() level;
 
   constructor(public appService: AppService) {
   }

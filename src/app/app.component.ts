@@ -19,6 +19,5 @@ export class AppComponent {
     public stateModel: StateModelService,
     public omgevingsdocumentModel: OmgevingsdocumentModelService,
     public planModel: PlanModelService
-  ) {
-  }
+  ) { }
 }

@@ -1,5 +1,5 @@
-import {Component, OnInit} from "@angular/core";
-import {PlanModelService} from "src/app/model/plan-model.service";
+import { Component, OnInit } from "@angular/core";
+import { PlanModelService } from "src/app/model/plan-model.service";
 
 @Component({
   selector: "dso-document-viewer",

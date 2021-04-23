@@ -1,13 +1,13 @@
-<h2 *ngIf="element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'" class="document-element__title clickable">
+<h2 *ngIf="element.type === 'BOEK' || element.type === 'DEEL' || element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'" class="document-element__title clickable">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h2>
 <h3 *ngIf="element.type === 'DIVISIE' || element.type === 'DIVISIETEKST'" class="document-element__title clickable">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h3>
-<h4 *ngIf="element.type === 'AFDELING'" class="document-element__title clickable">
+<h4 *ngIf="element.type === 'TITEL' || element.type === 'AFDELING'" class="document-element__title clickable">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h4>
-<h5 *ngIf="element.type === 'PARAGRAAF'" class="document-element__title clickable">
+<h5 *ngIf="element.type === 'PARAGRAAF' || element.type === 'SUBPARAGRAAF' || element.type === 'SUBSUBPARAGRAAF'" class="document-element__title clickable">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h5>
 <h6 *ngIf="element.type === 'ARTIKEL'" class="document-element__title clickable">

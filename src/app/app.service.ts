@@ -7,6 +7,8 @@ export class AppService {
     documentOpenMode: false
   }
   titleSymbols = {
+    BOEK: "BOEK",
+    DEEL: "DEEL",
     HOOFDSTUK: "HOOFDSTUK",
     TITEL: "TITEL",
     AFDELING: "AFDELING",
