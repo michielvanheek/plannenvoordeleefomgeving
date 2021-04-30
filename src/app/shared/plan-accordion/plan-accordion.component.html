@@ -5,7 +5,7 @@
       <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
     </div>
     <ng-template #foo>
-      <div class="document-element__title-container clickable" (click)="openElement(element)">
+      <div class="document-element__title-container" (click)="openElement(element)">
         <dso-document-element-title [element]="element"></dso-document-element-title>
       </div>
       <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || this.appService.settings.documentOpenMode">
