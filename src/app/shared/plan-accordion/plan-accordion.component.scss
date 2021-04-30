@@ -32,6 +32,26 @@
   &__number {
     margin-left: 1.25rem
   }
+
+  .btn-link, .btn-link.active, .btn-link:active, .btn-link[disabled], fieldset[disabled] .btn-link {
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .btn-link {
+    text-align: left;
+    border: 0;
+    border-radius: 0;
+    color: #39870c;
+    line-height: 1;
+    padding: 0;
+    text-transform: none;
+
+    &:focus, &:hover {
+      text-decoration: none;
+      outline: 0;
+    }
+  }
 }
 
 .od-Inhoud, .od-Inhoud>.od-Lijst, .od-IntIoRef, .od-Lidnr, .od-LiNr, .od-Opschrift, .od-Tussenkop {
@@ -42,8 +62,15 @@
   margin-bottom: .75em;
 }
 
+.od-Definitie, .od-Tussenkop {
+  font-style: italic;
+}
+
 .od-LiNummer {
   float: left;
+  min-width: .7em;
+  padding-right: .3em;
+  text-align: right;
 }
 
 .od-Term {
@@ -58,6 +85,10 @@
     max-width: 90%;
     height: auto;
   }
+}
+
+.od-Tabel thead {
+  font-weight: 600;
 }
 
 .textflex {

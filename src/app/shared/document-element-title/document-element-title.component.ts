@@ -9,6 +9,7 @@ import {AppService} from "../../app.service";
 export class DocumentElementTitleComponent implements OnInit {
   @Input() element: any;
   @Input() isOpen = false;
+  @Input() level = 0;
 
   constructor(public appService: AppService) {
   }
