@@ -1,13 +1,18 @@
 .document-element {
   margin-bottom: .5rem;
 
+  &__options {
+    margin-left: 1.25rem;
+    height: 1.5rem;
+  }
+
   &__title {
     display: flex;
 
     &-container {
       margin-bottom: .5rem;
       width: 100%;
-      display: block;
+      display: flex;
     }
 
     &-header {
@@ -84,6 +89,12 @@
     margin-left: 25px;
     max-width: 90%;
     height: auto;
+  }
+
+  .od-Bijschrift {
+    font-size: .75rem;
+    margin-left: 25px;
+    padding-bottom: 2.5rem;
   }
 }
 

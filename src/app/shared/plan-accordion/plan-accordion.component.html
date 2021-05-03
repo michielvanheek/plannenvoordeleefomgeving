@@ -9,6 +9,7 @@
         <button class="btn-link">
           <dso-document-element-title [element]="element" [level]="level"></dso-document-element-title>
         </button>
+        <div class="document-element__options"></div>
       </div>
       <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || this.appService.settings.documentOpenMode">
         <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element" [level]="level + 1"></dso-plan-accordion>
