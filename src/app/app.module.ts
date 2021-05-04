@@ -11,7 +11,6 @@ import { NineyModule } from "ng-niney/niney.module";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
-import { DocumentViewerComponent } from "./document-viewer/document-viewer.component";
 import { PlanInfoComponent } from "./shared/plan-info/plan-info.component";
 import { SvgIconComponent } from "./shared/svg-icon/svg-icon.component";
 import { PlanInfoBodyComponent } from "./shared/plan-info-body/plan-info-body.component";
@@ -29,7 +28,6 @@ import { DocumentElementTitleComponent } from "./shared/document-element-title/d
 @NgModule({
   declarations: [
     AppComponent,
-    DocumentViewerComponent,
     PlanInfoComponent,
     SvgIconComponent,
     PlanInfoBodyComponent,

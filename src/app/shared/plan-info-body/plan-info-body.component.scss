@@ -1,11 +1,9 @@
-
-.spinner-area {
-  height: 10px;
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  margin-top: 8px;
 }
-
-.sticktotop {
-  width: 100%;
-  background-color: #fff;
-  z-index: 99999;
-  left: 0;
+.tab-content {
+  overflow: auto;
 }

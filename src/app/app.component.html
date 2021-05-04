@@ -13,7 +13,7 @@
     <as-split-area minSize="10" *ngIf="planModel.plan">
       <dso-plan-info></dso-plan-info>
       <dso-plan-viewer *ngIf="planModel.plan.versieImro"></dso-plan-viewer>
-      <dso-document-viewer *ngIf="!planModel.plan.versieImro"></dso-document-viewer>
+      <dso-plan-info-body *ngIf="!planModel.plan.versieImro && planModel.plan.structuur" [plan]="planModel.plan.structuur"></dso-plan-info-body>
     </as-split-area>
   </as-split>
 </div>
@@ -25,11 +25,11 @@
 <div *ngIf="settingsVisible" class="setting-ct">
   <h4>Settings</h4>
   <label for="headertype">
-    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.planTypeInHeader"> Type in header
+    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
   </label>
   <br>
   <label for="openmode">
-    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode"> Document open mode
+    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode"> Document integraal
   </label>
 </div>
 <router-outlet></router-outlet>

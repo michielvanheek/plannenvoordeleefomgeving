@@ -6,11 +6,10 @@ import {Component, ElementRef, Input, OnInit, ViewChild} from "@angular/core";
   styleUrls: ["./plan-info-body.component.scss"]
 })
 export class PlanInfoBodyComponent implements OnInit {
-  @ViewChild("scrollHeader", {static: true}) scrollHeader: ElementRef;
-
   @Input() plan;
 
   headers = [
+    {id: 0, label: "Plekinfo", type: null },
     {id: 1, label: "Regels", type: "LICHAAM" },
     {id: 2, label: "Toelichting", type: "" },
     {id: 3, label: "Bijlagen", type: "BIJLAGE"}
@@ -19,13 +18,10 @@ export class PlanInfoBodyComponent implements OnInit {
 
   tabData;
 
-  public startOffsetOfScrollbar;
-
   constructor() {
   }
 
   ngOnInit(): void {
-    this.startOffsetOfScrollbar = this.scrollHeader.nativeElement.offsetTop;
     this.onChangeTab(this.headers[0]);
   }
 
