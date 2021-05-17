@@ -1,22 +1,27 @@
 <div class="document-element">
-  <div *ngFor="let element of item._embedded.documentComponenten">
-    <div *ngIf="((element.type == 'LID') || (element.type == 'DIVISIETEKST')) && !element.opschrift; else foo" class="document-element__inhoud">
-      <div class="document-element__number">{{element.nummer}}</div>
-      <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
+  <div *ngFor="let element of item._embedded.documentComponenten"
+       [style.opacity]="(!visibilityObject || element.type === 'LICHAAM' || (visibilityObject && visibilityObject[element.identificatie])) ? 1 : 0.5">
+    <div *ngIf="!visibilityObject || element.type === 'LICHAAM' || this.appService.settings.documentOpenMode || (visibilityObject && visibilityObject[element.identificatie])">
+      <div *ngIf="((element.type == 'LID') || (element.type == 'DIVISIETEKST')) && !element.opschrift; else foo"
+           class="document-element__inhoud">
+        <div class="document-element__number">{{element.nummer}}</div>
+        <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
+      </div>
+      <ng-template #foo>
+        <div class="document-element__title-container" (click)="openElement(element)">
+          <button class="btn-link">
+            <dso-document-element-title [element]="element" [level]="level"></dso-document-element-title>
+          </button>
+          <div class="document-element__options"></div>
+        </div>
+        <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || this.appService.settings.documentOpenMode">
+          <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element"
+                              [level]="level + 1" [visibilityObject]="visibilityObject"></dso-plan-accordion>
+          <ng-template #bar>
+            <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
+          </ng-template>
+        </div>
+      </ng-template>
     </div>
-    <ng-template #foo>
-      <div class="document-element__title-container" (click)="openElement(element)">
-        <button class="btn-link">
-          <dso-document-element-title [element]="element" [level]="level"></dso-document-element-title>
-        </button>
-        <div class="document-element__options"></div>
-      </div>
-      <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || this.appService.settings.documentOpenMode">
-        <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element" [level]="level + 1"></dso-plan-accordion>
-        <ng-template #bar>
-          <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
-        </ng-template>
-      </div>
-    </ng-template>
   </div>
 </div>

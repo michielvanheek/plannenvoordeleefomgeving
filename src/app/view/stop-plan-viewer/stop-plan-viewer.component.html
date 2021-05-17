@@ -10,8 +10,8 @@
   <dso-markanvas></dso-markanvas>
 </div>
 <div *ngIf="activeHeader.id === 1" class="tab-content">
-  <dso-plan-accordion [item]="tabData" [level]="1"></dso-plan-accordion>
+  <dso-plan-accordion [item]="tabData" [level]="1" [visibilityObject]="componentIdentiifcatiesObject"></dso-plan-accordion>
 </div>
 <div *ngIf="activeHeader.id === 3" class="tab-content">
-  <dso-plan-accordion [item]="tabData" [level]="2"></dso-plan-accordion>
+  <dso-plan-accordion [item]="tabData" [level]="2" [visibilityObject]="componentIdentiifcatiesObject"></dso-plan-accordion>
 </div>
