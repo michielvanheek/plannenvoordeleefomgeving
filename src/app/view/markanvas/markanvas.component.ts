@@ -83,13 +83,19 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   openInfo(imowObject) {
-    this.planModel.setComponentIdentificaties([...new Set(
-      imowObject.regelteksten.reduce(
-        (identificaties, regeltekst) => identificaties.concat(regeltekst.documentKruimelpad.map(
-          pad => pad.identificatie
-        )
-      ), [])
-    )]);
+    const componentIdentificaties = {};
+
+    componentIdentificaties[imowObject.regelteksten[0].documentIdentificatie + "__body"] = "trail";
+    imowObject.regelteksten.forEach(
+      regeltekst => regeltekst.documentKruimelpad.forEach(
+        pad => componentIdentificaties[pad.identificatie] = "trail"
+      )
+    );
+    imowObject.regelteksten.forEach(
+      regeltekst => componentIdentificaties[regeltekst.documentKruimelpad[regeltekst.documentKruimelpad.length - 1].identificatie] = "target"
+    );
+
+    this.planModel.setComponentIdentificaties(componentIdentificaties);
   }
 
   private loadTile() {

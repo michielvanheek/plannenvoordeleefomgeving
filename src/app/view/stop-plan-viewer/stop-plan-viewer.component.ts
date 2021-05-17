@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from "@angular/core";
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
 
 @Component({
   selector: "dso-stop-plan-viewer",
@@ -12,15 +12,14 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   @Input() componentIdentificaties;
 
   headers = [
-    {id: 0, label: "Plekinfo", type: null},
-    {id: 1, label: "Regels", type: "LICHAAM"},
-    {id: 2, label: "Toelichting", type: ""},
-    {id: 3, label: "Bijlagen", type: "BIJLAGE"}
+    { id: 0, label: "Plekinfo", type: null },
+    { id: 1, label: "Regels", type: "LICHAAM" },
+    { id: 2, label: "Toelichting", type: "" },
+    { id: 3, label: "Bijlagen", type: "BIJLAGE" }
   ];
   activeHeader;
 
   tabData;
-  componentIdentiifcatiesObject;
 
   ngOnInit(): void {
     this.setTab(this.headers[0]);
@@ -32,9 +31,7 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     }
 
     if (changes.componentIdentificaties && changes.componentIdentificaties.currentValue) {
-      this.componentIdentiifcatiesObject = {};
-      changes.componentIdentificaties.currentValue.forEach(val => this.componentIdentiifcatiesObject[val] = true);
-      console.log(this.componentIdentiifcatiesObject);
+      console.log(this.componentIdentificaties);
       this.setTab(this.headers[1]);
     }
   }
@@ -43,7 +40,7 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     this.activeHeader = null;
     this.tabData = {
       _embedded: {
-        documentComponenten: this.structuur ? this.structuur._embedded.documentComponenten.filter(d => d.type === tab.type) : []
+        documentComponenten: this.structuur? this.structuur._embedded.documentComponenten.filter(d => d.type === tab.type): []
       }
     };
 
