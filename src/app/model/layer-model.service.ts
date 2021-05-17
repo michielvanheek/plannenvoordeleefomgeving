@@ -12,7 +12,8 @@ export class LayerModelService {
     null,                        // WMTS: selected vormvrij-plan contents
     new Layer("bp_grenzen_all"), // WMTS
     null,                        // WMS: selected plan boundaries
-    new Layer("HighlightLayer")
+    new Layer("HighlightLayer"),
+    new Layer("vlaklocaties")    // MVT: all omgevingsdocument boundaries + highlight
   ];
   planOpacity = 100;
   otherPlansOpacity = 60;
@@ -23,6 +24,9 @@ export class LayerModelService {
     this.layers[0].baseURL = "https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wms";
     this.layers[3].baseURL = environment.geoWebCacheUrl;
     this.layers[3].visible = false;
+    this.layers[6].baseURL = environment.locatiesUrl;
+    this.layers[6].urlExtension = "$Z/$X/$Y.pbf";
+    this.layers[6].visible = false;
 
     this.backgroundLayers[0].baseURL = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=brtachtergrondkaart&STYLE=_null&TILEMATRIXSET=EPSG%3A28992&FORMAT=image%2Fpng";
     this.backgroundLayers[0].title = "topografie";

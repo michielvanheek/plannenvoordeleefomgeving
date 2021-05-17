@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PlanViewerComponent } from './plan-viewer.component';
+import { VectorTilesLayerComponent } from './vector-tiles-layer.component';
 
-describe('PlanViewerComponent', () => {
-  let component: PlanViewerComponent;
-  let fixture: ComponentFixture<PlanViewerComponent>;
+describe('VectorTilesLayerComponent', () => {
+  let component: VectorTilesLayerComponent;
+  let fixture: ComponentFixture<VectorTilesLayerComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ PlanViewerComponent ]
+      declarations: [ VectorTilesLayerComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PlanViewerComponent);
+    fixture = TestBed.createComponent(VectorTilesLayerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

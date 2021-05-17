@@ -8,11 +8,11 @@ import { PlanModelService } from "src/app/model/plan-model.service";
 import { environment } from "../../../environments/environment";
 
 @Component({
-  selector: "dso-plan-viewer",
-  templateUrl: "./plan-viewer.component.html",
-  styleUrls: ["./plan-viewer.component.scss"]
+  selector: "dso-imro-plan-viewer",
+  templateUrl: "./imro-plan-viewer.component.html",
+  styleUrls: ["./imro-plan-viewer.component.scss"]
 })
-export class PlanViewerComponent implements DoCheck {
+export class ImroPlanViewerComponent implements DoCheck {
   private scale = this.nineyDefault.defaultFocusModel.centerScale.scale;
   private markerXY = this.markerModel.xy;
   private plan = this.planModel.plan;

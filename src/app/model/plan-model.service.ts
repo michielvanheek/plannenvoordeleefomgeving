@@ -2,6 +2,7 @@ import { Injectable, NgZone } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { CenterScale, Envelope, FocusModel, Layer } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
+import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
 import { MarkerModelService } from "./marker-model.service";
 import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
@@ -24,6 +25,7 @@ export class PlanModelService {
   planInPlanalysis = false;
   kaart = null;
   documents = [];
+  componentIdentificaties = null;
 
   constructor(
     private zone: NgZone,
@@ -35,7 +37,8 @@ export class PlanModelService {
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
     private planDecorator: PlanDecoratorService,
-    private omgevingsdocumentModel: OmgevingsdocumentModelService
+    private omgevingsdocumentModel: OmgevingsdocumentModelService,
+    private imowModel: ImowModelService
   ) {
     this.zone.onMicrotaskEmpty.subscribe({
       next: () => {
@@ -50,6 +53,8 @@ export class PlanModelService {
   loadPlanalysis() {
     if (this.markerModel.xy == null) {
       this.setPlanalysis(null);
+
+      this.imowModel.setMarkerLocaties([]);
 
       this.stateModel.leaveSelectPlan();
     } else {
@@ -75,8 +80,12 @@ export class PlanModelService {
             spatialOperator:"intersects"
           }
         };
+        this.imowModel.markerLoading = true;
         this.http.post(url, post, options).subscribe(response => {
-          const locatieIdentificaties = response["_embedded"].locaties.map(locatie => locatie.identificatie);
+          this.imowModel.setMarkerLocaties(response["_embedded"].locaties);
+          this.imowModel.markerLoading = false;
+
+          const locatieIdentificaties = this.imowModel.markerLocaties.map(locatie => locatie.identificatie);
           const url = environment.dsoUrl + "omgevingsdocumenten/_zoek?page=0&size=2000";
           const post = {
             zoekParameters: [{
@@ -184,7 +193,8 @@ export class PlanModelService {
       this.setKaart(null);
       layers[3].visible = false;
       layers[4] = null;
-    } else {
+      layers[6].visible = false;
+    } else if (plan.versieImro != null) {
       this.planLevelModel.setPlanLevel(plan.viewPlanLevel);
 
       let styleURL = null;
@@ -212,9 +222,17 @@ export class PlanModelService {
       layers[4] = new Layer(null);
       layers[4].baseURL = environment.geoUrl + "afnemers/services";
       layers[4].styleURL = styleURL;
+      layers[6].visible = false;
+    } else {  // Omgevingsdocument.
+      layers[1] = null;
+      this.setKaart(null);
+      layers[3].visible = false;
+      layers[4] = null;
+      layers[6].visible = true;
     }
     this.setPlanInPlanalysis();
     this.setDocuments();
+    this.setComponentIdentificaties(null);
 //    this.setOutOfBounds();
   }
 
@@ -284,6 +302,15 @@ export class PlanModelService {
         }
       }
     }
+  }
+
+  setComponentIdentificaties(componentIdentificaties) {
+    if ((this.plan == null) || (this.plan.versieImro != null)) {
+      this.componentIdentificaties = null;
+      return;
+    }
+
+    this.componentIdentificaties = componentIdentificaties;
   }
 
   zoomToPlan() {

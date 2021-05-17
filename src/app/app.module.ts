@@ -13,7 +13,7 @@ import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 import { PlanInfoComponent } from "./shared/plan-info/plan-info.component";
 import { SvgIconComponent } from "./shared/svg-icon/svg-icon.component";
-import { PlanInfoBodyComponent } from "./shared/plan-info-body/plan-info-body.component";
+import { StopPlanViewerComponent } from './view/stop-plan-viewer/stop-plan-viewer.component';
 import { LoaderComponent } from "./shared/loader/loader.component";
 import { PlanAccordionComponent } from "./shared/plan-accordion/plan-accordion.component";
 import { MapPanelComponent } from "./view/map-panel/map-panel.component";
@@ -22,15 +22,17 @@ import { SelectPlanComponent } from "./view/select-plan/select-plan.component";
 import { RoutingComponent } from "./view/routing/routing.component";
 import { SearchPlanComponent } from "./view/search-plan/search-plan.component";
 import { OmgevingsdocumentModelService } from "./model/omgevingsdocument-model.service";
-import { PlanViewerComponent } from "./view/plan-viewer/plan-viewer.component";
+import { ImroPlanViewerComponent } from "./view/imro-plan-viewer/imro-plan-viewer.component";
 import { DocumentElementTitleComponent } from "./shared/document-element-title/document-element-title.component";
+import { VectorTilesLayerComponent } from "./shared/vector-tiles-layer/vector-tiles-layer.component";
+import { MarkanvasComponent } from "./view/markanvas/markanvas.component";
 
 @NgModule({
   declarations: [
     AppComponent,
     PlanInfoComponent,
     SvgIconComponent,
-    PlanInfoBodyComponent,
+    StopPlanViewerComponent,
     LoaderComponent,
     PlanAccordionComponent,
     MapPanelComponent,
@@ -38,8 +40,10 @@ import { DocumentElementTitleComponent } from "./shared/document-element-title/d
     SelectPlanComponent,
     RoutingComponent,
     SearchPlanComponent,
-    PlanViewerComponent,
-    DocumentElementTitleComponent
+    ImroPlanViewerComponent,
+    DocumentElementTitleComponent,
+    VectorTilesLayerComponent,
+    MarkanvasComponent
   ],
   imports: [
     BrowserModule,

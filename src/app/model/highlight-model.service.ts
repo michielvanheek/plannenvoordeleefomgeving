@@ -11,6 +11,7 @@ export class HighlightModelService {
   private subscription: Subscription = null;
 
   highlights = [{features: []}, {features: []}];
+  omgevingsdocumentHighlight = "nothing";
 
   constructor(private http: HttpClient) { }
 

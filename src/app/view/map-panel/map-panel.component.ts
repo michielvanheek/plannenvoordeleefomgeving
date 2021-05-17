@@ -40,7 +40,7 @@ export class MapPanelComponent {
     ];
     focusModel.srs.minX = -285401.92;
     focusModel.srs.maxY = 903401.9199999999;
-    focusModel.maxEnvelope = new Envelope(-285401.92, 0, 600000, 903401.9199999999);
+    focusModel.maxEnvelope = new Envelope(-40000, 305000, 280000, 850000);
     focusModel.minScale = 595.275215575;
     focusModel.maxScale = 2438247.282993837;
   }

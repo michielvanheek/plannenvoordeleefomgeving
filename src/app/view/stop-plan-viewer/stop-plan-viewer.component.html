@@ -2,12 +2,12 @@
   <li *ngFor="let tab of headers" role="tab"
       class="dso-outline" [ngClass]="{'dso-active': tab === activeHeader}"
       tabindex="50"
-      (click)="onChangeTab(tab)">
+      (click)="setTab(tab)">
     <a href="javascript:void(0)">{{tab.label}}</a>
   </li>
 </ul>
 <div *ngIf="activeHeader.id === 0" class="tab-content">
-  TBD <!-- <dso-markanvas></dso-markanvas> -->
+  <dso-markanvas></dso-markanvas>
 </div>
 <div *ngIf="activeHeader.id === 1" class="tab-content">
   <dso-plan-accordion [item]="tabData" [level]="1"></dso-plan-accordion>

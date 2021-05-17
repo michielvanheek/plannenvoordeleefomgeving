@@ -3,8 +3,8 @@
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
   <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
-<!--  <tileslayer [layer]="layerModel.layers[2]" [loader]="loader" [protocol]="'WMTS'" [tilewidth]="512" [tileheight]="512" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></tileslayer>-->
-<!--  <tileslayer [layer]="layerModel.layers[3]" [loader]="loader" [protocol]="'WMTS'" [tilewidth]="512" [tileheight]="512" [ngStyle]="{opacity: layerModel.otherPlansOpacity / 100}"></tileslayer>-->
+  <tileslayer [layer]="layerModel.layers[2]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></tileslayer>
+  <tileslayer [layer]="layerModel.layers[3]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.otherPlansOpacity / 100}"></tileslayer>
   <wmslayer [layer]="layerModel.layers[4]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
   <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[0]">
     <canvassymbolizer inversefill="true" class="blackhighlight"></canvassymbolizer>
@@ -12,6 +12,8 @@
   <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[1]">
     <canvassymbolizer class="whitehighlight"></canvassymbolizer>
   </mapfeaturelayer>
+  <vectortileslayer [layer]="layerModel.layers[6]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></vectortileslayer>
+  <vectortileslayer [layer]="layerModel.layers[6]" [loader]="loader" [fill]="true" [filter]="highlightModel.omgevingsdocumentHighlight"></vectortileslayer>
 <!--  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
   <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>

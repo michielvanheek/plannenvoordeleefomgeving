@@ -1,0 +1,33 @@
+<ul class="list-group list-group-flush">
+  <div *ngIf="imowModel.markerLoading || imowModel.numLoading" class="dso-progress-indicator">
+    <div class="dso-progress-indicator-spinner">
+      <span *ngIf="imowModel.numLoading" class="num-loading">{{imowModel.numLoading}}</span>
+    </div>
+  </div>
+  <li *ngFor="let gebiedsaanwijzing of gebiedsaanwijzingen" class="list-group-item info">
+    <div class="legend"><img src="assets/legend/relatie.png"/></div>
+    <div>
+      <strong>{{gebiedsaanwijzing.groep.waarde[0].toUpperCase() + gebiedsaanwijzing.groep.waarde.slice(1)}} - {{gebiedsaanwijzing.naam || "Geen naam"}}</strong><br/>
+      {{gebiedsaanwijzing.label.toLowerCase().replace("gebiedsaanwijzingen", "").replace("functies", "functie")}} 
+    </div>
+    <div (mouseover)="highlightModel.omgevingsdocumentHighlight = gebiedsaanwijzing.locaties[0].identificatie" (mouseout)="highlightModel.omgevingsdocumentHighlight = 'nothing'" (click)="openInfo(gebiedsaanwijzing)" title="Bijbehorende regels tonen" class="overlay"></div>
+  </li>
+  <li *ngFor="let normwaarde of normwaarden" class="list-group-item info">
+    <div class="legend"><img src="assets/legend/aanduiding.png"/></div>
+    <div>
+      <strong>{{normwaarde.omgevingsnorm.groep.waarde[0].toUpperCase() + normwaarde.omgevingsnorm.groep.waarde.slice(1)}} - {{normwaarde.omgevingsnorm.naam || "Geen naam"}}</strong><br/>
+      {{normwaarde.omgevingsnorm.type.waarde}}: {{normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde}}
+      <span *ngIf="normwaarde.omgevingsnorm.eenheid">{{normwaarde.omgevingsnorm.eenheid[0].waarde}}</span>
+    </div>
+    <div (mouseover)="highlightModel.omgevingsdocumentHighlight = normwaarde.locaties[0].identificatie" (mouseout)="highlightModel.omgevingsdocumentHighlight = 'nothing'" (click)="openInfo(normwaarde.omgevingsnorm)" title="Bijbehorende regels tonen" class="overlay"></div>
+  </li>
+  <li *ngFor="let locatie of orphanLocaties" class="list-group-item info">
+    <div class="legend"><img src="assets/nosymbol.png"/></div>
+    <div>
+      <strong>{{locatie.noemer || "Geen naam"}}</strong><br/>
+      locatie
+    </div>
+    <div (mouseover)="highlightModel.omgevingsdocumentHighlight = locatie.identificatie" (mouseout)="highlightModel.omgevingsdocumentHighlight = 'nothing'" class="overlay no-pointer"></div>
+  </li>
+</ul>
+<canvas #canvas [ngStyle]="{display: appService.settings.placeInfoDebugMode? 'block': 'none'}" style="background-color: rgba(255, 0, 0, 0.2);"></canvas>
