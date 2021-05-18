@@ -1,5 +1,5 @@
 <div class="document-element">
-  <div *ngFor="let element of item._embedded.documentComponenten;">
+  <div *ngFor="let element of item._embedded.documentComponenten;" [id]="element.identificatie">
     <div *ngIf="!visibilityObject || element.type === 'LICHAAM' || appService.settings.documentOpenMode || (visibilityObject && visibilityObject[element.identificatie])">
       <div *ngIf="((element.type == 'LID') || (element.type == 'DIVISIETEKST')) && !element.opschrift; else foo"
            class="document-element__inhoud"

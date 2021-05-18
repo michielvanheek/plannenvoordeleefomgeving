@@ -7,16 +7,13 @@ import {AppService} from "../../app.service";
   styleUrls: ["./plan-accordion.component.scss"],
   encapsulation: ViewEncapsulation.None,
 })
-export class PlanAccordionComponent implements OnInit {
+export class PlanAccordionComponent {
   @Input() item;
   @Input() level;
   @Input() visibilityObject;
   @Input() targetIdentificatie;
 
   constructor(public appService: AppService) {
-  }
-
-  ngOnInit(): void {
   }
 
   openElement(element) {

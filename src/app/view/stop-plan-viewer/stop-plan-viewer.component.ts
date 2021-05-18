@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import {AppService} from "../../app.service";
 
 @Component({
   selector: "dso-stop-plan-viewer",
@@ -22,8 +23,17 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   tabData;
   targetIdentificatie;
 
+  constructor(private appService: AppService) {
+  }
+
   ngOnInit(): void {
     this.setTab(this.headers[0]);
+
+    this.appService.documentOpenModeChange$.subscribe(() => {
+      if (this.appService.settings.documentOpenMode) {
+        this.scrollToTarget();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -35,6 +45,7 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
       const values = changes.componentIdentificaties.currentValue;
       this.targetIdentificatie = Object.keys(values).find(key => values[key] === "target");
       this.setTab(this.headers[1]);
+      this.scrollToTarget();
     }
   }
 
@@ -47,5 +58,21 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     };
 
     this.activeHeader = tab;
+  }
+
+  scrollToTarget() {
+    setTimeout(() => {
+      if (this.activeHeader !== this.headers[1]) { return; }
+
+      const element = document.getElementById(this.targetIdentificatie);
+      if (!element) { return; }
+
+      const tabContentElement = document.getElementById("tab-content-1");
+      tabContentElement.scrollTo({
+        left: 0,
+        top: element.offsetTop - 250,
+        behavior: "smooth",
+      });
+    }, 100);
   }
 }

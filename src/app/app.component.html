@@ -29,7 +29,7 @@
   </label>
   <br>
   <label for="openmode">
-    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode"> Document integraal
+    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode" (change)="appService.documentOpenModeChange$.next()"> Document integraal
   </label>
 </div>
 <router-outlet></router-outlet>
