@@ -17,11 +17,9 @@
 <ng-template #content>
    <span *ngIf="!this.appService.settings.documentOpenMode"
          class="toggle__chevron fa fa-angle-right"
-         title="Zoom naar plangeometrie"
-         appTippy [tippyOptions]="{arrow: true, theme: 'dso'}"
          [ngClass]="{'toggle__chevron-rotated' : element.isOpen, 'fa-angle-right': isOpenable}">
    </span>
-  <div class="document-element__title-header">
+  <div class="document-element__title-header" [class.inactive]="inactive">
     <div class="document-element__title-header-item">{{element.label | uppercase }}</div>
     <div class="document-element__title-header-item">{{element.nummer}}</div>
     <div class="document-element__title-header-item">{{element.opschrift}}

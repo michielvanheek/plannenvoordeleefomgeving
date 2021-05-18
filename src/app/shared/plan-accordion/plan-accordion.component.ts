@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, SkipSelf, ViewEncapsulation} from "@angular/core";
+import {AfterViewInit, Component, Input, OnInit, ViewEncapsulation} from "@angular/core";
 import {AppService} from "../../app.service";
 
 @Component({
@@ -11,13 +11,12 @@ export class PlanAccordionComponent implements OnInit {
   @Input() item;
   @Input() level;
   @Input() visibilityObject;
+  @Input() targetIdentificatie;
 
   constructor(public appService: AppService) {
   }
 
   ngOnInit(): void {
-    console.log(this.item);
-    console.log(this.visibilityObject);
   }
 
   openElement(element) {

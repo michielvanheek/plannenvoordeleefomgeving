@@ -6,12 +6,12 @@
     <a href="javascript:void(0)">{{tab.label}}</a>
   </li>
 </ul>
-<div *ngIf="activeHeader.id === 0" class="tab-content">
+<div *ngIf="activeHeader.id === 0" id="tab-content-0"  class="tab-content">
   <dso-markanvas></dso-markanvas>
 </div>
-<div *ngIf="activeHeader.id === 1" class="tab-content">
-  <dso-plan-accordion [item]="tabData" [level]="1" [visibilityObject]="componentIdentificaties"></dso-plan-accordion>
+<div *ngIf="activeHeader.id === 1" id="tab-content-1" class="tab-content">
+  <dso-plan-accordion [item]="tabData" [level]="1" [visibilityObject]="componentIdentificaties" [targetIdentificatie]="targetIdentificatie"></dso-plan-accordion>
 </div>
-<div *ngIf="activeHeader.id === 3" class="tab-content">
+<div *ngIf="activeHeader.id === 3" id="tab-content-3" class="tab-content">
   <dso-plan-accordion [item]="tabData" [level]="2" [visibilityObject]="componentIdentificaties"></dso-plan-accordion>
 </div>

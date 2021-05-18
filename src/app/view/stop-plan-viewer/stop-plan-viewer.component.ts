@@ -20,6 +20,7 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   activeHeader;
 
   tabData;
+  targetIdentificatie;
 
   ngOnInit(): void {
     this.setTab(this.headers[0]);
@@ -31,7 +32,8 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     }
 
     if (changes.componentIdentificaties && changes.componentIdentificaties.currentValue) {
-      console.log(this.componentIdentificaties);
+      const values = changes.componentIdentificaties.currentValue;
+      this.targetIdentificatie = Object.keys(values).find(key => values[key] === "target");
       this.setTab(this.headers[1]);
     }
   }
