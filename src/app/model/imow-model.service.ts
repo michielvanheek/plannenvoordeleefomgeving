@@ -9,10 +9,11 @@ export class ImowModelService {
   markerLocaties = [];
   markerLoading = false;
 
+  locaties = {};
+  groepen = {};
   gebiedsaanwijzingen = {};
   omgevingsnormen = {};
   regelteksten = {};
-  locaties = {};
   numLoading = 0;
 
   constructor(private http: HttpClient) { }
@@ -20,11 +21,20 @@ export class ImowModelService {
   setMarkerLocaties(locaties) {
     this.markerLocaties = locaties;
 
+    this.processLocaties(locaties);
+  }
+
+  private processLocaties(locaties) {
     const newLocaties = [];
     locaties.forEach(locatie => {
-      if (this.locaties[locatie.identificatie] == null) {
-        this.locaties[locatie.identificatie] = locatie;
-        //this.loadLocatieLocaties(locatie);
+      const identificatie = locatie.identificatie;
+      if (this.locaties[identificatie] == null) {
+        this.locaties[identificatie] = locatie;
+        if ((locatie.locatieType == "Gebied") || (locatie.locatieType == "Lijn") || (locatie.locatieType == "Punt")) {
+          locatie.groepen = this.groepen[identificatie];
+        } else if (locatie.locatieType != "Ambtsgebied") {  // locatieType == *groep
+          this.loadGroepLocaties(locatie);
+        }
         newLocaties.push(locatie);
       }
     });
@@ -33,6 +43,31 @@ export class ImowModelService {
       this.loadOmgevingsnormen(newLocaties);
       //this.loadActiviteitlocatieaanduidingen(newLocaties);
     }
+  }
+
+  private loadGroepLocaties(groep) {
+    const options = environment.dsoOptions;
+    const url = environment.dsoUrl + "locaties/" + groep.identificatie;
+    this.numLoading++;
+    this.http.get(url, options).subscribe(
+      response => {
+        response["omvat"].forEach(locatie => {
+          const identificatie = locatie.identificatie;
+          if (this.groepen[identificatie] == null) {
+            this.groepen[identificatie] = {};
+          }
+          this.groepen[identificatie][response["identificatie"]] = true;
+
+          if (this.locaties[identificatie] != null) {
+            this.locaties[identificatie].groepen = this.groepen[identificatie];
+          }
+        });
+        this.numLoading--;
+      },
+      error => {
+        this.numLoading--;
+      }
+    );
   }
 
   private loadGebiedsaanwijzingen(locaties) {
@@ -78,7 +113,6 @@ export class ImowModelService {
     this.numLoading++;
     this.http.post(url, post, options).subscribe(
       response => {
-        console.log(response);
         response["_embedded"].omgevingsnormen.forEach(omgevingsnorm => {
           if (this.omgevingsnormen[omgevingsnorm.identificatie] == null) {
             this.omgevingsnormen[omgevingsnorm.identificatie] = omgevingsnorm;
@@ -102,20 +136,22 @@ export class ImowModelService {
     const options = environment.dsoOptions;
     const url = environment.dsoUrl + gebiedsaanwijzingType + "/" + regeltekstParent.identificatie + "/regelteksten";
     this.numLoading++;
-    this.http.get(url, options).subscribe(
-      response => {
-        response["_embedded"].regelteksten.forEach(regeltekst => {
-          if (this.regelteksten[regeltekst.identificatie] == null) {
-            this.regelteksten[regeltekst.identificatie] = regeltekst;
-          }
-          regeltekstParent.regelteksten.push(this.regelteksten[regeltekst.identificatie]);
-        });
-        this.numLoading--;
-      },
-      error => {
-        this.numLoading--;
-      }
-    );
+    (regeltekstParent => {
+      this.http.get(url, options).subscribe(
+        response => {
+          response["_embedded"].regelteksten.forEach(regeltekst => {
+            if (this.regelteksten[regeltekst.identificatie] == null) {
+              this.regelteksten[regeltekst.identificatie] = regeltekst;
+            }
+            regeltekstParent.regelteksten.push(this.regelteksten[regeltekst.identificatie]);
+          });
+          this.numLoading--;
+        },
+        error => {
+          this.numLoading--;
+        }
+      );
+    })(regeltekstParent);
   }
 
   private loadLocaties(typefix, locatieParent) {
@@ -123,20 +159,19 @@ export class ImowModelService {
     const options = environment.dsoOptions;
     const url = environment.dsoUrl + typefix + "/" + locatieParent.identificatie + "/locaties";
     this.numLoading++;
-    this.http.get(url, options).subscribe(
-      response => {
-        response["_embedded"].locaties.forEach(locatie => {
-          if (this.locaties[locatie.identificatie] == null) {
-            this.locaties[locatie.identificatie] = locatie;
-            //this.loadLocatieLocaties(locatie);
-          }
-          locatieParent.locaties.push(this.locaties[locatie.identificatie]);
-        });
-        this.numLoading--;
-      },
-      error => {
-        this.numLoading--;
-      }
-    );
+    (locatieParent => {
+      this.http.get(url, options).subscribe(
+        response => {
+          this.processLocaties(response["_embedded"].locaties);
+          response["_embedded"].locaties.forEach(locatie => {
+            locatieParent.locaties.push(this.locaties[locatie.identificatie]);
+          });
+          this.numLoading--;
+        },
+        error => {
+          this.numLoading--;
+        }
+      );
+    })(locatieParent);
   }
 }

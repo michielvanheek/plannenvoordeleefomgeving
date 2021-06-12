@@ -13,7 +13,7 @@
 </ul>
 <div style="position: relative">
   <ul class="list-group list-group-flush">
-    <ng-template ngFor let-i="index" let-planLevelType [ngForOf]="planLevelModel.planLevel.types">
+    <ng-template ngFor let-planLevelType [ngForOf]="planLevelModel.planLevel.types" let-i="index">
 <!--      <div ng-if="planModel.planalysis.planItems[planLevelModel.planLevel.id][$index].length > 0">-->
         <li class="list-group-item header">{{planLevelType.name}} <span class="small light">({{planModel.planalysis.planItems[planLevelModel.planLevel.id][i].length}})</span></li>
 <!--        <lio models="planModel.planalysis.planItems[planLevelModel.planLevel.id]" model-index="$index" text="planLevelType.name"></lio>

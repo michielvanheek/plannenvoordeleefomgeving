@@ -25,6 +25,10 @@
 <div *ngIf="settingsVisible" class="setting-ct">
   <h4>Settings</h4>
   <label for="headertype">
+    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"> Plekinfo weeslocaties
+  </label>
+  <br>
+  <label for="headertype">
     <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
   </label>
   <br>

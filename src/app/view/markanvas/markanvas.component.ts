@@ -25,6 +25,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private planIdentificatie = this.planModel.plan.identificatie;
 
   private layer = new Layer("vlaklocaties");
+  private refreshToken = 0;
   private tileModel = new VectorTileModel();
 
   private maxZoomLevel = 11;
@@ -33,9 +34,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
   @ViewChild("canvas", { static: true }) private canvasRef: ElementRef;
 
-  filteredLocaties = [];
-  gebiedsaanwijzingen = [];
-  normwaarden = [];
+  private specificLocaties = {};
+  private nonSpecificLocaties = {};
+
+  infos = [[], [], []];
   orphanLocaties = [];
 
   constructor(
@@ -82,16 +84,16 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     }
   }
 
-  openInfo(imowObject) {
+  openInfo(regelteksten) {
     const componentIdentificaties = {};
 
-    componentIdentificaties[imowObject.regelteksten[0].documentIdentificatie + "__body"] = "trail";
-    imowObject.regelteksten.forEach(
+    componentIdentificaties[regelteksten[0].documentIdentificatie + "__body"] = "trail";
+    regelteksten.forEach(
       regeltekst => regeltekst.documentKruimelpad.forEach(
         pad => componentIdentificaties[pad.identificatie] = "trail"
       )
     );
-    imowObject.regelteksten.forEach(
+    regelteksten.forEach(
       regeltekst => componentIdentificaties[regeltekst.documentKruimelpad[regeltekst.documentKruimelpad.length - 1].identificatie] = "target"
     );
 
@@ -100,7 +102,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
   private loadTile() {
     if (this.markerXY == null) {
-      this.filteredLocaties = [];
+      this.specificLocaties = {};
+      this.nonSpecificLocaties = {};
       this.setCollections();
       return;
     }
@@ -126,9 +129,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private loadTileData(tile) {
-    this.http.get(tile.url, { responseType: "arraybuffer" }).subscribe(
+    this.http.get(tile.url + "?" + this.refreshToken++, { responseType: "arraybuffer" }).subscribe(
       response => {
-        this.filteredLocaties = [];
+        this.specificLocaties = {};
+        this.nonSpecificLocaties = {};
 
         const layer = new VectorTile(new Protobuf(response)).layers[this.layer.name];
         const canvasHalf = this.canvasSize / 2;
@@ -155,19 +159,26 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
         for (let i = 0; i < layer.length; i++) {
           const feature = layer.feature(i);
-          const locatie = this.markerLocaties.find(locatie => locatie.identificatie == feature.properties.identificatie);
-          if (locatie == null) {
+          if (!this.markerLocaties.some(markerLocatie => markerLocatie.identificatie == feature.properties.identificatie)) {
             continue;
           }
+
           const canvas = this.getPlaceSpecificCanvas(feature, matrix);
-          if (canvas == null) {
-            continue;
-          }
+          const locatie = this.imowModel.locaties[feature.properties.identificatie];
+          if (canvas != null) {
+            ctx.drawImage(canvas, 0, 0, this.canvasSize, this.canvasSize);
 
-          ctx.drawImage(canvas, 0, 0, this.canvasSize, this.canvasSize);
-
-          if (!this.filteredLocaties.includes(locatie)) {
-            this.filteredLocaties.push(locatie);
+            this.specificLocaties[locatie.identificatie] = locatie;
+            Object.assign(this.specificLocaties, locatie.groepen);
+          } else if (this.specificLocaties[locatie.identificatie] == null) {
+            this.nonSpecificLocaties[locatie.identificatie] = locatie;
+            if (locatie.groepen != null) {
+              for (const groepIdentificatie in locatie.groepen) {
+                if (this.specificLocaties[groepIdentificatie] == null) {
+                  this.nonSpecificLocaties[groepIdentificatie] = locatie.groepen[groepIdentificatie];
+                }    
+              }
+            }
           }
         }
 
@@ -199,24 +210,58 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private setCollections() {
-    this.gebiedsaanwijzingen =
-      Object.values(this.imowModel.gebiedsaanwijzingen).filter(gebiedsaanwijzing =>
-        gebiedsaanwijzing["regelteksten"].find(regeltekst => regeltekst.documentIdentificatie == this.planModel.plan.identificatie) &&
-        gebiedsaanwijzing["locaties"].find(gebiedsaanwijzingLocatie =>
-          this.filteredLocaties.find(filteredLocatie => filteredLocatie.identificatie == gebiedsaanwijzingLocatie.identificatie)
-        )
-      );
+    this.infos = [[], [], []];  // Specific, non-specific, in other plans.
 
-    this.normwaarden =
-      (Object.values(this.imowModel.omgevingsnormen).filter(omgevingsnorm =>
-        omgevingsnorm["regelteksten"].find(regeltekst => regeltekst.documentIdentificatie == this.planModel.plan.identificatie)
-      ) as any[]).reduce((normwaarden, omgevingsnorm) => normwaarden.concat(omgevingsnorm["normwaarde"].filter(normwaarde => 
-        normwaarde["locaties"].find(normwaardeLocatie =>
-          this.filteredLocaties.find(filteredLocatie => filteredLocatie.identificatie == normwaardeLocatie.identificatie)
-        )
-      )), []);
+    Object.values(this.imowModel.gebiedsaanwijzingen).forEach(gebiedsaanwijzing => {
+      const inPlan = gebiedsaanwijzing["regelteksten"].some(regeltekst => regeltekst.documentIdentificatie == this.planModel.plan.identificatie);
+      const specific = gebiedsaanwijzing["locaties"].some(gebiedsaanwijzingLocatie => this.specificLocaties[gebiedsaanwijzingLocatie.identificatie]);
+      const nonSpecific = gebiedsaanwijzing["locaties"].some(gebiedsaanwijzingLocatie => this.nonSpecificLocaties[gebiedsaanwijzingLocatie.identificatie]);
+      if (inPlan && specific) {
+        this.infos[0].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+      } else if (inPlan && nonSpecific) {
+        this.infos[1].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+      } else if (!inPlan && (specific || nonSpecific)) {
+        this.infos[2].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+      }
+    });
 
-    const adoptedLocaties = this.gebiedsaanwijzingen.concat(this.normwaarden).reduce((locaties, locatieParent) => locaties.concat(locatieParent.locaties), []);
-    this.orphanLocaties = this.filteredLocaties.filter(filteredLocatie => !adoptedLocaties.find(adoptedLocatie => adoptedLocatie.identificatie == filteredLocatie.identificatie));
+    Object.values(this.imowModel.omgevingsnormen).forEach(omgevingsnorm => {
+      const inPlan = omgevingsnorm["regelteksten"].some(regeltekst => regeltekst.documentIdentificatie == this.planModel.plan.identificatie);
+      omgevingsnorm["normwaarde"].forEach(normwaarde => {
+        const specific = normwaarde["locaties"].some(normwaardeLocatie => this.specificLocaties[normwaardeLocatie.identificatie]);
+        const nonSpecific = normwaarde["locaties"].some(normwaardeLocatie => this.nonSpecificLocaties[normwaardeLocatie.identificatie]);
+        if (inPlan && specific) {
+          this.infos[0].push(this.normwaardeToInfo(normwaarde));
+        } else if (inPlan && nonSpecific) {
+          this.infos[1].push(this.normwaardeToInfo(normwaarde));
+        } else if (!inPlan && (specific || nonSpecific)) {
+          this.infos[2].push(this.normwaardeToInfo(normwaarde));
+        }
+      });
+    });
+  
+    const adoptedLocatieIdentificaties = this.infos.reduce((flatInfos, infos) => flatInfos.concat(infos), []).reduce((locatieIdentificaties, info) => locatieIdentificaties.concat(info.locatieIdentificatie), []);
+    this.orphanLocaties = (Object.values(Object.assign({}, this.specificLocaties, this.nonSpecificLocaties)) as any[]).filter(locatie => !adoptedLocatieIdentificaties.includes(locatie.identificatie));
+  }
+
+  private gebiedsaanwijzingToInfo(gebiedsaanwijzing) {
+    return {
+      image: "assets/legend/relatie.png",
+      text: "<strong>" + gebiedsaanwijzing.groep.waarde[0].toUpperCase() + gebiedsaanwijzing.groep.waarde.slice(1) + " - " + (gebiedsaanwijzing.naam || "Geen naam") + "</strong><br/>" +
+      gebiedsaanwijzing.label.toLowerCase().replace("gebiedsaanwijzingen", "").replace("functies", "functie"),
+      locatieIdentificatie: gebiedsaanwijzing.locaties[0].identificatie,
+      regelteksten: gebiedsaanwijzing.regelteksten
+    };
+  }
+
+  private normwaardeToInfo(normwaarde) {
+    return {
+      image: "assets/legend/aanduiding.png",
+      text: "<strong>" + normwaarde.omgevingsnorm.groep.waarde[0].toUpperCase() + normwaarde.omgevingsnorm.groep.waarde.slice(1) + " - " + (normwaarde.omgevingsnorm.naam || "Geen naam") + "</strong><br/>" +
+      normwaarde.omgevingsnorm.type.waarde + ": " + (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) +
+      (normwaarde.omgevingsnorm.eenheid? " " + normwaarde.omgevingsnorm.eenheid[0].waarde: ""),
+      locatieIdentificatie: normwaarde.locaties[0].identificatie,
+      regelteksten: normwaarde.omgevingsnorm.regelteksten
+    };
   }
 }

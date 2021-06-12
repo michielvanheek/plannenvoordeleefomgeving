@@ -5,6 +5,7 @@ import {Subject} from "rxjs";
 export class AppService {
   documentOpenModeChange$: Subject<boolean> = new Subject<boolean>();
   settings = {
+    placeInfoShowOrphans: false,
     placeInfoDebugMode: false,
     documentOpenMode: false
   };

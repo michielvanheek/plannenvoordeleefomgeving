@@ -22,7 +22,8 @@
   <div class="document-element__title-header" [class.inactive]="inactive">
     <div class="document-element__title-header-item">{{element.label | uppercase }}</div>
     <div class="document-element__title-header-item">{{element.nummer}}</div>
-    <div class="document-element__title-header-item">{{element.opschrift}}
+    <div class="document-element__title-header-item">
+      <span [innerHTML]="element.opschrift"></span>
       <span *ngIf="element.gereserveerd" class="document-element__title-header-item">[gereserveerd]</span>
       <span *ngIf="element.vervallen" class="document-element__title-header-item">[vervallen]</span>
     </div>

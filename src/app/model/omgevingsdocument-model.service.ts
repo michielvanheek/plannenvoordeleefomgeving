@@ -25,6 +25,10 @@ export class OmgevingsdocumentModelService {
     this.http.get(url, options).subscribe(response => {
       this.omgevingsdocumenten = response["_embedded"].omgevingsdocumenten;
       this.omgevingsdocumenten.forEach(omgevingsdocument => {
+        if (omgevingsdocument.aangeleverdDoorEen == null) {
+          console.warn("Omgevingsdocument " + omgevingsdocument.identificatie + " has no owner.");
+          return;
+        }
         this.planDecorator.decorateOmgevingsdocument(omgevingsdocument);
         this.planDecorator.decoratePlan(omgevingsdocument, true);
       });
