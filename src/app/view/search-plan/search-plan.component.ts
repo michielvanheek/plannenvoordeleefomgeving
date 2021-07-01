@@ -16,10 +16,6 @@ export class SearchPlanComponent {
   warning = null;
   idns = [];
   plannen = [];
-  plannenMessages = [];
-//  plannenMessageTypes = {
-//    "NONE_FOUND_BUT": {text: "Geen plannen gevonden met <strong>%1</strong> in de naam, nu aan het zoeken naar <strong>%2</strong>...", level: "info"}
-//  };
 
   constructor(
     private http: HttpClient,
@@ -30,22 +26,9 @@ export class SearchPlanComponent {
   ) { }
 
   loadPlannen(s) {
-    if (s == null) {
-      s = this.s;
-    }
-    if (s.length == 0) {
-      this.warning = null;
-      this.idns = [];
-      this.plannen = [];
-      this.plannenMessages = [];
-      return;
-    }
-
     const match = this.s.match(/^(NL\.I(M(R(O)?)?)?)(.*)/i);
     if (match != null) {  // Search by IDN.
-      console.log(match);
       this.plannen = [];
-      this.plannenMessages = [];
 
       this.s = match[1].toUpperCase() + match[5];
       if ((this.s.match(/^NL\.I(M(R(O(\..*)?)?)?)?$/) == null)) {
@@ -71,7 +54,6 @@ export class SearchPlanComponent {
       const match = this.s.match(/^(\/akn(\/(n(l(\/(a(c(t)?)?)?)?)?)?)?)(.*)/i);
       if (match != null) {  // Search by AKN.
         this.plannen = [];
-        this.plannenMessages = [];
   
         this.s = match[1].toLowerCase() + match[9];
         if ((this.s.match(/^\/akn(\/(n(l(\/(a(c(t(\/.*)?)?)?)?)?)?)?)?$/) == null)) {
@@ -93,6 +75,14 @@ export class SearchPlanComponent {
       } else {  // Search by name.
         this.idns = [];
 
+        if (s == null) {
+          s = this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "");
+        }
+        if (s.length == 0) {
+          this.warning = null;
+          this.plannen = [];
+          return;
+        }
         if (s.length < 4) {
           this.warning = "TOO_SHORT_FOR_NAME";
           this.plannen = [];
@@ -101,9 +91,7 @@ export class SearchPlanComponent {
 
         const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/naam/" + s;
         this.http.get(url).subscribe(response => {
-          this.warning = null;
           if (response["ErrorType"] == "NO_PLANS_FOUND") {
-            this.plannen = [];
             const split = s.split(/[^a-zA-Z0-9]+/);
             if (split.length == 1) {
               this.warning = "NO_PLANS_FOUND_BY_NAME";
@@ -113,30 +101,45 @@ export class SearchPlanComponent {
               if (join.length < 4) {
                 this.warning = "NO_PLANS_FOUND_BY_NAME";
               } else {
-                this.plannenMessages.push(["NONE_FOUND_BUT", s, join], 2500);  // timeout push
                 this.loadPlannen(join);
+                return;
               }
             }
-            return;
-          }
-          if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
-            this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
             this.plannen = [];
-            return;
+          } else if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
+            if (s != this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "")) {
+              this.warning = "NO_PLANS_FOUND_BY_NAME";
+            } else {
+              this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
+            }
+            this.plannen = [];
+          } else {
+            this.warning = null;
+            this.plannen = response["plannen"];
+            this.plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
           }
 
-          response["plannen"].forEach(plan => this.planDecorator.decoratePlan(plan, false));
-
-          this.plannen = response["plannen"].concat(this.omgevingsdocumentModel.omgevingsdocumenten).filter(plan => {
-            const keywords = this.s.split(/[^a-zA-Z0-9]+/);
-            return keywords.filter(keyword =>
-              Object.values(plan).filter(planValue =>
-                (planValue + "").toLowerCase().includes(keyword.toLowerCase())
-              ).length > 0
-            ).length == keywords.length;
+          const keywords = this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").split(/[^a-zA-Z0-9]+/);
+          const numPlannen = new Array(keywords.length).fill(0);
+          this.plannen = this.plannen.concat(this.omgevingsdocumentModel.omgevingsdocumenten).filter(plan => {
+            return keywords.every((keyword, i) => {
+              if (Object.values(plan).some(planValue => (planValue + "").toLowerCase().includes(keyword.toLowerCase()))) {
+                numPlannen[i]++;
+                return true;
+              }
+              return false;
+            });
           });
-          if (this.plannen.length == 0) {
-            this.warning = "FOUND_BUT_FILTERED:" + s + ":" + this.s.replace(s, "");
+          this.plannen.sort((a, b) => {
+            if (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase()) {
+              return 1;
+            }
+            return -1;
+          });
+          if (this.plannen.length > 0) {
+            this.warning = null;
+          } else if (numPlannen[0] > 0) {
+            this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
           }
         });
       }

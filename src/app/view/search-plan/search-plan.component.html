@@ -15,7 +15,7 @@
 <ul *ngIf="plannen.length" class="list-group overflow-auto">
   <a *ngFor="let plan of plannen" (click)="planModel.loadPlan(plan.identificatie, null, true, false); plannen = []" class="list-group-item" [ngClass]="{active: (planModel.plan && (plan.identificatie == planModel.plan.identificatie))}"><strong>{{plan.naam}}</strong><br/>{{plan.viewOverheidName}}<br/>{{plan.typePlan}}, {{plan.planStatus}} ({{plan.viewDate}})</a>
 </ul>
-<div *ngIf="!warning && !idns.length && !plannen.length && !plannenMessages.length" class="alert alert-info">
+<div *ngIf="!warning && !idns.length && !plannen.length" class="alert alert-info">
   <span *ngIf="!planModel.plan">Vul het identificatienummer van een plan in. Of de naam van een plan, eventueel aangevuld met extra zoekwoorden. Een deel van de naam mag ook.</span>
   <span *ngIf="planModel.plan">Het gekozen plan is <strong>{{planModel.plan.naam}}</strong>.<br/>Om een ander plan te zoeken, vul het identificatienummer van dat plan in. Of de naam van het plan, eventueel aangevuld met extra zoekwoorden.</span>
 </div>
@@ -41,6 +41,5 @@
   Te veel plannen gevonden met <strong>{{s}}</strong> in de naam. Heeft de naam nog meer letters?
 </div>
 <div *ngIf="warning && warning.indexOf('FOUND_BUT_FILTERED') == 0" class="alert alert-warning">
-  Wel plannen gevonden met <strong>{{warning.split(":")[1]}}</strong> in de naam, maar niet in combinatie met de zoekterm <strong>{{warning.split(":")[2]}}</strong>.
+  Wel plannen gevonden met <strong>{{warning.split(":")[1]}}</strong>, maar niet in combinatie met <strong>{{warning.split(":")[2]}}</strong>.
 </div>
-<!-- <messagebox messages="planModel.plannenMessages" messagetypes="planModel.plannenMessageTypes"></messagebox> -->
