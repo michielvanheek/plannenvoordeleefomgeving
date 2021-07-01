@@ -1,5 +1,4 @@
 .document-element {
-  margin-bottom: .5rem;
 
   &__options {
     margin-left: 1.25rem;
@@ -10,7 +9,7 @@
     display: flex;
 
     &-container {
-      margin-bottom: .5rem;
+      margin: 0.25rem 0 0.75rem;
       width: 100%;
       display: flex;
     }
@@ -24,38 +23,43 @@
       }
     }
   }
+}
 
-  &__inhoud {
-    display: flex;
+.marker-container {
+  display: flex;
+  position: relative;
+}
+.marker {
+  position: absolute;
+  width: 4px;
+  height: calc(100% - 0.75rem);
+  background-color: #8b4a6a;
+}
+.nummer {
+  margin-left: 1.25rem
+}
+.inhoud {
+  flex-grow: 1;
+  padding-left: 1rem;
+}
 
-    &-text {
-      flex: 1;
-      padding-left: 1em;
-    }
-  }
+.btn-link, .btn-link.active, .btn-link:active, .btn-link[disabled], fieldset[disabled] .btn-link {
+  background-color: transparent;
+  box-shadow: none;
+}
 
-  &__number {
-    margin-left: 1.25rem
-  }
+.btn-link {
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  color: #39870c;
+  line-height: 1;
+  padding: 0;
+  text-transform: none;
 
-  .btn-link, .btn-link.active, .btn-link:active, .btn-link[disabled], fieldset[disabled] .btn-link {
-    background-color: transparent;
-    box-shadow: none;
-  }
-
-  .btn-link {
-    text-align: left;
-    border: 0;
-    border-radius: 0;
-    color: #39870c;
-    line-height: 1;
-    padding: 0;
-    text-transform: none;
-
-    &:focus, &:hover {
-      text-decoration: none;
-      outline: 0;
-    }
+  &:focus, &:hover {
+    text-decoration: none;
+    outline: 0;
   }
 }
 
@@ -63,8 +67,29 @@
   display: inline;
 }
 
-.od-Al, .od-Begrip, .od-Definitie, .od-Li, .od-Lidnr, .od-Lijst, .od-Lijstsluiting, .od-LiNr, .od-Term, .od-Tussenkop, table {
-  margin-bottom: .75em;
+.od-Al, .od-Begrip, .od-Definitie, .od-Li, .od-Lidnr, .od-Lijst, .od-Lijstaanhef, .od-Lijstsluiting, .od-LiNr, .od-Term, .od-Tussenkop, .od-Figuur, .od-Tabel table, .od-Kadertekst {
+  margin-bottom: 0.75rem;
+}
+
+.od-Noot {
+  display: inline-block;
+  .od-Al {
+    position: absolute;
+    z-index: 1;
+    max-width: 300px;
+    border: 1px solid #6ca4d9;
+    padding: 8px 32px 8px 8px;
+    background-color: #e1ecf7;
+    font-weight: normal;
+    font-style: normal;
+    a.hide {
+      display: block;
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      color: inherit;
+    }
+  }
 }
 
 .od-Definitie, .od-Tussenkop {
@@ -94,12 +119,22 @@
   .od-Bijschrift {
     font-size: .75rem;
     margin-left: 25px;
-    padding-bottom: 2.5rem;
   }
 }
 
-.od-Tabel thead {
-  font-weight: 600;
+.od-Tabel {
+  caption {
+    caption-side: top;
+    color: #666;
+  }
+  thead {
+    font-weight: 600;
+  }
+}
+
+.od-Kadertekst {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem 0.75rem 0;
 }
 
 .textflex {
@@ -146,5 +181,15 @@
 }
 
 .inactive {
-  color: lightgray;
+  color: #999;
+  a, table, caption {
+    color: #999;
+  }
+  img {
+    opacity: 0.4;
+  }
+}
+
+.highlight {
+  background-color: #fcef84;
 }

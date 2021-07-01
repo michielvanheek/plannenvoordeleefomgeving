@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
 import { HttpClient } from "@angular/common/http";
 import { CenterScale, Envelope, FocusModel, Layer } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
@@ -25,10 +26,10 @@ export class PlanModelService {
   planInPlanalysis = false;
   kaart = null;
   documents = [];
-  componentIdentificaties = null;
 
   constructor(
     private zone: NgZone,
+    private sanitizer: DomSanitizer,
     private http: HttpClient,
     private nineyDefault: NineyDefaultService,
     private stateModel: StateModelService,
@@ -54,9 +55,9 @@ export class PlanModelService {
     if (this.markerModel.xy == null) {
       this.setPlanalysis(null);
 
-      this.imowModel.setMarkerLocaties([]);
-
       this.stateModel.leaveSelectPlan();
+
+      this.imowModel.setMarkerLocaties([]);
     } else {
       const point = this.markerModel.xy;
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/xy/" + point.x + "/" + point.y;
@@ -176,6 +177,37 @@ export class PlanModelService {
       const options = environment.dsoOptions;
       const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "omgevingsdocumenten/" + underscoredDocumentId + "/documentcomponenten";
       this.http.get(url, options).subscribe(response => {
+        let i = 0;
+        const componentIdentificaties = [];
+        const doc = document.implementation.createHTMLDocument();
+        const decorateNoten = o => {
+          if (o.identificatie != null) {
+            componentIdentificaties.push(o.identificatie);
+          }
+          for (const key in o) {
+            if (key == "inhoud") {
+              if (o[key].includes("od-Noot")) {
+                const el = doc.createElement("div");
+                el.innerHTML = o[key];
+                const nootElements = el.getElementsByClassName("od-Noot");
+                for (let j = 0; j < nootElements.length; j++) {
+                  const nootElement = nootElements.item(j);
+                  const nootChildren = nootElement.children;
+                  const nootId = "noot_" + i++;
+                  const nootIndex = nootChildren.item(0).textContent;
+                  const nootText = nootChildren.item(1).innerHTML;
+                  nootElement.innerHTML = "<sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div>";
+                }
+                o[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
+              }
+            } else if ((o[key] != null) && (typeof o[key] == "object")) {
+              decorateNoten(o[key]);
+            }
+          }
+        }
+        decorateNoten(response);
+        this.imowModel.componentIdentificaties.flat = componentIdentificaties;
+
         plan.structuur = response;
       });
     }
@@ -232,7 +264,7 @@ export class PlanModelService {
     }
     this.setPlanInPlanalysis();
     this.setDocuments();
-    this.setComponentIdentificaties(null);
+    this.setImowPlanIdentificatie();
 //    this.setOutOfBounds();
   }
 
@@ -304,13 +336,13 @@ export class PlanModelService {
     }
   }
 
-  setComponentIdentificaties(componentIdentificaties) {
+  setImowPlanIdentificatie() {
     if ((this.plan == null) || (this.plan.versieImro != null)) {
-      this.componentIdentificaties = null;
+      this.imowModel.setPlanIdentificatie(null);
       return;
     }
 
-    this.componentIdentificaties = componentIdentificaties;
+    this.imowModel.setPlanIdentificatie(this.plan.identificatie);
   }
 
   zoomToPlan() {

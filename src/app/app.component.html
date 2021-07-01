@@ -13,7 +13,7 @@
     <as-split-area minSize="10" *ngIf="planModel.plan">
       <dso-plan-info></dso-plan-info>
       <dso-imro-plan-viewer *ngIf="planModel.plan.versieImro"></dso-imro-plan-viewer>
-      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [plan]="planModel.plan" [structuur]="planModel.plan.structuur" [componentIdentificaties]="planModel.componentIdentificaties"></dso-stop-plan-viewer>
+      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [structuur]="planModel.plan.structuur"></dso-stop-plan-viewer>
     </as-split-area>
   </as-split>
 </div>
@@ -30,10 +30,6 @@
   <br>
   <label for="headertype">
     <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
-  </label>
-  <br>
-  <label for="openmode">
-    <input id="openmode" type="checkbox" [(ngModel)]="appService.settings.documentOpenMode" (change)="appService.documentOpenModeChange$.next()"> Document integraal
   </label>
 </div>
 <router-outlet></router-outlet>

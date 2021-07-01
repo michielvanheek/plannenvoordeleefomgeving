@@ -1,5 +1,5 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
-import {AppService} from "../../app.service";
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
+import { ImowModelService } from "src/app/model/imow-model.service";
 
 @Component({
   selector: "dso-stop-plan-viewer",
@@ -8,71 +8,96 @@ import {AppService} from "../../app.service";
 })
 export class StopPlanViewerComponent implements OnInit, OnChanges {
 
-  @Input() plan;
   @Input() structuur;
-  @Input() componentIdentificaties;
+  @ViewChild("tabContent", {static: true}) private tabContentRef: ElementRef;
 
-  headers = [
-    { id: 0, label: "Plekinfo", type: null },
-    { id: 1, label: "Regels", type: "LICHAAM" },
-    { id: 2, label: "Toelichting", type: "" },
-    { id: 3, label: "Bijlagen", type: "BIJLAGE" }
+  tabs = [
+    { id: 0, label: "Plekinfo", type: null, scrollTop: 0 },
+    { id: 1, label: "Regels", type: "LICHAAM", documentComponenten: null, scrollTop: 0 },
+    { id: 2, label: "Toelichting", type: "", scrollTop: 0 },
+    { id: 3, label: "Bijlagen", type: "BIJLAGE", documentComponenten: null, scrollTop: 0 }
   ];
-  activeHeader;
+  tab = this.tabs[0];
+  allVisible = false;
 
-  tabData;
-  targetIdentificatie;
-
-  constructor(private appService: AppService) {
-  }
+  constructor(
+    private hostRef: ElementRef,
+    public imowModel: ImowModelService
+  ) { }
 
   ngOnInit(): void {
-    this.setTab(this.headers[0]);
-
-    this.appService.documentOpenModeChange$.subscribe(() => {
-      if (this.appService.settings.documentOpenMode) {
-        this.scrollToTarget();
-      }
-    });
+    this.initTabs();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.structuur) {
-      this.setTab(this.activeHeader);
-    }
-
-    if (changes.componentIdentificaties && changes.componentIdentificaties.currentValue) {
-      const values = changes.componentIdentificaties.currentValue;
-      this.targetIdentificatie = Object.keys(values).find(key => values[key] === "target");
-      this.setTab(this.headers[1]);
-      this.scrollToTarget();
+      this.initTabs();
     }
   }
 
-  setTab(tab) {
-    this.activeHeader = null;
-    this.tabData = {
-      _embedded: {
-        documentComponenten: this.structuur? this.structuur._embedded.documentComponenten.filter(d => d.type === tab.type): []
-      }
-    };
+  setTab(tab, scrollToSelected) {
+    if (this.tab != null) {
+      this.tab.scrollTop = this.tabContentRef.nativeElement.scrollTop;
+    }
 
-    this.activeHeader = tab;
+    this.tab = tab;
+
+    if (scrollToSelected) {
+      this.scrollToSelected();
+    } else {
+      this.scrollToPrevious(tab);
+    }
   }
 
-  scrollToTarget() {
+  selectNextComponentIdentificatie(type) {
+    this.imowModel.selectNextComponentIdentificatie(type);
+    this.scrollToSelected();
+  }
+
+  private initTabs() {
+    for (let i = 1; i < this.tabs.length; i++) {
+      this.tabs[i].documentComponenten = {
+        _embedded: {
+          documentComponenten: this.structuur? this.structuur._embedded.documentComponenten.filter(d => d.type == this.tabs[i].type): []
+        }
+      };
+      this.tabs[i].scrollTop = 0;
+    }
+  }
+
+  private scrollToSelected() {
     setTimeout(() => {
-      if (this.activeHeader !== this.headers[1]) { return; }
+      if (this.tab.id != 1) {
+        return;
+      }
+      if (this.imowModel.componentIdentificaties.selected == null) {
+        return;
+      }
+      let element = document.getElementById(this.imowModel.componentIdentificaties.selected);
+      if (element == null) {
+        return;
+      }
 
-      const element = document.getElementById(this.targetIdentificatie);
-      if (!element) { return; }
+      let offsetTop = 0;
+      while (element != this.hostRef.nativeElement) {
+        offsetTop += element.offsetTop;
+        element = element.offsetParent as HTMLElement;
+      }
 
-      const tabContentElement = document.getElementById("tab-content-1");
-      tabContentElement.scrollTo({
+      this.tabContentRef.nativeElement.scrollTo({
         left: 0,
-        top: element.offsetTop - 250,
+        top: offsetTop - 150,
         behavior: "smooth",
       });
-    }, 100);
+    });
+  }
+
+  private scrollToPrevious(tab) {
+    setTimeout(() => {
+      this.tabContentRef.nativeElement.scrollTo({
+        left: 0,
+        top: tab.scrollTop
+      });
+    });
   }
 }

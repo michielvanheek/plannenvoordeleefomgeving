@@ -15,17 +15,17 @@
 </h6>
 
 <ng-template #content>
-   <span *ngIf="!this.appService.settings.documentOpenMode"
+   <span *ngIf="!allVisible"
          class="toggle__chevron fa fa-angle-right"
          [ngClass]="{'toggle__chevron-rotated' : element.isOpen, 'fa-angle-right': isOpenable}">
    </span>
   <div class="document-element__title-header" [class.inactive]="inactive">
-    <div class="document-element__title-header-item">{{element.label | uppercase }}</div>
-    <div class="document-element__title-header-item">{{element.nummer}}</div>
+    <div *ngIf="appService.titleSymbols[element.type] && (element.nummer || !element.opschrift)" class="document-element__title-header-item">{{appService.titleSymbols[element.type]}}</div>
+    <div *ngIf="element.nummer || !element.opschrift" class="document-element__title-header-item">{{element.nummer || "[ongenummerd]"}}</div>
     <div class="document-element__title-header-item">
       <span [innerHTML]="element.opschrift"></span>
-      <span *ngIf="element.gereserveerd" class="document-element__title-header-item">[gereserveerd]</span>
-      <span *ngIf="element.vervallen" class="document-element__title-header-item">[vervallen]</span>
+      <span *ngIf="element.gereserveerd" class="document-element__title-header-item"> [gereserveerd]</span>
+      <span *ngIf="element.vervallen" class="document-element__title-header-item"> [vervallen]</span>
     </div>
   </div>
   <div class="text-default__meta"></div>

@@ -1,4 +1,4 @@
-import { Component, DoCheck, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { Component, DoCheck, ElementRef, EventEmitter, OnInit, Output, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { VectorTile } from "@mapbox/vector-tile";
 import * as Protobuf from "pbf";
@@ -32,7 +32,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private tileSize = 256;
   private canvasSize = 400;
 
-  @ViewChild("canvas", { static: true }) private canvasRef: ElementRef;
+  @Output() close: EventEmitter<any> = new EventEmitter(false);
+  @ViewChild("canvas", {static: true}) private canvasRef: ElementRef;
 
   private specificLocaties = {};
   private nonSpecificLocaties = {};
@@ -85,19 +86,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   openInfo(regelteksten) {
-    const componentIdentificaties = {};
-
-    componentIdentificaties[regelteksten[0].documentIdentificatie + "__body"] = "trail";
-    regelteksten.forEach(
-      regeltekst => regeltekst.documentKruimelpad.forEach(
-        pad => componentIdentificaties[pad.identificatie] = "trail"
-      )
-    );
-    regelteksten.forEach(
-      regeltekst => componentIdentificaties[regeltekst.documentKruimelpad[regeltekst.documentKruimelpad.length - 1].identificatie] = "target"
-    );
-
-    this.planModel.setComponentIdentificaties(componentIdentificaties);
+    this.imowModel.setComponentIdentificaties("filtered", regelteksten);
+    this.close.emit();
   }
 
   private loadTile() {

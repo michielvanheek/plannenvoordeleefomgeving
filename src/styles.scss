@@ -327,3 +327,21 @@ table.table {
 table {
   background-color: transparent;
 }
+
+.box-sm {
+  border-radius: 4px;
+  padding: 4px;
+  background-color: rgba(243, 243, 243, 0.8);
+  .btn-sm {
+    margin: 0;
+    .fa {
+      width: 14px;
+    }
+  }
+  .btn-sm.selected {
+    background-color: rgb(139, 74, 106);
+    .fa {
+      color: #fff;
+    }
+  }
+}

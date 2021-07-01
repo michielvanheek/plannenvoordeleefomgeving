@@ -8,8 +8,8 @@ import {AppService} from "../../app.service";
 })
 export class DocumentElementTitleComponent implements OnInit {
   @Input() element: any;
-  @Input() isOpen = false;
   @Input() level = 0;
+  @Input() allVisible = false;
   @Input() inactive = false;
   constructor(public appService: AppService) {
   }
@@ -18,6 +18,6 @@ export class DocumentElementTitleComponent implements OnInit {
   }
 
   get isOpenable(): boolean {
-    return !this.element.gereserveerd && !this.element.vervallen && !this.appService.settings.documentOpenMode;
+    return !this.element.gereserveerd && !this.element.vervallen && !this.allVisible;
   }
 }

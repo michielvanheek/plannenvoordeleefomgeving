@@ -1,17 +1,42 @@
 <ul class="dso-nav dso-nav-sub">
-  <li *ngFor="let tab of headers" role="tab"
-      class="dso-outline" [ngClass]="{'dso-active': tab === activeHeader}"
-      tabindex="50"
-      (click)="setTab(tab)">
-    <a href="javascript:void(0)">{{tab.label}}</a>
+  <li *ngFor="let tab1 of tabs" (click)="setTab(tab1, false)" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab1 == tab}">
+    <a href="javascript:void(0)">{{tab1.label}}</a>
   </li>
 </ul>
-<div *ngIf="activeHeader.id === 0" id="tab-content-0"  class="tab-content">
-  <dso-markanvas></dso-markanvas>
+<div *ngIf="tab.id >= 1" class="tekstenbar">
+  <div class="filterbar">
+    <div *ngIf="imowModel.componentIdentificaties.filtered" class="label">
+      Plekinfo
+      <a href="javascript:void(0)" (click)="imowModel.clearFilteredComponentIdentificaties()" title="Filter weghalen" class="hide"><span class="fa fa-times"></span></a>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div *ngIf="allVisible && (imowModel.componentIdentificaties.filtered || imowModel.componentIdentificaties.specific)" class="box-sm">
+      <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
+        <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
+      </button>
+      <button *ngIf="imowModel.componentIdentificaties.specific" (click)="selectNextComponentIdentificatie('specific')" title="Naar volgende regel op de gemarkeerde plek" class="btn btn-default btn-sm">
+        <span class="fa fa-caret-square-down"></span>
+      </button>
+    </div>
+    <div class="box-sm">
+      <button (click)="allVisible = true" title="Hele document" class="btn btn-default btn-sm" [class.selected]="allVisible">
+        <span class="fa fa-file"></span>
+      </button>
+      <button (click)="allVisible = false" title="Boomstructuur" class="btn btn-default btn-sm" [class.selected]="!allVisible">
+        <span class="fa fa-list-ul" style="font-size: 0.75rem"></span>
+      </button>
+    </div>
+  </div>
 </div>
-<div *ngIf="activeHeader.id === 1" id="tab-content-1" class="tab-content">
-  <dso-plan-accordion [item]="tabData" [level]="1" [visibilityObject]="componentIdentificaties" [targetIdentificatie]="targetIdentificatie"></dso-plan-accordion>
+<div #tabContent class="tab-content">
+  <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[1], true)"></dso-markanvas>
+  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="(tab.id == 1)? 1: 2" [allVisible]="allVisible" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
 </div>
-<div *ngIf="activeHeader.id === 3" id="tab-content-3" class="tab-content">
-  <dso-plan-accordion [item]="tabData" [level]="2" [visibilityObject]="componentIdentificaties"></dso-plan-accordion>
+<div *ngIf="imowModel.markerLoading || ((tab.id == 0) && imowModel.numLoading) || ((tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies))" class="dso-progress-indicator">
+  <div class="dso-progress-indicator-bg"></div>
+  <div class="dso-progress-indicator-spinner">
+    <span *ngIf="(tab.id == 0) && imowModel.numLoading" class="num">{{imowModel.numLoading}}</span>
+    <span *ngIf="(tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies)" class="num">{{imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies}}</span>
+  </div>
 </div>

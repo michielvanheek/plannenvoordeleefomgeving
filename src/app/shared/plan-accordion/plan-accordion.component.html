@@ -1,34 +1,24 @@
-<div class="document-element">
-  <div *ngFor="let element of item._embedded.documentComponenten;" [id]="element.identificatie">
-    <div *ngIf="!visibilityObject || element.type === 'LICHAAM' || appService.settings.documentOpenMode || (visibilityObject && visibilityObject[element.identificatie])">
-      <div *ngIf="((element.type == 'LID') || (element.type == 'DIVISIETEKST')) && !element.opschrift; else foo"
-           class="document-element__inhoud"
-           [class.inactive]="appService.settings.documentOpenMode && visibilityObject && visibilityObject[element.identificatie] !== 'target'">
-        <div class="document-element__number">{{element.nummer}}</div>
-        <div class="document-element__inhoud-text" [innerHTML]="element.inhoud"></div>
-      </div>
-      <ng-template #foo>
-        <div class="document-element__title-container" (click)="openElement(element)">
-          <button class="btn-link">
-            <dso-document-element-title [element]="element" [level]="level"
-                                        [inactive]="appService.settings.documentOpenMode && visibilityObject && visibilityObject[element.identificatie] !== 'target'">
-            </dso-document-element-title>
-          </button>
-          <div class="document-element__options"></div>
-        </div>
-        <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || appService.settings.documentOpenMode">
-          <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element"
-                              [level]="level + 1"
-                              [visibilityObject]="visibilityObject"
-                              [targetIdentificatie]="targetIdentificatie"
-          ></dso-plan-accordion>
-          <ng-template #bar>
-            <div class="document-element__inhoud-text"
-                 [class.inactive]="appService.settings.documentOpenMode && visibilityObject && visibilityObject[element.identificatie] !== 'target'"
-                 [innerHTML]="element.inhoud"></div>
-          </ng-template>
-        </div>
-      </ng-template>
+<ng-template ngFor let-element [ngForOf]="item._embedded.documentComponenten">
+  <div *ngIf="isVisible(element)" [id]="element.identificatie">
+    <div *ngIf="hasNoOpschrift(element); else foo" class="marker-container" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)">
+      <div *ngIf="isSelected(element)" class="marker"></div>
+      <div class="nummer">{{element.nummer}}</div>
+      <div class="inhoud" [innerHTML]="element.inhoud"></div>
     </div>
+    <ng-template #foo>
+      <div *ngIf="(element.type != 'LICHAAM')" class="document-element__title-container" (click)="openElement(element)">
+        <button class="btn-link">
+          <dso-document-element-title [element]="element" [level]="level" [allVisible]="allVisible" [inactive]="isNotSpecific(element)"></dso-document-element-title>
+        </button>
+        <div class="document-element__options"></div>
+      </div>
+      <div *ngIf="(element.type == 'LICHAAM') || element.isOpen || allVisible" class="marker-container">
+        <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element" [level]="level + 1" [allVisible]="allVisible" [componentIdentificaties]="componentIdentificaties"></dso-plan-accordion>
+        <ng-template #bar>
+          <div *ngIf="isSelected(element)" class="marker"></div>
+          <div class="inhoud" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)" [innerHTML]="element.inhoud"></div>
+        </ng-template>
+      </div>
+    </ng-template>
   </div>
-</div>
+</ng-template>
