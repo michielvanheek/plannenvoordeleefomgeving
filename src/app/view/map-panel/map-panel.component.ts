@@ -1,9 +1,10 @@
 import { Component } from "@angular/core";
-import { CenterScale, Envelope, FocusModel, Loader, ZoomLevel } from "ng-niney";
+import { CenterScale, FocusModel, Loader } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
+import { PlanModelService } from "src/app/model/plan-model.service";
 
 @Component({
   selector: "dso-map-panel",
@@ -13,36 +14,73 @@ import { MarkerModelService } from "src/app/model/marker-model.service";
 export class MapPanelComponent {
   loader = new Loader();
 
+  private baselines = [
+    {fill: "none", "stroke-width": "2px"},
+    {fill: "none", "stroke-width": "1.5px"},
+    {fill: "none", "stroke-width": "1px"},
+    {fill: "none", "stroke-width": "0.3px"},
+    {fill: "none", "stroke-width": "0.1px"}
+  ];
+  private highlines = [
+    {fill: "none", "stroke-width": "3px"},
+    {fill: "none", "stroke-width": "2.5px"},
+    {fill: "none", "stroke-width": "2px"}
+  ];
+  private bumpses = [
+    {fill: "none", "stroke-width": "10px", "stroke-dasharray": "0 26.05", "stroke-linecap": "round"},
+    {fill: "none", "stroke-width": "8.5px", "stroke-dasharray": "0 21.99", "stroke-linecap": "round"},
+    {fill: "none", "stroke-width": "7px", "stroke-dasharray": "0 15.98", "stroke-linecap": "round"},
+    {fill: "none", "stroke-width": "6px", "stroke-dasharray": "0 14", "stroke-linecap": "round"}
+  ];
+
   constructor(
     public nineyDefaultService: NineyDefaultService,
     public layerModel: LayerModelService,
     public highlightModel: HighlightModelService,
-    public markerModel: MarkerModelService
-  ) {
+    public markerModel: MarkerModelService,
+    public planModel: PlanModelService
+  ) { }
+
+  get baseline() {
     const focusModel = this.nineyDefaultService.defaultFocusModel;
-    focusModel.srs.srid = 28992;
-    focusModel.srs.zoomLevels = [
-        new ZoomLevel(0, 9752989.13197535, 3440.64),
-        new ZoomLevel(1, 4876494.565987675, 1720.32),
-        new ZoomLevel(2, 2438247.282993837, 860.16),
-        new ZoomLevel(3, 1219123.641496919, 430.08),
-        new ZoomLevel(4, 609561.820748459, 215.04),
-        new ZoomLevel(5, 304780.91037423, 107.52),
-        new ZoomLevel(6, 152390.455187115, 53.76),
-        new ZoomLevel(7, 76195.227593557, 26.88),
-        new ZoomLevel(8, 38097.613796779, 13.44),
-        new ZoomLevel(9, 19048.806898389, 6.72),
-        new ZoomLevel(10, 9524.403449195, 3.36),
-        new ZoomLevel(11, 4762.201724597, 1.68),
-        new ZoomLevel(12, 2381.100862299, 0.84),
-        new ZoomLevel(13, 1190.550431149, 0.42),
-        new ZoomLevel(14, 595.275215575, 0.21)
-    ];
-    focusModel.srs.minX = -285401.92;
-    focusModel.srs.maxY = 903401.9199999999;
-    focusModel.maxEnvelope = new Envelope(-40000, 305000, 280000, 850000);
-    focusModel.minScale = 595.275215575;
-    focusModel.maxScale = 2438247.282993837;
+    if (focusModel.centerScale.scale < 892.912823362) {
+      return this.baselines[0];
+    }
+    if (focusModel.centerScale.scale < 3571.651293448) {
+      return this.baselines[1];
+    }
+    if (focusModel.centerScale.scale < 57146.420695168) {
+      return this.baselines[2];
+    }
+    if (focusModel.centerScale.scale < 914342.731122689) {
+      return this.baselines[3];
+    }
+    return this.baselines[4];
+  }
+
+  get highline() {
+    const focusModel = this.nineyDefaultService.defaultFocusModel;
+    if (focusModel.centerScale.scale < 892.912823362) {
+      return this.highlines[0];
+    }
+    if (focusModel.centerScale.scale < 3571.651293448) {
+      return this.highlines[1];
+    }
+    return this.highlines[2];
+  }
+
+  get bumps() {
+    const focusModel = this.nineyDefaultService.defaultFocusModel;
+    if (focusModel.centerScale.scale < 892.912823362) {
+      return this.bumpses[0];
+    }
+    if (focusModel.centerScale.scale < 3571.651293448) {
+      return this.bumpses[1];
+    }
+    if (focusModel.centerScale.scale < 14286.605173792) {
+      return this.bumpses[2];
+    }
+    return this.bumpses[3];
   }
 
   mark(x, y) {

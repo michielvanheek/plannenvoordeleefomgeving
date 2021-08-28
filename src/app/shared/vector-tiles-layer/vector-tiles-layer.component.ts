@@ -1,9 +1,10 @@
-import { Component, Input, OnChanges, SimpleChanges, forwardRef } from "@angular/core";
+import { AfterContentInit, Component, ContentChildren, Input, OnChanges, QueryList, SimpleChanges, forwardRef } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { VectorTile } from "@mapbox/vector-tile";
 import * as Protobuf from "pbf";
-import { VectorTileModel } from "ng-niney";
+import { Bounds, BoundsModel, CenterScale, FocusModel, VectorTileModel } from "ng-niney";
 import { MapLayer } from "ng-niney/map/map-layer";
+import { Symbolizer } from "ng-niney/map-feature-layer/symbolizer";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { TilesLayerComponent } from "ng-niney/tiles-layer/tiles-layer.component";
 import { SVGConverter } from "src/app/shared/svg-converter";
@@ -14,10 +15,13 @@ import { SVGConverter } from "src/app/shared/svg-converter";
   styleUrls: ["./vector-tiles-layer.component.scss"],
   providers: [{ provide: MapLayer, useExisting: forwardRef(() => VectorTilesLayerComponent) }]
 })
-export class VectorTilesLayerComponent extends TilesLayerComponent implements OnChanges {
-  zoomLevelScale = null;
+export class VectorTilesLayerComponent extends TilesLayerComponent implements AfterContentInit, OnChanges {
+  private zoomLevelScale = null;
+  private tilesBoundsModel = new BoundsModel();
+  private tilesFocusModel = new FocusModel();
 
-  @Input() fill;
+  @ContentChildren(Symbolizer) private contentChildren: QueryList<Symbolizer>;
+
   @Input() filter;
 
   constructor(
@@ -29,14 +33,24 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements On
     this.incubate = true;
   }
 
+  ngAfterContentInit() {
+    this.initChildren(); 
+    this.setChildrenFilter();
+
+    this.contentChildren.changes.subscribe(() => {
+      this.initChildren();
+      this.setChildrenFilter();
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (this.tileModel == null) {
         return;
     }
 
     if (changes.filter) {
-        this.tileModel.tiles.forEach(tile => { tile.corrupted = performance.now() - 8000 });
-        this.tileModel.loadTiles();
+      this.setChildrenFilter();
+      this.tileModel.loadTiles();
     }
   }
 
@@ -52,12 +66,15 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements On
     };
 
     tileModel.tileNeedsReload = tile => {
-      return (tile.scale <= maxZoomLevelScale) && (tile.scale != this.zoomLevelScale);
+      return (
+        ((tile.scale <= maxZoomLevelScale) && (tile.scale != this.zoomLevelScale)) ||
+        (tile.symbology != this.filter)
+      ) && tile.completed;
     };
   
     tileModel.loadTileData = tile => {
       if (tile.vectorData.length == 0) {
-        this.http.get(tile.url, { responseType: "arraybuffer" }).subscribe(
+        this.http.get(tile.url, {responseType: "arraybuffer"}).subscribe(
           response => {
             if (this.layer == null) {
               this.tileModel.completeTile(tile, false);
@@ -66,7 +83,7 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements On
             const layer = new VectorTile(new Protobuf(response)).layers[this.layer.name];
             for (let i = 0; i < layer.length; i++) {
               const feature = layer.feature(i);
-              feature.path = (new SVGConverter()).vectorTileFeatureToPath(feature);
+              feature.geometry = (new SVGConverter()).vectorTileFeatureToPath(feature);
               tile.vectorData.push(feature);
             }
             tile.extent = layer.extent;
@@ -85,36 +102,50 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements On
   }
 
   private setTileData(tile) {
-    let path = "";
-    for (let feature of tile.vectorData) {
-      if (this.filter && feature.properties.identificatie != this.filter) {
-        continue;
-      }
-      path += feature.path;
+    if (tile.tileWidth != tile.tileHeight) {
+      console.warn("Tile width and height are not equal. Image will be distorted.");
     }
 
     if (tile.scale != this.zoomLevelScale) {
       const rescaleFactor = tile.scale / this.zoomLevelScale;
       tile.scale = this.zoomLevelScale;
-      tile.tileWidth *= rescaleFactor;
-      tile.tileHeight *= rescaleFactor;
+      tile.tileWidth = Math.round(tile.tileWidth * rescaleFactor);
+      tile.tileHeight = Math.round(tile.tileHeight * rescaleFactor);
     }
+
+    tile.symbology = this.filter;
 
     const canvas = document.createElement("canvas");
     canvas.width = tile.tileWidth;
     canvas.height = tile.tileHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.scale(canvas.width / tile.extent, canvas.height / tile.extent);
-    ctx.lineWidth = 1.5 * tile.extent / canvas.height;
-    ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+    const scaling = tile.tileWidth / tile.extent;
 
-    const path2d = new Path2D(path);
-    ctx.stroke(path2d);
-    if (this.fill) {
-        ctx.fill(path2d);
-    }
+    const bounds = new Bounds(tile.tileWidth, tile.tileHeight);
+    const centerScale = new CenterScale(tile.extent / 2, tile.extent / 2, 1 / 0.000352778 / scaling, 1);
+
+    this.tilesBoundsModel.setBounds(bounds);
+    this.tilesFocusModel.setCenterScale(centerScale);
+
+    this.contentChildren.forEach(contentChild => {
+      contentChild.setContext(canvas.getContext("2d"), bounds, centerScale);
+      contentChild.setFeatures(tile.vectorData);
+      contentChild.setFeatures(null);
+    });
 
     tile.data = canvas;
     this.tileModel.completeTile(tile, true);
+  }
+
+  private initChildren() {
+    this.contentChildren.forEach(contentChild => {
+      contentChild.animate = false;
+      contentChild.init(this.tilesBoundsModel, this.tilesFocusModel, null, null);
+    });
+  }
+
+  private setChildrenFilter() {
+    this.contentChildren.forEach(contentChild => {
+      contentChild.mapFeatureModel.setFilter(this.filter? "properties.identificatie == " + this.filter: null);
+    });
   }
 }

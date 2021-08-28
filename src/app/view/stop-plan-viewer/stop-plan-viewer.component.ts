@@ -13,9 +13,9 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
 
   tabs = [
     { id: 0, label: "Plekinfo", type: null, scrollTop: 0 },
-    { id: 1, label: "Regels", type: "LICHAAM", documentComponenten: null, scrollTop: 0 },
-    { id: 2, label: "Toelichting", type: "", scrollTop: 0 },
-    { id: 3, label: "Bijlagen", type: "BIJLAGE", documentComponenten: null, scrollTop: 0 }
+    { id: 1, label: "Regels", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 2, label: "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 3, label: "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
   ];
   tab = this.tabs[0];
   allVisible = false;
@@ -55,13 +55,19 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   }
 
   private initTabs() {
-    for (let i = 1; i < this.tabs.length; i++) {
-      this.tabs[i].documentComponenten = {
-        _embedded: {
-          documentComponenten: this.structuur? this.structuur._embedded.documentComponenten.filter(d => d.type == this.tabs[i].type): []
-        }
-      };
-      this.tabs[i].scrollTop = 0;
+    for (const tab of this.tabs) {
+      if (this.structuur == null) {
+        tab.documentComponenten = {_embedded: {documentComponenten: []}};
+      } else if (!tab.subtypes) {
+        tab.documentComponenten = {_embedded: {documentComponenten:
+          this.structuur._embedded.documentComponenten.filter(d => d.type == tab.type)
+        }};
+      } else {
+        tab.documentComponenten = {_embedded: {documentComponenten:
+          this.structuur._embedded.documentComponenten.filter(d => d.type == tab.type).reduce((dc, d) => dc.concat(d._embedded.documentComponenten), [])
+        }};
+      }
+      tab.scrollTop = 0;
     }
   }
 

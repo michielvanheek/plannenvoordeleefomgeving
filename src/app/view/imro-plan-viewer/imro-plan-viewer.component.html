@@ -41,8 +41,8 @@
             <a href="javascript:void(0)" (click)="info.viewLinksVisible = false" class="btn-close"><span class="fa fa-times"></span></a>
           </div>
         </div>
-        <div *ngIf="!info.viewLinks.length" (mouseover)="highlightModel.setHighlight(1, info.geometrie)" (mouseout)="highlightModel.setHighlight(1, null)" class="overlay no-pointer"></div>
-        <div *ngIf="info.viewLinks.length && !info.viewLinksVisible" (mouseover)="highlightModel.setHighlight(1, info.geometrie)" (mouseout)="highlightModel.setHighlight(1, null)" (click)="openInfo(info)" [title]="'Bijbehorende ' + planTypeAdjective + ' openen (in een apart venster)'" class="overlay"></div>
+        <div *ngIf="!info.viewLinks.length" (mouseover)="highlightModel.setHighlight(info)" (mouseout)="highlightModel.setHighlight(null)" class="overlay no-pointer"></div>
+        <div *ngIf="info.viewLinks.length && !info.viewLinksVisible" (mouseover)="highlightModel.setHighlight(info)" (mouseout)="highlightModel.setHighlight(null)" (click)="openInfo(info)" [title]="'Bijbehorende ' + planTypeAdjective + ' openen (in een apart venster)'" class="overlay"></div>
       </li>
     </ng-template>
   </ul>

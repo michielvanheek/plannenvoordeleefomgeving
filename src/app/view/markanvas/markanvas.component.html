@@ -8,7 +8,7 @@
     <li *ngFor="let info of infos1" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
       <div [innerHTML]="info.text"></div>
-      <div (mouseover)="highlightModel.omgevingsdocumentHighlight = info.locatieIdentificatie" (mouseout)="highlightModel.omgevingsdocumentHighlight = 'nothing'" (click)="openInfo(info.regelteksten)" title="Bijbehorende regels tonen" class="overlay"></div>
+      <div (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" (click)="openInfo(info.regelteksten)" title="Bijbehorende regels tonen" class="overlay"></div>
     </li>
   </ng-template>
   <ng-template [ngIf]="appService.settings.placeInfoShowOrphans">
@@ -19,7 +19,7 @@
         <strong>{{locatie.noemer || "Geen naam"}}</strong><br/>
         locatie
       </div>
-      <div (mouseover)="highlightModel.omgevingsdocumentHighlight = locatie.identificatie" (mouseout)="highlightModel.omgevingsdocumentHighlight = 'nothing'" class="overlay no-pointer"></div>
+      <div (mouseover)="highlightModel.setHighlight(locatie, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay no-pointer"></div>
     </li>
   </ng-template>
 </ul>

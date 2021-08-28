@@ -123,6 +123,8 @@ export class PlanDecoratorService {
     plan.sourcetable = "dso";
     plan.vormvrijType = false;
     plan.kaarten = [];
+
+    plan.locatieIdentificatie = plan._links.heeftRegelingsgebied.href.match(/\/([^\/]+)$/)[1];
   }
 
   decoratePlan(plan, includeStatus) {
@@ -132,13 +134,13 @@ export class PlanDecoratorService {
         plan.viewOverheidName = this.overheidModel.overheden[plan.overheidsCode].name;
       }
     }
-    
+
     plan.viewPlanLevel = this.planLevelModel.getPlanLevel(plan);
-    
+
     if (includeStatus) {
       plan.viewStatus = this.status(plan);
     }
-    
+
     const split = plan.datum.split("-");
     plan.viewDate = split[2] + "-" + split[1] + "-" + split[0];
   }

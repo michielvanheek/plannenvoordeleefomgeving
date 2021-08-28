@@ -8,16 +8,11 @@ n-map {
   margin: 0 -11px;
 }
 .blackhighlight {
+  fill: rgba(0, 0, 0, 0.4);
   stroke: #fff;
   stroke-width: 8px;
   --stroke-filter: blur(3px);
-  fill: rgba(0, 0, 0, 0.6);
-}
-.whitehighlight {
-  stroke: #fff;
-  stroke-width: 4px;
-  filter: blur(2px);
-  fill: rgba(255, 255, 255, 0.5);
+  --inverse-fill: 1;
 }
 .loader {
   position: absolute;

@@ -5,15 +5,25 @@
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
   <tileslayer [layer]="layerModel.layers[2]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></tileslayer>
   <tileslayer [layer]="layerModel.layers[3]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.otherPlansOpacity / 100}"></tileslayer>
-  <wmslayer [layer]="layerModel.layers[4]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
-  <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[0]">
-    <canvassymbolizer inversefill="true" class="blackhighlight"></canvassymbolizer>
+  <mapfeaturelayer *ngIf="planModel.plan" [layer]="layerModel.layers[4]" [ngStyle]="{opacity: layerModel.planOpacity / 100, stroke: (['beheersverordening', 'omgevingsvergunning', 'voorbereidingsbesluit', 'gemeentelijk plan; voorbereidingsbesluit'].includes(planModel.plan.typePlan)? '#00f': '#000')}">
+    <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
+    <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <mapfeaturelayer [layer]="layerModel.layers[5]" [featuremodel]="highlightModel.highlights[1]">
-    <canvassymbolizer class="whitehighlight"></canvassymbolizer>
+  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+    <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
+  </vectortileslayer>
+  <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [filter]="planModel.plan.locatieIdentificatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+    <canvassymbolizer [ngStyle]="highline" style="stroke-linejoin: bevel"></canvassymbolizer>
+    <canvassymbolizer [ngStyle]="bumps"></canvassymbolizer>
+  </vectortileslayer>
+  <mapfeaturelayer [layer]="layerModel.layers[6]">
+    <canvassymbolizer [geometry]="highlightModel.imroHighlight['geometrie']" class="blackhighlight"></canvassymbolizer>
+    <canvassymbolizer [geometry]="highlightModel.imroHighlight['geometrie']" [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[6]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></vectortileslayer>
-  <vectortileslayer [layer]="layerModel.layers[6]" [loader]="loader" [fill]="true" [filter]="highlightModel.omgevingsdocumentHighlight"></vectortileslayer>
+  <vectortileslayer [layer]="layerModel.layers[7]" [loader]="loader" [filter]="highlightModel.imowHighlight">
+    <canvassymbolizer class="blackhighlight"></canvassymbolizer>
+    <canvassymbolizer [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
+  </vectortileslayer>
 <!--  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
   <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>

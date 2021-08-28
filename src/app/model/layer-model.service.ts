@@ -7,13 +7,14 @@ import { environment } from "../../environments/environment";
 })
 export class LayerModelService {
   layers = [
-    new Layer("perceel"),        // WMS
-    null,                        // WMS: selected bestemmingsplan contents
-    null,                        // WMTS: selected vormvrij-plan contents
-    new Layer("bp_grenzen_all"), // WMTS
-    null,                        // WMS: selected plan boundaries
-    new Layer("HighlightLayer"),
-    new Layer("vlaklocaties")    // MVT: all omgevingsdocument boundaries + highlight
+    new Layer("perceel"),        // 0 WMS
+    null,                        // 1 WMS: selected bestemmingsplan contents
+    null,                        // 2 WMTS: selected vormvrij-plan contents
+    new Layer("bp_grenzen_all"), // 3 WMTS
+    new Layer("SelectionLayer"), // 4 MF: selected bestemmingsplan or vormvrij-plan boundaries
+    new Layer("vlaklocaties"),   // 5 MVT: all omgevingsdocument contents & boundaries
+    new Layer("HighlightLayer"), // 6 MF: IMRO highlight
+    new Layer("vlaklocaties")    // 7 MVT: IMOW highlight
   ];
   planOpacity = 100;
   otherPlansOpacity = 60;
@@ -24,9 +25,12 @@ export class LayerModelService {
     this.layers[0].baseURL = "https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wms";
     this.layers[3].baseURL = environment.geoWebCacheUrl;
     this.layers[3].visible = false;
-    this.layers[6].baseURL = environment.locatiesUrl;
-    this.layers[6].urlExtension = "$Z/$X/$Y.pbf";
-    this.layers[6].visible = false;
+    this.layers[5].baseURL = environment.locatiesUrl;
+    this.layers[5].urlExtension = "$Z/$X/$Y.pbf";
+    this.layers[5].visible = false;
+    this.layers[7].baseURL = environment.locatiesUrl;
+    this.layers[7].urlExtension = "$Z/$X/$Y.pbf";
+    this.layers[7].visible = false;
 
     this.backgroundLayers[0].baseURL = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=brtachtergrondkaart&STYLE=_null&TILEMATRIXSET=EPSG%3A28992&FORMAT=image%2Fpng";
     this.backgroundLayers[0].title = "topografie";

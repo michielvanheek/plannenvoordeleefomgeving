@@ -178,7 +178,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private getPlaceSpecificCanvas(feature, matrix) {
-    const path2d = new Path2D((new SVGConverter()).vectorTileFeatureToPath(feature));
+    const path2d = new Path2D((new SVGConverter()).vectorTileFeatureToPath(feature).replace(/K/g, "L"));
     const canvas = document.createElement("canvas");
     canvas.width = this.canvasSize;
     canvas.height = this.canvasSize;

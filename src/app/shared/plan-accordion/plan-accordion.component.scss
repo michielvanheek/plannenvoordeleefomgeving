@@ -63,11 +63,11 @@
   }
 }
 
-.od-Inhoud, .od-Inhoud>.od-Lijst, .od-IntIoRef, .od-Lidnr, .od-LiNr, .od-Opschrift, .od-Tussenkop {
+.od-IntIoRef, .od-Opschrift {
   display: inline;
 }
 
-.od-Al, .od-Begrip, .od-Definitie, .od-Li, .od-Lidnr, .od-Lijst, .od-Lijstaanhef, .od-Lijstsluiting, .od-LiNr, .od-Term, .od-Tussenkop, .od-Figuur, .od-Tabel table, .od-Kadertekst {
+.od-Al, .od-Begrip, .od-Definitie, .od-Lijstaanhef, .od-Lijstsluiting, .od-Term, .od-Tussenkop, .od-Figuur, .od-Tabel table, .od-Kadertekst {
   margin-bottom: 0.75rem;
 }
 
@@ -96,11 +96,11 @@
   font-style: italic;
 }
 
-.od-LiNummer {
-  float: left;
-  min-width: .7em;
-  padding-right: .3em;
-  text-align: right;
+.od-LiContainer {
+  display: flex;
+  .od-LiNummer {
+    padding-right: 0.5rem;
+  }
 }
 
 .od-Term {
@@ -117,18 +117,23 @@
   }
 
   .od-Bijschrift {
-    font-size: .75rem;
     margin-left: 25px;
+    padding-top: 0.75rem;
+    color: #555;
   }
 }
 
 .od-Tabel {
   caption {
     caption-side: top;
-    color: #666;
+    color: #555;
   }
   thead {
     font-weight: 600;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 

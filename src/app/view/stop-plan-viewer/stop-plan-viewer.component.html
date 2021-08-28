@@ -31,7 +31,7 @@
 </div>
 <div #tabContent class="tab-content">
   <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[1], true)"></dso-markanvas>
-  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="(tab.id == 1)? 1: 2" [allVisible]="allVisible" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="1" [allVisible]="allVisible" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
 </div>
 <div *ngIf="imowModel.markerLoading || ((tab.id == 0) && imowModel.numLoading) || ((tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies))" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>

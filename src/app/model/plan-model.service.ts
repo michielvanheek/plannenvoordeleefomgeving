@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
 import { HttpClient } from "@angular/common/http";
-import { CenterScale, Envelope, FocusModel, Layer } from "ng-niney";
+import { CenterScale, Envelope, FocusModel, Layer, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
@@ -140,20 +140,22 @@ export class PlanModelService {
     if (idn.indexOf("NL.IMRO") == 0) {
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + idn;
       this.http.get(url).subscribe(response => {
-        this.planDecorator.decoratePlan(response, true);
+        const plan: any = response;
 
-        const bb = response["boundingBox"];
-        response["viewEnvelope"] = new Envelope(bb.minX, bb.minY, bb.maxX, bb.maxY);
+        this.planDecorator.decoratePlan(plan, true);
 
-        response["viewSymbols"] = {};
-        for (let i = 0; i < response["kaarten"].length; i++) {
-          setSymbols(response["kaarten"][i].planObjecten);
+        const bb = plan.boundingBox;
+        plan.viewEnvelope = new Envelope(bb.minX, bb.minY, bb.maxX, bb.maxY);
+
+        plan.viewSymbols = {};
+        for (let i = 0; i < plan.kaarten.length; i++) {
+          setSymbols(plan.kaarten[i].planObjecten);
         }
         function setSymbols(symbolObjects) {
           for (let i = 0; i < symbolObjects.length; i++) {
             const symbolObject = symbolObjects[i];
             if (symbolObject.symboolCodes[0] != null) {
-              response["viewSymbols"][symbolObject.identificatie] = symbolObject.symboolCodes[0];
+              plan.viewSymbols[symbolObject.identificatie] = symbolObject.symboolCodes[0];
             }
             if (symbolObject.hasChildren) {
               setSymbols(symbolObject.children);
@@ -161,10 +163,15 @@ export class PlanModelService {
           }
         }
 
-        this.setPlan(response, dossierSet);
+        this.setPlan(plan, dossierSet);
         if (zoomToPlan) {
           this.zoomToPlan();
         }
+
+        const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + idn + "/geometrie";
+        this.http.get(url).subscribe(response => {
+          plan.geometrie = (new WKTConverter()).wktToCoordPath(response["geometrie"]);
+        });
       });
     } else {  // AKN.
       const plan = this.omgevingsdocumentModel.omgevingsdocumenten.find(omgevingsdocument => omgevingsdocument.identificatie == idn);
@@ -180,15 +187,36 @@ export class PlanModelService {
         let i = 0;
         const componentIdentificaties = [];
         const doc = document.implementation.createHTMLDocument();
-        const decorateNoten = o => {
-          if (o.identificatie != null) {
-            componentIdentificaties.push(o.identificatie);
+        const processComponent = component => {
+          if (component.identificatie != null) {
+            componentIdentificaties.push(component.identificatie);
           }
-          for (const key in o) {
-            if (key == "inhoud") {
-              if (o[key].includes("od-Noot")) {
+          for (const key in component) {
+            if (key == "type") {
+              if ((component[key] == "ALGEMENE_TOELICHTING") || (component[key] == "ARTIKELGEWIJZE_TOELICHTING")) {
+                component["opschrift"] = component[key].replace("_", " ");
+                component[key] = "DIVISIE";
+              }
+            } else if (key == "inhoud") {
+              if (component[key].includes("od-Li") || component[key].includes("od-Noot")) {
                 const el = doc.createElement("div");
-                el.innerHTML = o[key];
+                el.innerHTML = component[key];
+                const liElements = el.getElementsByClassName("od-Li");
+                for (let j = 0; j < liElements.length; j++) {
+                  const liElement = liElements.item(j);
+                  const liContainer = doc.createElement("div");
+                  liContainer.className = "od-LiContainer";
+                  liElement.before(liContainer);
+                  liContainer.appendChild(liElement);
+                  if (liElement.firstElementChild.className.includes("od-LiNummer")) {
+                    liElement.before(liElement.firstElementChild);
+                  } else {
+                    const liNummerElement = doc.createElement("div");
+                    liNummerElement.className = "od-LiNummer";
+                    liNummerElement.innerHTML = "&bull;";
+                    liElement.before(liNummerElement);
+                  }
+                }
                 const nootElements = el.getElementsByClassName("od-Noot");
                 for (let j = 0; j < nootElements.length; j++) {
                   const nootElement = nootElements.item(j);
@@ -198,14 +226,14 @@ export class PlanModelService {
                   const nootText = nootChildren.item(1).innerHTML;
                   nootElement.innerHTML = "<sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div>";
                 }
-                o[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
+                component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
               }
-            } else if ((o[key] != null) && (typeof o[key] == "object")) {
-              decorateNoten(o[key]);
+            } else if ((component[key] != null) && (typeof component[key] == "object")) {
+              processComponent(component[key]);
             }
           }
         }
-        decorateNoten(response);
+        processComponent(response);
         this.imowModel.componentIdentificaties.flat = componentIdentificaties;
 
         plan.structuur = response;
@@ -224,8 +252,7 @@ export class PlanModelService {
       layers[1] = null;
       this.setKaart(null);
       layers[3].visible = false;
-      layers[4] = null;
-      layers[6].visible = false;
+      layers[5].visible = false;
     } else if (plan.versieImro != null) {
       this.planLevelModel.setPlanLevel(plan.viewPlanLevel);
 
@@ -251,16 +278,12 @@ export class PlanModelService {
         layers[3].visible = true;
         styleURL = environment.websiteUrl + "web-roo/remote-sld/b-plangebied.jsp?plangebied=" + this.plan.identificatie;
       }
-      layers[4] = new Layer(null);
-      layers[4].baseURL = environment.geoUrl + "afnemers/services";
-      layers[4].styleURL = styleURL;
-      layers[6].visible = false;
+      layers[5].visible = false;
     } else {  // Omgevingsdocument.
       layers[1] = null;
       this.setKaart(null);
       layers[3].visible = false;
-      layers[4] = null;
-      layers[6].visible = true;
+      layers[5].visible = true;
     }
     this.setPlanInPlanalysis();
     this.setDocuments();

@@ -1,5 +1,6 @@
 import { Component, DoCheck } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
@@ -84,6 +85,17 @@ export class ImroPlanViewerComponent implements DoCheck {
       const buffer = Math.min(Math.round(this.nineyDefault.defaultFocusModel.centerScale.scale / 28.3464388369) / 100, 13.44);
       const url = environment.websiteProxyUrl + "web-roo/rest/" + this.planModel.plan.sourcetable + "/id/" + this.planModel.plan.identificatie + "/xy/" + point.x + "/" + point.y + "?buffer=" + buffer;
       this.http.get(url).subscribe(response => {
+        for (const val of Object.values(response)) {
+          if (Array.isArray(val)) {
+            for (const info of val) {
+              if (info.geometrie != null) {
+                info.geometrie = (new WKTConverter()).wktToCoordPath(info.geometrie);
+              } else {
+                info.geometrie = "";
+              }
+            }
+          }         
+        }
         this.setInfo(response);
       });
     }
@@ -184,6 +196,10 @@ export class ImroPlanViewerComponent implements DoCheck {
           .toLowerCase()
             + "</span><br/>"): "") +
         (info.idealisatie? ("gebiedsbegrenzing: " + info.idealisatie): "");
+    }
+    const besluitvlakContent = info => {
+      const name = info.naam.replace(/besluit(sub)?vlak/ig, "").trim() || info.typePlan;
+      return "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>besluitvlak";
     }
 
     const enkelbestemmingLegendUrl = info => {
@@ -323,6 +339,9 @@ export class ImroPlanViewerComponent implements DoCheck {
       }
       return "assets/nosymbol.png";
     }
+    const besluitvlakLegendUrl = info => {
+      return "assets/legend/besluitvlak.png";
+    }
 
     [
       { name: "enkelBestemmingen", content: ebdbContent("enkelbestemming"), legendUrl: enkelbestemmingLegendUrl },
@@ -336,8 +355,8 @@ export class ImroPlanViewerComponent implements DoCheck {
       { name: "gebiedsAanduidingen", content: gebiedsaanduidingContent, legendUrl: dbgaLegendUrl("gebiedsAanduidingGroep") },
       { name: "structuurvisieGebieden", content: vvvpContent, legendUrl: vvvpLegendUrl },
       { name: "structuurvisieVerklaringenP", content: vvvpContent, legendUrl: vvvpLegendUrl },
-      { name: "besluitVlakken", content: vvvpContent, legendUrl: vvvpLegendUrl },
-      { name: "besluitSubVlakken", content: vvvpContent, legendUrl: vvvpLegendUrl }
+      { name: "besluitVlakken", content: besluitvlakContent, legendUrl: besluitvlakLegendUrl },
+      { name: "besluitSubVlakken", content: besluitvlakContent, legendUrl: besluitvlakLegendUrl }
     ].forEach(infoType => {
       const infos = this.info[infoType.name];
       if ((infos != null) && (infos.length > 0)) {

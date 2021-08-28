@@ -1,53 +1,59 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Subscription } from "rxjs";
-import { Feature, WKTConverter } from "ng-niney";
+import { WKTConverter } from "ng-niney";
+import { LayerModelService } from "./layer-model.service";
 import { environment } from "../../environments/environment";
 
 @Injectable({
   providedIn: "root"
 })
 export class HighlightModelService {
-  private subscription: Subscription = null;
+  private loading = {};
 
-  highlights = [{features: []}, {features: []}];
-  omgevingsdocumentHighlight = "nothing";
+  imroHighlight = {};
+  imowHighlight = "nothing";
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private layerModel: LayerModelService
+  ) { }
 
-  loadHighlight(plan) {
-    if (this.subscription != null) {
-      this.subscription.unsubscribe();
-    }
-    if (plan == null) {
-      this.setHighlight(0, null);
-      return;
-    }
-    if (plan.geometrie != null) {
-      this.setHighlight(0, plan.geometrie);
-      return;
-    }
-
-    const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + plan.identificatie + "/geometrie";
-    this.subscription = this.http.get(url).subscribe(
-      response => {
-        this.subscription = null;
-        plan.geometrie = response["geometrie"];
-        this.setHighlight(0, plan.geometrie);
-      },
-      response => {
-        this.subscription = null;
+  setHighlight(planOrInfo, imro = true) {
+    if (imro) {  // IMRO plan or IMRO info.
+      if (planOrInfo == null) {
+        this.imroHighlight = {};
+        return;
       }
-    );
-  };
 
-  setHighlight(i, wkt) {
-    if (wkt == null) {
-      this.highlights[i].features = [];
-    } else {
-      const path = (new WKTConverter()).wktToCoordPath(wkt);
-      const feature = new Feature(null, [path]);
-      this.highlights[i].features = [feature];
+      this.imroHighlight = planOrInfo;
+
+      if (planOrInfo.geometrie != null) {
+        return;
+      }
+      const identificatie = planOrInfo.identificatie;
+      if (this.loading[identificatie]) {
+        return;
+      }
+      this.loading[identificatie] = true;
+      const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + identificatie + "/geometrie";
+      this.http.get(url).subscribe(
+        response => {
+          delete this.loading[identificatie];
+          planOrInfo.geometrie = (new WKTConverter()).wktToCoordPath(response["geometrie"]);
+        },
+        response => {
+          delete this.loading[identificatie];
+        }
+      );
+    } else {  // Omgevingsdocument or IMOW info or IMOW locatie.
+      if (planOrInfo == null) {
+        this.layerModel.layers[7].visible = false;
+        return;
+      }
+
+      const identificatie = planOrInfo.locatieIdentificatie || planOrInfo.identificatie;
+      this.imowHighlight = identificatie;
+      this.layerModel.layers[7].visible = true;
     }
   }
 }
