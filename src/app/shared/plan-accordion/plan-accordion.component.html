@@ -1,22 +1,36 @@
 <ng-template ngFor let-element [ngForOf]="item._embedded.documentComponenten">
-  <div *ngIf="isVisible(element)" [id]="element.identificatie">
+  <div *ngIf="isVisible(element)" [id]="element.identificatie" (mouseover)="preselect(element); $event.stopPropagation()" (mouseout)="preselect(null); $event.stopPropagation()" (click)="select(element); $event.stopPropagation()">
     <div *ngIf="hasNoOpschrift(element); else foo" class="marker-container" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)">
-      <div *ngIf="isSelected(element)" class="marker"></div>
+      <div *ngIf="isSelected(element)" class="marker" [ngStyle]="isPreselectedOnly(element)? {opacity: 0.5}: {}"></div>
       <div class="nummer">{{element.nummer}}</div>
       <div class="inhoud" [innerHTML]="element.inhoud"></div>
+      <div *ngIf="isSelected(element)" class="label">
+        <button (click)="display.emit('annotationsVisible', true)" [disabled]="isPreselectedOnly(element)" title="Van deze regel de annotaties tonen" class="btn btn-sm btn-link">
+          <svg class="di di-sm">
+            <use href="../assets/dso-icons.svg#label"></use>
+          </svg>
+        </button>
+      </div>
     </div>
     <ng-template #foo>
-      <div class="document-element__title-container" (click)="openElement(element)">
-        <button class="btn-link">
-          <dso-document-element-title [element]="element" [level]="level" [allVisible]="allVisible" [inactive]="isNotSpecific(element)"></dso-document-element-title>
+      <div class="document-element__title-container" (click)="openElement(element); isOpenable(element)? $event.stopPropagation(): null">
+        <button class="btn-link" [ngStyle]="!isOpenable(element)? {cursor: 'default'}: {}">
+          <dso-document-element-title [element]="element" [level]="level" [display]="display" [openable]="isOpenable(element)" [inactive]="isNotSpecific(element)"></dso-document-element-title>
         </button>
         <div class="document-element__options"></div>
       </div>
-      <div *ngIf="element.isOpen || allVisible" class="marker-container">
-        <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element" [level]="level + 1" [allVisible]="allVisible" [componentIdentificaties]="componentIdentificaties"></dso-plan-accordion>
+      <div *ngIf="element.isOpen || display.allVisible" class="marker-container">
+        <dso-plan-accordion *ngIf="element._embedded.documentComponenten.length; else bar" [item]="element" [level]="level + 1" [display]="display" [componentIdentificaties]="componentIdentificaties" style="width: 100%"></dso-plan-accordion>
         <ng-template #bar>
-          <div *ngIf="isSelected(element)" class="marker"></div>
+          <div *ngIf="isSelected(element)" class="marker" [ngStyle]="isPreselectedOnly(element)? {opacity: 0.5}: {}"></div>
           <div class="inhoud" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)" [innerHTML]="element.inhoud"></div>
+          <div *ngIf="isSelected(element)" class="label">
+            <button (click)="display.emit('annotationsVisible', true)" [disabled]="isPreselectedOnly(element)" title="Van deze regel de annotaties tonen" class="btn btn-sm btn-link">
+              <svg class="di di-sm">
+                <use href="../assets/dso-icons.svg#label"></use>
+              </svg>
+            </button>
+          </div>
         </ng-template>
       </div>
     </ng-template>

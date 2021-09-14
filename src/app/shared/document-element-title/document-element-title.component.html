@@ -1,26 +1,26 @@
-<h2 *ngIf="element.type === 'BOEK' || element.type === 'DEEL' || element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'" class="document-element__title" [class]="isOpenable ? 'clickable' : 'cursor-default'">
+<h2 *ngIf="element.type === 'BOEK' || element.type === 'DEEL' || element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'" class="document-element__title">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h2>
-<h3 *ngIf="element.type === 'DIVISIE' || element.type === 'DIVISIETEKST'" class="document-element__title" [class]="isOpenable ? 'clickable' : 'cursor-default'" [ngClass]="'title-' + level">
+<h3 *ngIf="element.type === 'DIVISIE' || element.type === 'DIVISIETEKST'" class="document-element__title" [ngClass]="'title-' + level">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h3>
-<h4 *ngIf="element.type === 'TITEL' || element.type === 'AFDELING'" class="document-element__title" [class]="isOpenable ? 'clickable' : 'cursor-default'">
+<h4 *ngIf="element.type === 'TITEL' || element.type === 'AFDELING'" class="document-element__title">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h4>
-<h5 *ngIf="element.type === 'PARAGRAAF' || element.type === 'SUBPARAGRAAF' || element.type === 'SUBSUBPARAGRAAF'" class="document-element__title" [class]="isOpenable ? 'clickable' : 'cursor-default'">
+<h5 *ngIf="element.type === 'PARAGRAAF' || element.type === 'SUBPARAGRAAF' || element.type === 'SUBSUBPARAGRAAF'" class="document-element__title">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h5>
-<h6 *ngIf="element.type === 'ARTIKEL'" class="document-element__title" [class]="isOpenable ? 'clickable' : 'cursor-default'">
+<h6 *ngIf="element.type === 'ARTIKEL'" class="document-element__title">
   <ng-container *ngTemplateOutlet="content"></ng-container>
 </h6>
 
 <ng-template #content>
-   <span *ngIf="!allVisible"
+   <span *ngIf="!display.allVisible"
          class="toggle__chevron fa fa-angle-right"
-         [ngClass]="{'toggle__chevron-rotated' : element.isOpen, 'fa-angle-right': isOpenable}">
+         [ngClass]="{'toggle__chevron-rotated' : element.isOpen, 'fa-angle-right': openable}">
    </span>
   <div class="document-element__title-header" [class.inactive]="inactive">
-    <div *ngIf="appService.titleSymbols[element.type] && (element.nummer || !element.opschrift)" class="document-element__title-header-item">{{appService.titleSymbols[element.type]}}</div>
+    <div *ngIf="titleSymbols[element.type] && (element.nummer || !element.opschrift)" class="document-element__title-header-item">{{titleSymbols[element.type]}}</div>
     <div *ngIf="element.nummer || !element.opschrift" class="document-element__title-header-item">{{element.nummer || "[ongenummerd]"}}</div>
     <div class="document-element__title-header-item">
       <span [innerHTML]="element.opschrift"></span>

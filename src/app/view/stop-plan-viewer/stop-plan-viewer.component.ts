@@ -18,7 +18,15 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     { id: 3, label: "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
   ];
   tab = this.tabs[0];
-  allVisible = false;
+  display = {
+    allVisible: false,
+    annotationsVisible: false,
+    emit: (key, val) => {
+      if (this.display[key] != val) {
+        this.display = Object.assign({}, this.display, {[key]: val});
+      }
+    }
+  };
 
   constructor(
     private hostRef: ElementRef,

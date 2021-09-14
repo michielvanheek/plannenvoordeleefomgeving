@@ -23,6 +23,7 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
   @ContentChildren(Symbolizer) private contentChildren: QueryList<Symbolizer>;
 
   @Input() filter;
+  @Input() cssFunction;
 
   constructor(
     private http: HttpClient,
@@ -34,12 +35,14 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
   }
 
   ngAfterContentInit() {
-    this.initChildren(); 
+    this.initChildren();
     this.setChildrenFilter();
+    this.setChildrenCssFunction();
 
     this.contentChildren.changes.subscribe(() => {
       this.initChildren();
       this.setChildrenFilter();
+      this.setChildrenCssFunction();
     });
   }
 
@@ -50,6 +53,10 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
 
     if (changes.filter) {
       this.setChildrenFilter();
+      this.tileModel.loadTiles();
+    }
+    if (changes.cssFunction) {
+      this.setChildrenCssFunction();
       this.tileModel.loadTiles();
     }
   }
@@ -68,7 +75,7 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
     tileModel.tileNeedsReload = tile => {
       return (
         ((tile.scale <= maxZoomLevelScale) && (tile.scale != this.zoomLevelScale)) ||
-        (tile.symbology != this.filter)
+        (tile.symbology == null) || (tile.symbology.filter != this.filter) || (tile.symbology.cssFunction != this.cssFunction)
       ) && tile.completed;
     };
   
@@ -113,7 +120,7 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
       tile.tileHeight = Math.round(tile.tileHeight * rescaleFactor);
     }
 
-    tile.symbology = this.filter;
+    tile.symbology = {filter: this.filter, cssFunction: this.cssFunction};
 
     const canvas = document.createElement("canvas");
     canvas.width = tile.tileWidth;
@@ -146,6 +153,12 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
   private setChildrenFilter() {
     this.contentChildren.forEach(contentChild => {
       contentChild.mapFeatureModel.setFilter(this.filter? "properties.identificatie == " + this.filter: null);
+    });
+  }
+
+  private setChildrenCssFunction() {
+    this.contentChildren.forEach(contentChild => {
+      contentChild.mapFeatureModel.cssFunction = this.cssFunction;
     });
   }
 }

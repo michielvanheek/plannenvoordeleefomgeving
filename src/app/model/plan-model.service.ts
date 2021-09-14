@@ -76,7 +76,7 @@ export class PlanModelService {
           geo: {
             geometrie: {
               type:"Point",
-              coordinates:[point.x,point.y]
+              coordinates:[point.x, point.y]
             },
             spatialOperator:"intersects"
           }
@@ -185,16 +185,16 @@ export class PlanModelService {
       const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "omgevingsdocumenten/" + underscoredDocumentId + "/documentcomponenten";
       this.http.get(url, options).subscribe(response => {
         let i = 0;
-        const componentIdentificaties = [];
+        const components = [];
         const doc = document.implementation.createHTMLDocument();
         const processComponent = component => {
           if (component.identificatie != null) {
-            componentIdentificaties.push(component.identificatie);
+            components.push(component);
           }
           for (const key in component) {
             if (key == "type") {
               if ((component[key] == "ALGEMENE_TOELICHTING") || (component[key] == "ARTIKELGEWIJZE_TOELICHTING")) {
-                component["opschrift"] = component[key].replace("_", " ");
+                component.opschrift = component[key].replace("_", " ");
                 component[key] = "DIVISIE";
               }
             } else if (key == "inhoud") {
@@ -234,7 +234,7 @@ export class PlanModelService {
           }
         }
         processComponent(response);
-        this.imowModel.componentIdentificaties.flat = componentIdentificaties;
+        this.imowModel.components = components;
 
         plan.structuur = response;
       });

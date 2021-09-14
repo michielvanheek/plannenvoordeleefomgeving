@@ -11,7 +11,7 @@
     </div>
   </div>
   <div class="toolbar">
-    <div *ngIf="allVisible && (imowModel.componentIdentificaties.filtered || imowModel.componentIdentificaties.specific)" class="box-sm">
+    <div *ngIf="display.allVisible && (imowModel.componentIdentificaties.filtered || imowModel.componentIdentificaties.specific)" class="box-sm">
       <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
         <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
       </button>
@@ -20,10 +20,10 @@
       </button>
     </div>
     <div class="box-sm">
-      <button (click)="allVisible = true" title="Hele document" class="btn btn-default btn-sm" [class.selected]="allVisible">
+      <button (click)="display.emit('allVisible', true)" title="Hele document" class="btn btn-default btn-sm" [class.selected]="display.allVisible">
         <span class="fa fa-file"></span>
       </button>
-      <button (click)="allVisible = false" title="Boomstructuur" class="btn btn-default btn-sm" [class.selected]="!allVisible">
+      <button (click)="display.emit('allVisible', false)" title="Boomstructuur" class="btn btn-default btn-sm" [class.selected]="!display.allVisible">
         <span class="fa fa-list-ul" style="font-size: 0.75rem"></span>
       </button>
     </div>
@@ -31,7 +31,10 @@
 </div>
 <div #tabContent class="tab-content">
   <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[1], true)"></dso-markanvas>
-  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="1" [allVisible]="allVisible" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+</div>
+<div *ngIf="(tab.id == 1) && display.annotationsVisible" class="anno">
+  <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>
 </div>
 <div *ngIf="imowModel.markerLoading || ((tab.id == 0) && imowModel.numLoading) || ((tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies))" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>

@@ -1,34 +1,38 @@
 import { NgModule } from "@angular/core";
 import { Routes, RouterModule } from "@angular/router";
+import { HomeComponent } from "./home/home.component";
 import { RoutingComponent } from "./view/routing/routing.component";
 
 const routes: Routes = [{
-  path: "view/:centerX/:centerY/:scale/:documentId/local",
+  path: "viewer/:centerX/:centerY/:scale/:documentId/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "view/:centerX/:centerY/:scale/:documentId",
+  path: "viewer/:centerX/:centerY/:scale/:documentId",
   component: RoutingComponent
 }, {
-  path: "view/:centerX/:centerY/:scale/:markerX/:markerY/:documentId/local",
+  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY/:documentId/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "view/:centerX/:centerY/:scale/:markerX/:markerY/:documentId",
+  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY/:documentId",
   component: RoutingComponent
 }, {
-  path: "view/:centerX/:centerY/:scale/:markerX/:markerY",
+  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY",
   component: RoutingComponent
 }, {
-  path: "view/:centerX/:centerY/:scale",
+  path: "viewer/:centerX/:centerY/:scale",
   component: RoutingComponent
+}, {
+  path: "viewer",
+  redirectTo: "viewer/148000/465000/1219123.641496919"
 }, {
   path: "**",
-  redirectTo: "view/148000/465000/1219123.641496919"
+  component: HomeComponent
 }];
 
 @NgModule({

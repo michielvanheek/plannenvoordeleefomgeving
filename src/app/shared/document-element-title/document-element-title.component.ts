@@ -1,23 +1,27 @@
-import {Component, Input, OnInit} from "@angular/core";
-import {AppService} from "../../app.service";
+import {Component, Input} from "@angular/core";
 
 @Component({
   selector: "dso-document-element-title",
   templateUrl: "./document-element-title.component.html",
   styleUrls: ["./document-element-title.component.scss"]
 })
-export class DocumentElementTitleComponent implements OnInit {
+export class DocumentElementTitleComponent {
+  titleSymbols = {
+    BOEK: "BOEK",
+    DEEL: "DEEL",
+    HOOFDSTUK: "HOOFDSTUK",
+    TITEL: "TITEL",
+    AFDELING: "AFDELING",
+    PARAGRAAF: "§",
+    SUBPARAGRAAF: "§",
+    SUBSUBPARAGRAAF: "§",
+    ARTIKEL: "ARTIKEL",
+    BIJLAGE: "BIJLAGE"
+  };
+
   @Input() element: any;
   @Input() level = 0;
-  @Input() allVisible = false;
+  @Input() display;
+  @Input() openable;
   @Input() inactive = false;
-  constructor(public appService: AppService) {
-  }
-
-  ngOnInit(): void {
-  }
-
-  get isOpenable(): boolean {
-    return !this.element.gereserveerd && !this.element.vervallen && !this.allVisible;
-  }
 }

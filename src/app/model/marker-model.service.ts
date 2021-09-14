@@ -27,6 +27,9 @@ export class MarkerModelService {
   }
 
   setXY = function(x, y, name) {
+    x = Math.round(x * 1000) / 1000;
+    y = Math.round(y * 1000) / 1000;
+
     if ((this.xy != null) && (this.xy.x == x) && (this.xy.y == y) && ((this.name == name) || (name == null))) {
       return;
     }

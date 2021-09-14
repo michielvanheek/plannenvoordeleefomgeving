@@ -79,7 +79,7 @@ export class RoutingComponent implements DoCheck {
       }
 
       const cs = this.nineyDefault.defaultFocusModel.centerScale;
-      let url = `/view/${cs.centerX}/${cs.centerY}/${cs.scale}`;
+      let url = `/viewer/${cs.centerX}/${cs.centerY}/${cs.scale}`;
       if (this.markerModel.xy != null) {
         url += `/${this.markerModel.xy.x}/${this.markerModel.xy.y}`;
       }

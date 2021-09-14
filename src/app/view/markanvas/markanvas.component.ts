@@ -159,13 +159,17 @@ export class MarkanvasComponent implements OnInit, DoCheck {
             ctx.drawImage(canvas, 0, 0, this.canvasSize, this.canvasSize);
 
             this.specificLocaties[locatie.identificatie] = locatie;
-            Object.assign(this.specificLocaties, locatie.groepen);
+            if (locatie.groepen != null) {
+              for (const groep of locatie.groepen) {
+                this.specificLocaties[groep.identificatie] = groep;
+              }
+            }
           } else if (this.specificLocaties[locatie.identificatie] == null) {
             this.nonSpecificLocaties[locatie.identificatie] = locatie;
             if (locatie.groepen != null) {
-              for (const groepIdentificatie in locatie.groepen) {
-                if (this.specificLocaties[groepIdentificatie] == null) {
-                  this.nonSpecificLocaties[groepIdentificatie] = locatie.groepen[groepIdentificatie];
+              for (const groep of locatie.groepen) {
+                if (this.specificLocaties[groep.identificatie] == null) {
+                  this.nonSpecificLocaties[groep.identificatie] = groep;
                 }    
               }
             }
@@ -247,8 +251,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private normwaardeToInfo(normwaarde) {
     return {
       image: "assets/legend/aanduiding.png",
-      text: "<strong>" + normwaarde.omgevingsnorm.groep.waarde[0].toUpperCase() + normwaarde.omgevingsnorm.groep.waarde.slice(1) + " - " + (normwaarde.omgevingsnorm.naam || "Geen naam") + "</strong><br/>" +
-      normwaarde.omgevingsnorm.type.waarde + ": " + (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) +
+      text: "<strong>" + (normwaarde.omgevingsnorm.naam? normwaarde.omgevingsnorm.naam[0].toUpperCase() + normwaarde.omgevingsnorm.naam.slice(1): "Geen naam") + "</strong><br/>" +
+      normwaarde.omgevingsnorm.groep.waarde + ", " + normwaarde.omgevingsnorm.type.waarde + ": " + (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) +
       (normwaarde.omgevingsnorm.eenheid? " " + normwaarde.omgevingsnorm.eenheid[0].waarde: ""),
       locatieIdentificatie: normwaarde.locaties[0].identificatie,
       regelteksten: normwaarde.omgevingsnorm.regelteksten

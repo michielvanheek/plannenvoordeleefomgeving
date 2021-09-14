@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { CenterScale, FocusModel, Loader } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
+import { ImowModelService } from "src/app/model/imow-model.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
@@ -38,6 +39,7 @@ export class MapPanelComponent {
     public layerModel: LayerModelService,
     public highlightModel: HighlightModelService,
     public markerModel: MarkerModelService,
+    public imowModel: ImowModelService,
     public planModel: PlanModelService
   ) { }
 

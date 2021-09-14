@@ -1,7 +1,10 @@
-.main-container {
-  height: calc(100vh - 20px);
+:host {
+  display: block;
+  height: 100%;
 }
-
+.main-container {
+  height: calc(100% - 20px);
+}
 .disclaimer {
   height: 20px;
   background-color: #fff3cd;
@@ -10,11 +13,21 @@
   padding: 2px;
   text-align: center;
   position: relative;
+  overflow: hidden;
   .setting-btn {
     cursor: pointer;
     position: absolute;
     top: 3px;
     right: 10px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .main-container {
+    height: 100%;
+  }
+  .disclaimer {
+    display: none;
   }
 }
 

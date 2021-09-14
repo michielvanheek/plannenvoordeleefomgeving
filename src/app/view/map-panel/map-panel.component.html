@@ -9,7 +9,7 @@
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [cssFunction]="imowModel.cssFunction" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
     <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
   </vectortileslayer>
   <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [filter]="planModel.plan.locatieIdentificatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">

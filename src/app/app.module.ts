@@ -26,6 +26,8 @@ import { ImroPlanViewerComponent } from "./view/imro-plan-viewer/imro-plan-viewe
 import { DocumentElementTitleComponent } from "./shared/document-element-title/document-element-title.component";
 import { VectorTilesLayerComponent } from "./shared/vector-tiles-layer/vector-tiles-layer.component";
 import { MarkanvasComponent } from "./view/markanvas/markanvas.component";
+import { AnnotationsComponent } from './view/annotations/annotations.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,9 @@ import { MarkanvasComponent } from "./view/markanvas/markanvas.component";
     ImroPlanViewerComponent,
     DocumentElementTitleComponent,
     VectorTilesLayerComponent,
-    MarkanvasComponent
+    MarkanvasComponent,
+    AnnotationsComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

@@ -1,4 +1,4 @@
-<div class="main-container">
+<div *ngIf="nineyDefault.defaultFocusModel.centerScale" class="main-container">
   <as-split direction="horizontal">
     <as-split-area size="33.3333" minSize="10">
       <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
@@ -6,7 +6,7 @@
       <dso-search-plan *ngIf="stateModel.state == 'SEARCH_PLAN'"></dso-search-plan>
     </as-split-area>
     <as-split-area size="66.6667"  minSize="10">
-      <dso-map-panel *ngIf="nineyDefault.defaultFocusModel.animationCenterScale"></dso-map-panel>
+      <dso-map-panel></dso-map-panel>
     </as-split-area>
     <as-split-area size="0" minSize="0" *ngIf="!planModel.plan">
     </as-split-area>
@@ -17,19 +17,22 @@
     </as-split-area>
   </as-split>
 </div>
-<div class="disclaimer">
-  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl" class="extern">https://www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
+<div *ngIf="nineyDefault.defaultFocusModel.centerScale" class="disclaimer">
+  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl/" class="extern">www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
   Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de Omgevingswet.
   <div (click)="settingsVisible = !settingsVisible" class="setting-btn">Instellingen</div>
 </div>
 <div *ngIf="settingsVisible" class="setting-ct">
-  <h4>Settings</h4>
-  <label for="headertype">
-    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"> Plekinfo weeslocaties
-  </label>
-  <br>
-  <label for="headertype">
-    <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
-  </label>
+  <h4>Instellingen</h4>
+  <div>
+    <label for="headertype">
+      <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"> Plekinfo weeslocaties
+    </label>
+  </div>
+  <div>
+    <label for="headertype">
+      <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
+    </label>
+  </div>
 </div>
 <router-outlet></router-outlet>
