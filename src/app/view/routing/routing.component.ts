@@ -57,7 +57,7 @@ export class RoutingComponent implements DoCheck {
         const markerY = parseFloat(params.markerY);
         setTimeout(() => { this.markerModel.setXY(markerX, markerY, null); this.markerXY = this.markerModel.xy; });
       } else {
-        setTimeout(() => { this.markerModel.clear(); });
+        setTimeout(() => { this.markerModel.clear(); this.markerXY = null; });
       }
       if (params.documentId != null) {
         const identificatie = decodeURIComponent(params.documentId);

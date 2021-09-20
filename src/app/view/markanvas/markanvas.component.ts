@@ -85,8 +85,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     }
   }
 
-  openInfo(regelteksten) {
-    this.imowModel.setComponentIdentificaties("filtered", regelteksten);
+  openInfo(info) {
+    this.imowModel.setComponentIdentificaties("filtered", info.regelteksten, false, info.label);
     this.close.emit();
   }
 
@@ -241,8 +241,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private gebiedsaanwijzingToInfo(gebiedsaanwijzing) {
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + gebiedsaanwijzing.groep.waarde[0].toUpperCase() + gebiedsaanwijzing.groep.waarde.slice(1) + " - " + (gebiedsaanwijzing.naam || "Geen naam") + "</strong><br/>" +
-      gebiedsaanwijzing.label.toLowerCase().replace("gebiedsaanwijzingen", "").replace("functies", "functie"),
+      text: "<strong>" + gebiedsaanwijzing.viewName[0].toUpperCase() + gebiedsaanwijzing.viewName.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
+      label: ((gebiedsaanwijzing.viewType == "functie")? gebiedsaanwijzing.viewType + " ": "") + gebiedsaanwijzing.viewName,
       locatieIdentificatie: gebiedsaanwijzing.locaties[0].identificatie,
       regelteksten: gebiedsaanwijzing.regelteksten
     };
@@ -251,9 +251,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private normwaardeToInfo(normwaarde) {
     return {
       image: "assets/legend/aanduiding.png",
-      text: "<strong>" + (normwaarde.omgevingsnorm.naam? normwaarde.omgevingsnorm.naam[0].toUpperCase() + normwaarde.omgevingsnorm.naam.slice(1): "Geen naam") + "</strong><br/>" +
-      normwaarde.omgevingsnorm.groep.waarde + ", " + normwaarde.omgevingsnorm.type.waarde + ": " + (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) +
-      (normwaarde.omgevingsnorm.eenheid? " " + normwaarde.omgevingsnorm.eenheid[0].waarde: ""),
+      text: "<strong>" + normwaarde.viewName[0].toUpperCase() + normwaarde.viewName.slice(1) + "</strong><br/>" + normwaarde.viewType + ": " + normwaarde.viewValue,
+      label: normwaarde.viewName,
       locatieIdentificatie: normwaarde.locaties[0].identificatie,
       regelteksten: normwaarde.omgevingsnorm.regelteksten
     };

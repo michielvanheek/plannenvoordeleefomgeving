@@ -21,7 +21,7 @@ export class DocumentElementTitleComponent {
 
   @Input() element: any;
   @Input() level = 0;
+  @Input() toc;
   @Input() display;
-  @Input() openable;
   @Input() inactive = false;
 }

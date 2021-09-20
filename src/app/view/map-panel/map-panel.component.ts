@@ -5,6 +5,7 @@ import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
+import { MeasureModelService } from "src/app/model/measure-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
 
 @Component({
@@ -39,6 +40,7 @@ export class MapPanelComponent {
     public layerModel: LayerModelService,
     public highlightModel: HighlightModelService,
     public markerModel: MarkerModelService,
+    public measureModel: MeasureModelService,
     public imowModel: ImowModelService,
     public planModel: PlanModelService
   ) { }

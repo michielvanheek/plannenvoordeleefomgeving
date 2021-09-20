@@ -1,5 +1,4 @@
-<!--<n-map n-tap="measureModel.geometry? measureModel.addXY: mark" n-mousemove="measureModel.geometry? measureModel.setXY: null" ng-dblclick="measureModel.reset()" class="fullheight">-->
-<n-map [nTap]="mark.bind(this)">
+<n-map [nTap]="measureModel.geometry? measureModel.addXY.bind(measureModel): mark.bind(this)" [nMousemove]="measureModel.geometry? measureModel.setXY.bind(measureModel): null" (dblclick)="measureModel.reset()">
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
   <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
@@ -24,7 +23,7 @@
     <canvassymbolizer class="blackhighlight"></canvassymbolizer>
     <canvassymbolizer [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
   </vectortileslayer>
-<!--  <geometrylayer geometry="measureModel.geometry" deepwatch="true" class="measure"></geometrylayer>-->
+  <geometrylayer [geometry]="measureModel.geometry" [deepwatch]="true" class="measure"></geometrylayer>
   <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>
 <div *ngIf="loader.numLoading == 1" class="loader">
@@ -43,10 +42,10 @@
   <button (click)="zoomOut()" title="Uitzoomen" class="btn btn-default btn-sm">
     <span class="fa fa-minus"></span>
   </button>
-<!--  <button ng-click="measureModel.toggle()" title="Afstand en/of oppervlakte meten" class="btn btn-default btn-sm" ng-class="{'btn-primary': measureModel.geometry}">
-    <span class="glyphicon glyphicon-resize-horizontal"></span>
+  <button (click)="measureModel.toggle()" title="Afstand en/of oppervlakte meten" class="btn btn-default btn-sm" [class.selected]="measureModel.geometry">
+    <span class="fa fa-ruler-combined"></span>
   </button>
-  <button ng-click="windowModel.toggleVisible(1)" title="Een andere achtergrondkaart kiezen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[1].visible}">
+<!--  <button ng-click="windowModel.toggleVisible(1)" title="Een andere achtergrondkaart kiezen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[1].visible}">
     <span class="glyphicon glyphicon-th-list"></span>
   </button>
   <button ng-if="(planModel.plan.tabFilter == 'JURIDISCH') || (planModel.plan.tabFilter == 'ACTUEEL')" ng-click="printService.preparePrint(planModel.plan.identificatie)" title="De kaart printen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[2].visible}">
@@ -59,12 +58,12 @@
     <span class="fa fa-map-marker"></span>
   </button>
 </div>
-<!--<div ng-if="measureModel.geometry" class="box-md">
-  <h5>RD-coördinaten</h5>
+<div *ngIf="measureModel.geometry" class="box-md">
+  <h6>RD-coördinaten</h6>
   {{measureModel.viewCoords}}
-  <h5>Afstand</h5>
+  <h6>Afstand</h6>
   {{measureModel.viewLength}}
-  <h5>Oppervlakte</h5>
+  <h6>Oppervlakte</h6>
   {{measureModel.viewArea}}
 </div>
-<div metricscalebar centerscale="defaultFocusModel.animationCenterScale"></div>-->
+<!--  <div metricscalebar centerscale="defaultFocusModel.animationCenterScale"></div>-->

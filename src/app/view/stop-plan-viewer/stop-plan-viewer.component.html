@@ -5,13 +5,46 @@
 </ul>
 <div *ngIf="tab.id >= 1" class="tekstenbar">
   <div class="filterbar">
-    <div *ngIf="imowModel.componentIdentificaties.filtered" class="label">
-      Plekinfo
+    <div *ngIf="imowModel.componentIdentificaties.filtered" class="filter">
+      {{imowModel.componentIdentificaties.filtered.label}}
       <a href="javascript:void(0)" (click)="imowModel.clearFilteredComponentIdentificaties()" title="Filter weghalen" class="hide"><span class="fa fa-times"></span></a>
     </div>
   </div>
   <div class="toolbar">
-    <div *ngIf="display.allVisible && (imowModel.componentIdentificaties.filtered || imowModel.componentIdentificaties.specific)" class="box-sm">
+    <div *ngIf="imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered" class="box-sm">
+      <button (click)="display.emit('allVisible', true)" [title]="imowModel.componentIdentificaties.filtered? 'Alle teksten tonen, niet alleen de gefilterde teksten (geel gemarkeerd)': 'Alle teksten tonen, ook de teksten die niet op de gemarkeerde plek gelden (in grijs)'" class="btn btn-default btn-sm" [class.selected]="display.allVisible">
+        <span class="fa fa-eye"></span>
+      </button>
+      <button (click)="display.emit('allVisible', false)" [title]="imowModel.componentIdentificaties.filtered? 'Alleen de gefilterde teksten tonen (geel gemarkeerd)': 'Alleen de teksten tonen die op de gemarkeerde plek gelden'" class="btn btn-default btn-sm" [class.selected]="!display.allVisible">
+        <span class="fa fa-eye-slash"></span>
+      </button>
+    </div>
+    <div *ngIf="tab.id == 1" class="box-sm">
+      <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 1">
+        <span>H</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 9px" [class.selected]="display.tocLevel == 2">
+        <span>A</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 3)" title="Tot op paragraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 11px" [class.selected]="display.tocLevel == 3">
+        <span>§</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 4">
+        <span>§²</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 5)" title="Tot op sub-subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 5">
+        <span>§³</span>
+      </button>
+    </div>
+    <div *ngIf="tab.id > 1" class="box-sm">
+      <button (click)="display.emit('allOpen', true)" title="Als document weergeven" class="btn btn-default btn-sm" [class.selected]="display.allOpen">
+        <span class="fa fa-file"></span>
+      </button>
+      <button (click)="display.emit('allOpen', false)" title="Als boomstructuur weergeven" class="btn btn-default btn-sm" [class.selected]="!display.allOpen">
+        <span class="fa fa-tree"></span>
+      </button>
+    </div>
+    <div *ngIf="(tab.id > 1) && (imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered) && display.allOpen && display.allVisible" class="box-sm">
       <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
         <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
       </button>
@@ -19,21 +52,13 @@
         <span class="fa fa-caret-square-down"></span>
       </button>
     </div>
-    <div class="box-sm">
-      <button (click)="display.emit('allVisible', true)" title="Hele document" class="btn btn-default btn-sm" [class.selected]="display.allVisible">
-        <span class="fa fa-file"></span>
-      </button>
-      <button (click)="display.emit('allVisible', false)" title="Boomstructuur" class="btn btn-default btn-sm" [class.selected]="!display.allVisible">
-        <span class="fa fa-list-ul" style="font-size: 0.75rem"></span>
-      </button>
-    </div>
   </div>
 </div>
 <div #tabContent class="tab-content">
-  <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[1], true)"></dso-markanvas>
-  <dso-plan-accordion *ngIf="tab.id >= 1" [item]="tab.documentComponenten" [level]="1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+  <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[2], true)"></dso-markanvas>
+  <dso-plan-accordion *ngIf="tab.id > 0" [item]="tab.documentComponenten" [level]="1" [toc]="tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
 </div>
-<div *ngIf="(tab.id == 1) && display.annotationsVisible" class="anno">
+<div *ngIf="(tab.id == 2) && display.annotationsVisible" class="anno">
   <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>
 </div>
 <div *ngIf="imowModel.markerLoading || ((tab.id == 0) && imowModel.numLoading) || ((tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies))" class="dso-progress-indicator">

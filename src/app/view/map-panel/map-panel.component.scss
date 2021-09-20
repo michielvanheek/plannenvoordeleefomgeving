@@ -14,6 +14,11 @@ n-map {
   --stroke-filter: blur(3px);
   --inverse-fill: 1;
 }
+.measure {
+  fill: rgba(255, 192, 64, 0.4);
+  stroke: #e90;
+  stroke-width: 2px;
+}
 .loader {
   position: absolute;
   left: 8px;
@@ -35,4 +40,17 @@ n-map {
 }
 .box-sm .btn-sm {
   display: block;
+}
+.box-md {
+  position: absolute;
+  right: 68px;
+  top: 16px;
+  border-radius: 4px;
+  padding: 0 8px 8px;
+  background-color: rgba(243, 243, 243, 0.8);
+  h6 {
+    margin: 8px 0 0;
+    line-height: 1.5;
+    color: #191919;
+  }
 }

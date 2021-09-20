@@ -13,18 +13,24 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
 
   tabs = [
     { id: 0, label: "Plekinfo", type: null, scrollTop: 0 },
-    { id: 1, label: "Regels", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 2, label: "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 3, label: "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
+    { id: 1, label: "Inhoud", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 2, label: "Regels", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 3, label: "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 4, label: "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
   ];
   tab = this.tabs[0];
   display = {
+    tocLevel: 3,
+    allOpen: true,
     allVisible: false,
     annotationsVisible: false,
     emit: (key, val) => {
       if (this.display[key] != val) {
         this.display = Object.assign({}, this.display, {[key]: val});
       }
+    },
+    setTab: componentIdentificatie => {
+      this.setTab(this.tabs[2], componentIdentificatie);
     }
   };
 
@@ -43,14 +49,16 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     }
   }
 
-  setTab(tab, scrollToSelected) {
+  setTab(tab, scrollTo) {
     if (this.tab != null) {
       this.tab.scrollTop = this.tabContentRef.nativeElement.scrollTop;
     }
 
     this.tab = tab;
 
-    if (scrollToSelected) {
+    if (typeof scrollTo == "string") {
+      this.scrollToComponent(scrollTo);
+    } else if (scrollTo) {
       this.scrollToSelected();
     } else {
       this.scrollToPrevious(tab);
@@ -80,14 +88,19 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   }
 
   private scrollToSelected() {
+    if (this.imowModel.componentIdentificaties.selected == null) {
+      return;
+    }
+
+    this.scrollToComponent(this.imowModel.componentIdentificaties.selected);
+  }
+
+  private scrollToComponent(componentIdentificatie) {
     setTimeout(() => {
-      if (this.tab.id != 1) {
+      if (this.tab.id != 2) {
         return;
       }
-      if (this.imowModel.componentIdentificaties.selected == null) {
-        return;
-      }
-      let element = document.getElementById(this.imowModel.componentIdentificaties.selected);
+      let element = document.getElementById(componentIdentificatie);
       if (element == null) {
         return;
       }

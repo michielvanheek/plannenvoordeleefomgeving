@@ -152,7 +152,7 @@ export class ImowModelService {
             const identificatie = gebiedsaanwijzing.identificatie;
             if (this.gebiedsaanwijzingen[identificatie] == null) {
               this.gebiedsaanwijzingen[identificatie] = gebiedsaanwijzing;
-              gebiedsaanwijzing.lennie = gebiedsaanwijzingType;
+              this.decorateGebiedsaanwijzing(gebiedsaanwijzing, gebiedsaanwijzingType);
             }
             gebiedsaanwijzing = this.gebiedsaanwijzingen[identificatie];
             this.loadRegeltekstenForAnnotation(gebiedsaanwijzing, gebiedsaanwijzingType);
@@ -201,10 +201,7 @@ export class ImowModelService {
           const identificatie = omgevingsnorm.identificatie;
           if (this.omgevingsnormen[identificatie] == null) {
             this.omgevingsnormen[identificatie] = omgevingsnorm;
-            omgevingsnorm.normwaarde.sort((a, b) => (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? -1: 0);
-            omgevingsnorm.normwaarde.forEach(normwaarde => {
-              normwaarde.omgevingsnorm = omgevingsnorm;
-            });
+            this.decorateNormwaarden(omgevingsnorm.normwaarde, omgevingsnorm);
           }
           omgevingsnorm = this.omgevingsnormen[identificatie];
           this.loadRegeltekstenForAnnotation(omgevingsnorm, "omgevingsnormen");
@@ -270,7 +267,7 @@ export class ImowModelService {
             const identificatie = gebiedsaanwijzing.identificatie;
             if (this.gebiedsaanwijzingen[identificatie] == null) {
               this.gebiedsaanwijzingen[identificatie] = gebiedsaanwijzing;
-              gebiedsaanwijzing.lennie = gebiedsaanwijzingType;
+              this.decorateGebiedsaanwijzing(gebiedsaanwijzing, gebiedsaanwijzingType);
             }
             gebiedsaanwijzing = this.gebiedsaanwijzingen[identificatie];
             this.loadLocatiesforAnnotation(gebiedsaanwijzing, gebiedsaanwijzingType, "D");
@@ -284,6 +281,22 @@ export class ImowModelService {
         this.numLoadingD--;
       }
     );
+  }
+
+  private decorateGebiedsaanwijzing(gebiedsaanwijzing, gebiedsaanwijzingType) {
+    gebiedsaanwijzing.lennie = gebiedsaanwijzingType;
+
+    gebiedsaanwijzing.viewType = gebiedsaanwijzing.label.toLowerCase().replace("gebiedsaanwijzingen", "").replace("functies", "functie");
+    gebiedsaanwijzing.viewName = gebiedsaanwijzing.naam || gebiedsaanwijzing.groep.waarde;
+    if (gebiedsaanwijzing.viewType == "functie") {
+      gebiedsaanwijzing.viewName = gebiedsaanwijzing.viewName.replace(/^functie /, "");
+    }
+    gebiedsaanwijzing.viewName = gebiedsaanwijzing.viewName.replace(/^[ '"]|[ '"]$/g, "");
+    if (gebiedsaanwijzing.viewName.toLowerCase() == gebiedsaanwijzing.groep.waarde) {
+      gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde;
+    } else {
+      gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde + " - " + gebiedsaanwijzing.viewName;
+    }
   }
 
   private loadOmgevingsnormenForRegeltekst(regeltekst) {
@@ -309,10 +322,7 @@ export class ImowModelService {
           const identificatie = omgevingsnorm.identificatie;
           if (this.omgevingsnormen[identificatie] == null) {
             this.omgevingsnormen[identificatie] = omgevingsnorm;
-            omgevingsnorm.normwaarde.sort((a, b) => (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? -1: 0);
-            omgevingsnorm.normwaarde.forEach(normwaarde => {
-              normwaarde.omgevingsnorm = omgevingsnorm;
-            });
+            this.decorateNormwaarden(omgevingsnorm.normwaarde, omgevingsnorm);
           }
           omgevingsnorm = this.omgevingsnormen[identificatie];
           omgevingsnorm.normwaarde.forEach(normwaarde => {
@@ -327,6 +337,18 @@ export class ImowModelService {
         this.numLoadingD--;
       }
     );
+  }
+
+  private decorateNormwaarden(normwaarden, omgevingsnorm) {
+    normwaarden.sort((a, b) => (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? -1: 0);
+    normwaarden.forEach(normwaarde => {
+      normwaarde.omgevingsnorm = omgevingsnorm;
+
+      normwaarde.viewName = omgevingsnorm.naam || omgevingsnorm.type.waarde;
+      normwaarde.viewName = normwaarde.viewName.replace(/^[ '"]|[ '"]$/g, "");
+      normwaarde.viewType = ((omgevingsnorm.groep.waarde != "overig")? omgevingsnorm.groep.waarde + ", ": "") + omgevingsnorm.type.waarde;
+      normwaarde.viewValue = (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) + (omgevingsnorm.eenheid? " " + omgevingsnorm.eenheid[0].waarde: "");
+    });
   }
 
   private loadLocatiesforAnnotation(annotation, annotationType, direction) {
@@ -415,7 +437,7 @@ export class ImowModelService {
     loadPage("divisies", 0);
   }
 
-  setComponentIdentificaties(type, teksten, cumulative = false) {
+  setComponentIdentificaties(type, teksten, cumulative, label = null) {
     const componentIdentificaties = {};
 
     componentIdentificaties[teksten[0].documentIdentificatie + "__body"] = "trail";
@@ -430,6 +452,9 @@ export class ImowModelService {
 
     if (cumulative) {
       Object.assign(componentIdentificaties, this.componentIdentificaties[type]);
+    }
+    if (label != null) {
+      Object.assign(componentIdentificaties, {label: label});
     }
 
     this.componentIdentificaties = Object.assign({}, this.componentIdentificaties, {filtered: null}, {[type]: componentIdentificaties});

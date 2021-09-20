@@ -8,18 +8,33 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from "@a
   encapsulation: ViewEncapsulation.None,
 })
 export class PlanAccordionComponent {
+  private titleLevels = {
+    BOEK: 1,
+    DEEL: 1,
+    HOOFDSTUK: 1,
+    TITEL: 2,
+    AFDELING: 2,
+    PARAGRAAF: 3,
+    SUBPARAGRAAF: 4,
+    SUBSUBPARAGRAAF: 5
+  };
   private preselectedComponent = null;
 
   @Input() item;
   @Input() level;
+  @Input() toc;
   @Input() display;
   @Input() componentIdentificaties;
 
   isVisible(element) {
-    return this.display.allVisible ||
-      ((this.componentIdentificaties.specific == null) && (this.componentIdentificaties.filtered == null)) ||
-      ((this.componentIdentificaties.filtered == null) && (this.componentIdentificaties.specific[element.identificatie] != null)) ||
-      ((this.componentIdentificaties.filtered != null) && (this.componentIdentificaties.filtered[element.identificatie] != null))
+    return (
+      (!this.toc || (this.titleLevels[element.type] || 6) <= this.display.tocLevel) &&
+      (this.display.allVisible ||
+        ((this.componentIdentificaties.specific == null) && (this.componentIdentificaties.filtered == null)) ||
+        ((this.componentIdentificaties.filtered == null) && (this.componentIdentificaties.specific[element.identificatie] != null)) ||
+        ((this.componentIdentificaties.filtered != null) && (this.componentIdentificaties.filtered[element.identificatie] != null))
+      )
+    );
   }
 
   hasNoOpschrift(element) {
@@ -31,7 +46,7 @@ export class PlanAccordionComponent {
   }
 
   isFiltered(element) {
-    return this.display.allVisible && (this.componentIdentificaties.filtered != null) && (this.componentIdentificaties.filtered[element.identificatie] == "target");
+    return (this.componentIdentificaties.filtered != null) && (this.componentIdentificaties.filtered[element.identificatie] != null);
   }
 
   isSelected(element) {
@@ -43,7 +58,7 @@ export class PlanAccordionComponent {
   }
 
   isOpenable(element): boolean {
-    return !element.gereserveerd && !element.vervallen && !this.display.allVisible;
+    return this.toc || (!element.gereserveerd && !element.vervallen && !this.display.allOpen);
   }
 
   preselect(element) {
@@ -54,8 +69,10 @@ export class PlanAccordionComponent {
     this.componentIdentificaties.emit("selected", element.identificatie);
   }
 
-  openElement(element) {
-    if (!element.gereserveerd && !element.vervallen && !this.display.allVisible) {
+  open(element) {
+    if (this.toc) {
+      this.display.setTab(element.identificatie);
+    } else if (!element.gereserveerd && !element.vervallen && !this.display.allOpen) {
       element.isOpen = !element.isOpen;
     }
   }
