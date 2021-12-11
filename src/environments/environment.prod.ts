@@ -13,8 +13,8 @@ export const environment = {
   websiteProxyUrl: "https://www.ruimtelijkeplannen.nl/",
   geoUrl: "https://afnemers.ruimtelijkeplannen.nl/",
   geoWebCacheUrl: "https://www.ruimtelijkeplannen.nl/kaartservices/geowebcache/service/wms",
-//  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v5/",
-  dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v5/",
+//  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/",
+  dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/",
   dsoOptions: {
     headers: new HttpHeaders({
       "Accept" : "application/json, application/hal+json",

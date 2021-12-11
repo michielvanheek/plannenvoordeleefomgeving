@@ -11,10 +11,9 @@ import { NineyModule } from "ng-niney/niney.module";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
-import { PlanInfoComponent } from "./shared/plan-info/plan-info.component";
+import { PlanInfoComponent } from "./view/plan-info/plan-info.component";
 import { SvgIconComponent } from "./shared/svg-icon/svg-icon.component";
 import { StopPlanViewerComponent } from './view/stop-plan-viewer/stop-plan-viewer.component';
-import { LoaderComponent } from "./shared/loader/loader.component";
 import { PlanAccordionComponent } from "./shared/plan-accordion/plan-accordion.component";
 import { MapPanelComponent } from "./view/map-panel/map-panel.component";
 import { SearchPlaceComponent } from "./view/search-place/search-place.component";
@@ -36,7 +35,6 @@ import { LegendPanelComponent } from './view/legend-panel/legend-panel.component
     PlanInfoComponent,
     SvgIconComponent,
     StopPlanViewerComponent,
-    LoaderComponent,
     PlanAccordionComponent,
     MapPanelComponent,
     SearchPlaceComponent,

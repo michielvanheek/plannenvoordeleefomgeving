@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  position: relative;
+  margin: 0 -20px;
+  padding: 25px 20px;
+  background-color: #e5e5e5;
+}
+.header {
+  display: flex;
+  margin-bottom: 7px;
+  align-items: flex-start;
+  h4 {
+    flex-grow: 1;
+    font-size: 32px;
+  }
+  .btn-link {
+    position: relative;
+    top: 4px;
+  }
+}
+.expert {
+  float: right;
+  .btn-link {
+    display: block;
+    border: 0;
+  }
+}
+.pr-sm {
+  padding-right: 120px;
+}
+.pr-lg {
+  padding-right: 132px;
+}
+table {
+  margin: 0;
+}
+td {
+  padding: 0 8px 8px 0;
+  vertical-align: top;
+}
+.innertable tr:not(.active) {
+  color: #39870c;
+}
+.innertable tr:not(.active):hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.innertable tr.active {
+  font-weight: bold;
+  color: #275937;
+  cursor: default;
+}
+.alert {
+  margin: 7px 0 0;
+}
