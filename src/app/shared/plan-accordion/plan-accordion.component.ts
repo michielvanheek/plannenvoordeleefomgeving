@@ -37,8 +37,12 @@ export class PlanAccordionComponent {
     );
   }
 
+  hasChildren(element) {
+    return element._embedded.documentComponenten.length > 0;
+  }
+
   hasNoOpschrift(element) {
-    return ((element.type == 'LID') || (element.type == 'DIVISIETEKST')) && !element.opschrift;
+    return (element.type == "LID") || ((element.type == "DIVISIETEKST") && !element.opschrift) || (element.type == "BEGRIP");
   }
 
   isNotSpecific(element) {
@@ -49,12 +53,12 @@ export class PlanAccordionComponent {
     return (this.componentIdentificaties.filtered != null) && (this.componentIdentificaties.filtered[element.identificatie] != null);
   }
 
-  isSelected(element) {
+  isPreOrSelected(element) {
     return (this.componentIdentificaties.selected == element.identificatie) || (this.preselectedComponent == element);
   }
 
-  isPreselectedOnly(element) {
-    return (this.componentIdentificaties.selected != element.identificatie) && (this.preselectedComponent == element);
+  isSelected(element) {
+    return this.componentIdentificaties.selected == element.identificatie;
   }
 
   isOpenable(element): boolean {
@@ -66,15 +70,23 @@ export class PlanAccordionComponent {
   }
 
   select(element) {
-    this.componentIdentificaties.emit("selected", element.identificatie);
+    if (!this.hasChildren(element)) {
+      this.componentIdentificaties.emit("selected", element.identificatie);
+    }
   }
 
   open(element) {
     if (this.toc) {
+      this.preselectedComponent = null;
+      this.componentIdentificaties.emit("selected", element.identificatie);
       this.display.setTab(element.identificatie);
     } else if (!element.gereserveerd && !element.vervallen && !this.display.allOpen) {
       element.isOpen = !element.isOpen;
     }
+  }
+
+  setAnnotationsVisible() {
+    setTimeout(() => this.display.emit("annotationsVisible", true));
   }
 }
 

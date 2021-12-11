@@ -18,20 +18,22 @@
   </as-split>
 </div>
 <div *ngIf="nineyDefault.defaultFocusModel.centerScale" class="disclaimer">
-  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl/" class="extern">www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
+  De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl/" target="_blank" class="extern">www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
   Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de Omgevingswet.
   <div (click)="settingsVisible = !settingsVisible" class="setting-btn">Instellingen</div>
 </div>
 <div *ngIf="settingsVisible" class="setting-ct">
   <h4>Instellingen</h4>
   <div>
-    <label for="headertype">
-      <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"> Plekinfo weeslocaties
+    <label>
+      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"/><span class="checkmark"></span>
+      Plekinfo weeslocaties
     </label>
   </div>
   <div>
-    <label for="headertype">
-      <input id="headertype" type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"> Plekinfo debug
+    <label>
+      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"/><span class="checkmark"></span>
+      Plekinfo debug
     </label>
   </div>
 </div>

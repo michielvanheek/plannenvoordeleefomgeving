@@ -61,10 +61,15 @@
 <div *ngIf="(tab.id == 2) && display.annotationsVisible" class="anno">
   <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>
 </div>
-<div *ngIf="imowModel.markerLoading || ((tab.id == 0) && imowModel.numLoading) || ((tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies))" class="dso-progress-indicator">
+<div *ngIf="(tab.id == 0) && (imowModel.numLoadingL + imowModel.numLoading)" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>
   <div class="dso-progress-indicator-spinner">
-    <span *ngIf="(tab.id == 0) && imowModel.numLoading" class="num">{{imowModel.numLoading}}</span>
-    <span *ngIf="(tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies)" class="num">{{imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies}}</span>
+    <span class="num">{{imowModel.numLoadingL + imowModel.numLoading}}</span>
+  </div>
+</div>
+<div *ngIf="(tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies)" class="dso-progress-indicator" style="top: 44px">
+  <div class="dso-progress-indicator-bg"></div>
+  <div class="dso-progress-indicator-spinner">
+    <span class="num">{{imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies}}</span>
   </div>
 </div>

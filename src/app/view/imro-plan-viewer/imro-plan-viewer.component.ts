@@ -20,6 +20,7 @@ export class ImroPlanViewerComponent implements DoCheck {
   private kaart = this.planModel.kaart;
 
   navState = "place-info";
+  mapsVisible = false;
   expertDocumentsVisible = false;
 
   info = null;

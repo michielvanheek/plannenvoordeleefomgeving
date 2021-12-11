@@ -3,6 +3,7 @@ import { CenterScale, FocusModel, Loader } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
+import { ImowValueModelService } from "src/app/model/imow-value-model.service";
 import { LayerModelService } from "src/app/model/layer-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { MeasureModelService } from "src/app/model/measure-model.service";
@@ -15,6 +16,7 @@ import { PlanModelService } from "src/app/model/plan-model.service";
 })
 export class MapPanelComponent {
   loader = new Loader();
+  legendPanelVisible = false;
 
   private baselines = [
     {fill: "none", "stroke-width": "2px"},
@@ -34,14 +36,20 @@ export class MapPanelComponent {
     {fill: "none", "stroke-width": "7px", "stroke-dasharray": "0 15.98", "stroke-linecap": "round"},
     {fill: "none", "stroke-width": "6px", "stroke-dasharray": "0 14", "stroke-linecap": "round"}
   ];
+  private labels = [
+    {fill: "#fff", "stroke-width": 6, "font-size": "25px"},
+    {fill: "#fff", "stroke-width": 4, "font-size": "15px"},
+    {fill: "#fff", "stroke-width": 3, "font-size": "10px"}
+  ];
 
   constructor(
     public nineyDefaultService: NineyDefaultService,
     public layerModel: LayerModelService,
-    public highlightModel: HighlightModelService,
     public markerModel: MarkerModelService,
     public measureModel: MeasureModelService,
+    public imowValueModel: ImowValueModelService,
     public imowModel: ImowModelService,
+    public highlightModel: HighlightModelService,
     public planModel: PlanModelService
   ) { }
 
@@ -85,6 +93,31 @@ export class MapPanelComponent {
       return this.bumpses[2];
     }
     return this.bumpses[3];
+  }
+
+  get label() {
+    const focusModel = this.nineyDefaultService.defaultFocusModel;
+    if (focusModel.centerScale.scale < 892.912823362) {
+      return this.labels[0];
+    }
+    if (focusModel.centerScale.scale < 3571.651293448) {
+      return this.labels[1];
+    }
+    return this.labels[2];
+  }
+
+  get annotationLayersVisible() {
+    return this.imowModel.annotationLayers.some(annotationLayer => annotationLayer.visible);
+  }
+
+  get legendButtonTitle() {
+    if (this.legendPanelVisible) {
+      return "Legenda sluiten";
+    }
+    if (this.imowModel.annotationLayers.length > 0) {
+      return "Legenda openen (" + this.imowModel.annotationLayers.length + ((this.imowModel.annotationLayers.length == 1)? " kaartlaag)": " kaartlagen)");
+    }
+    return "Een andere achtergrondkaart kiezen";
   }
 
   mark(x, y) {

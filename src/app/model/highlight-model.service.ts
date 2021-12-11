@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { WKTConverter } from "ng-niney";
+import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
 import { environment } from "../../environments/environment";
 
@@ -11,11 +12,12 @@ export class HighlightModelService {
   private loading = {};
 
   imroHighlight = {};
-  imowHighlight = "nothing";
+  imowHighlight = {locaties: null, locatie: {identificatie: "nothing"}};
 
   constructor(
     private http: HttpClient,
-    private layerModel: LayerModelService
+    private layerModel: LayerModelService,
+    private imowModel: ImowModelService
   ) { }
 
   setHighlight(planOrInfo, imro = true) {
@@ -45,15 +47,27 @@ export class HighlightModelService {
           delete this.loading[identificatie];
         }
       );
-    } else {  // Omgevingsdocument or IMOW info or IMOW locatie.
+    } else {  // Omgevingsdocument or IMOW info or IMOW annotation (with locaties) or IMOW locatie.
       if (planOrInfo == null) {
         this.layerModel.layers[7].visible = false;
+        delete this.imowModel.loadLocatieForPlanPostActions["highlightVisible"];
         return;
       }
 
-      const identificatie = planOrInfo.locatieIdentificatie || planOrInfo.identificatie;
-      this.imowHighlight = identificatie;
-      this.layerModel.layers[7].visible = true;
+      if (planOrInfo.locatieIdentificatie != null) {  // Omgevingsdocument.
+        this.layerModel.layers[7].visible = false;
+        this.imowModel.loadLocatieForPlanPostActions["highlightVisible"] = () => { this.layerModel.layers[7].visible = true; };
+        this.imowModel.loadLocatieForPlan(planOrInfo);
+        this.imowHighlight = planOrInfo;
+      } else {
+        this.layerModel.layers[7].visible = true;
+        if (planOrInfo.locaties != null) {  // IMOW info or IMOW annotation (with locaties).
+          const locaties = planOrInfo.locaties.concat(planOrInfo.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []));
+          this.imowHighlight = {locaties: locaties, locatie: null};
+        } else {                            // IMOW locatie.
+          this.imowHighlight = {locaties: null, locatie: planOrInfo};
+        }
+      }
     }
   }
 }

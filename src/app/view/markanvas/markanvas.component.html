@@ -1,10 +1,12 @@
 <ul class="list-group list-group-flush">
-  <div *ngIf="imowModel.markerLoading || imowModel.numLoading" class="empty"></div>
   <ng-template ngFor let-infos1 [ngForOf]="infos" let-i="index">
-    <li *ngIf="(((i == 0) && !infos[1].length) || ((i == 1) && !infos[0].length && infos[1].length)) && infos[2].length" class="list-group-item header">op deze plek <span *ngIf="infos[0].length + infos[1].length" class="small light">({{infos[0].length + infos[1].length}})</span></li>
-    <li *ngIf="(i == 0) && infos[0].length && infos[1].length" class="list-group-item header">specifiek op deze plek <span class="small light">({{infos[0].length}})</span></li>
-    <li *ngIf="(i == 1) && infos[0].length && infos[1].length" class="list-group-item header">ook op deze plek <span class="small light">({{infos[1].length}})</span></li>
-    <li *ngIf="(i == 2) && infos[2].length" class="list-group-item header">op deze plek in andere plannen <span class="small light">({{infos[2].length}})</span></li>
+    <li *ngIf="((i == 0) && infos[0].length && !infos[1].length) || ((i == 1) && !infos[0].length && infos[1].length)" class="list-group-item header" style="top: -1px">op deze plek <span *ngIf="infos[0].length + infos[1].length" class="small light">({{infos[0].length + infos[1].length}})</span></li>
+    <div *ngIf="(((i == 0) && infos[0].length && !infos[1].length) || ((i == 1) && !infos[0].length && infos[1].length)) && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
+    <li *ngIf="(i == 0) && infos[0].length && infos[1].length" class="list-group-item header" style="top: -1px">specifiek op deze plek <span class="small light">({{infos[0].length}})</span></li>
+    <div *ngIf="(i == 0) && infos[0].length && infos[1].length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
+    <li *ngIf="(i == 1) && infos[0].length && infos[1].length" class="list-group-item header" [ngStyle]="{top: '30px', bottom: ((infos[2].length? 1: 0) + ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0)) * 31 + 'px'}">ook op deze plek <span class="small light">({{infos[1].length}})</span></li>
+    <li *ngIf="(i == 2) && infos[2].length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0)) * 31 - 1) + 'px', bottom: ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0) * 31 + 'px'}">op deze plek in andere plannen <span class="small light">({{infos[2].length}})</span></li>
+    <div *ngIf="(i == 2) && !infos[0].length && !infos[1].length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
     <li *ngFor="let info of infos1" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
       <div [innerHTML]="info.text"></div>
@@ -12,7 +14,7 @@
     </li>
   </ng-template>
   <ng-template [ngIf]="appService.settings.placeInfoShowOrphans">
-    <li *ngIf="orphanLocaties.length" class="list-group-item header">zonder annotatie <span class="small light">({{orphanLocaties.length}})</span></li>
+    <li *ngIf="orphanLocaties.length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0) + (infos[2].length? 1: 0)) * 31 - 1) + 'px', bottom: 0}">zonder annotatie <span class="small light">({{orphanLocaties.length}})</span></li>
     <li *ngFor="let locatie of orphanLocaties" class="list-group-item info">
       <div class="legend"><img src="assets/nosymbol.png"/></div>
       <div>

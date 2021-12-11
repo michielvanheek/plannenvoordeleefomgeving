@@ -8,10 +8,20 @@
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [cssFunction]="imowModel.cssFunction" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [vectorCaching]="false" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
     <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
   </vectortileslayer>
-  <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [filter]="planModel.plan.locatieIdentificatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+  <vectortileslayer *ngIf="annotationLayersVisible" [layer]="layerModel.layers[5]" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+    <ng-template ngFor let-annotationLayer [ngForOf]="imowModel.annotationLayers">
+      <ng-template [ngIf]="annotationLayer.visible">
+        <canvassymbolizer [filter]="annotationLayer.filter" [cssfunction]="annotationLayer.cssFunction" [patterns]="imowValueModel.patterns" [ngStyle]="annotationLayer.mapStyle"></canvassymbolizer>
+        <ng-template [ngIf]="annotationLayer.labelCssFunction">
+          <canvassymbolizer [filter]="annotationLayer.filter" [cssfunction]="annotationLayer.labelCssFunction" [label]="true" [ngStyle]="label"></canvassymbolizer>
+        </ng-template>
+      </ng-template>
+    </ng-template>
+  </vectortileslayer>
+  <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [vectorCaching]="false" [filter]="planModel.plan.locatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
     <canvassymbolizer [ngStyle]="highline" style="stroke-linejoin: bevel"></canvassymbolizer>
     <canvassymbolizer [ngStyle]="bumps"></canvassymbolizer>
   </vectortileslayer>
@@ -19,7 +29,7 @@
     <canvassymbolizer [geometry]="highlightModel.imroHighlight['geometrie']" class="blackhighlight"></canvassymbolizer>
     <canvassymbolizer [geometry]="highlightModel.imroHighlight['geometrie']" [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[7]" [loader]="loader" [filter]="highlightModel.imowHighlight">
+  <vectortileslayer [layer]="layerModel.layers[7]" [loader]="loader" [filter]="highlightModel.imowHighlight.locaties || highlightModel.imowHighlight.locatie">
     <canvassymbolizer class="blackhighlight"></canvassymbolizer>
     <canvassymbolizer [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
   </vectortileslayer>
@@ -35,35 +45,36 @@
 <div class="coordinates">
   {{nineyDefaultService.defaultFocusModel.incubationCenterScale.centerX.toFixed(0)}}, {{nineyDefaultService.defaultFocusModel.incubationCenterScale.centerY.toFixed(0)}}
 </div>
-<div class="box-sm">
-  <button (click)="zoomIn()" title="Inzoomen" class="btn btn-default btn-sm">
-    <span class="fa fa-plus"></span>
-  </button>
-  <button (click)="zoomOut()" title="Uitzoomen" class="btn btn-default btn-sm">
-    <span class="fa fa-minus"></span>
-  </button>
-  <button (click)="measureModel.toggle()" title="Afstand en/of oppervlakte meten" class="btn btn-default btn-sm" [class.selected]="measureModel.geometry">
-    <span class="fa fa-ruler-combined"></span>
-  </button>
-<!--  <button ng-click="windowModel.toggleVisible(1)" title="Een andere achtergrondkaart kiezen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[1].visible}">
-    <span class="glyphicon glyphicon-th-list"></span>
-  </button>
-  <button ng-if="(planModel.plan.tabFilter == 'JURIDISCH') || (planModel.plan.tabFilter == 'ACTUEEL')" ng-click="printService.preparePrint(planModel.plan.identificatie)" title="De kaart printen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[2].visible}">
-    <span class="glyphicon glyphicon-print"></span>
-  </button>
-  <button ng-if="planModel.plan" ng-click="planModel.zoomToPlan()" title="Naar het (hele) gekozen plan zoomen" class="btn btn-default btn-sm">
-    <span class="glyphicon glyphicon-fullscreen"></span>
-  </button>-->
-  <button *ngIf="markerModel.xy" (click)="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="btn btn-default btn-sm">
-    <span class="fa fa-map-marker"></span>
-  </button>
-</div>
-<div *ngIf="measureModel.geometry" class="box-md">
-  <h6>RD-coördinaten</h6>
-  {{measureModel.viewCoords}}
-  <h6>Afstand</h6>
-  {{measureModel.viewLength}}
-  <h6>Oppervlakte</h6>
-  {{measureModel.viewArea}}
+<div class="sidebar">
+  <div class="box-sm">
+    <button (click)="zoomIn()" title="Inzoomen" class="btn btn-default btn-sm">
+      <span class="fa fa-plus"></span>
+    </button>
+    <button (click)="zoomOut()" title="Uitzoomen" class="btn btn-default btn-sm">
+      <span class="fa fa-minus"></span>
+    </button>
+    <button (click)="measureModel.toggle()" title="Afstand en/of oppervlakte meten" class="btn btn-default btn-sm" [class.selected]="measureModel.geometry">
+      <span class="fa fa-ruler-combined"></span>
+    </button>
+    <button (click)="legendPanelVisible = !legendPanelVisible" [title]="legendButtonTitle" class="btn btn-default btn-sm" [class.selected]="legendPanelVisible">
+      <span class="fa fa-layer-group"></span>
+      <div *ngIf="imowModel.annotationLayers.length && !legendPanelVisible" class="dso-badge">{{imowModel.annotationLayers.length}}</div>
+    </button>
+<!--    <button ng-if="(planModel.plan.tabFilter == 'JURIDISCH') || (planModel.plan.tabFilter == 'ACTUEEL')" ng-click="printService.preparePrint(planModel.plan.identificatie)" title="De kaart printen" class="btn btn-default btn-sm" ng-class="{'btn-primary': windowModel.windows[2].visible}">
+      <span class="glyphicon glyphicon-print"></span>
+    </button>-->
+    <button *ngIf="markerModel.xy" (click)="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="btn btn-default btn-sm">
+      <span class="fa fa-map-marker"></span>
+    </button>
+  </div>
+  <div *ngIf="measureModel.geometry" class="box-md">
+    <h6>RD-coördinaten</h6>
+    {{measureModel.viewCoords}}
+    <h6>Afstand</h6>
+    {{measureModel.viewLength}}
+    <h6>Oppervlakte</h6>
+    {{measureModel.viewArea}}
+  </div>
+  <dso-legend-panel *ngIf="legendPanelVisible" (close)="legendPanelVisible = false"></dso-legend-panel>
 </div>
 <!--  <div metricscalebar centerscale="defaultFocusModel.animationCenterScale"></div>-->

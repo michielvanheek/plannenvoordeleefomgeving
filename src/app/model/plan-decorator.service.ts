@@ -12,7 +12,7 @@ export class PlanDecoratorService {
     private planLevelModel: PlanLevelModelService
   ) { }
 
-  bestemmingsplanType(plan) {
+  private bestemmingsplanType(plan) {
     switch(plan.typePlan) {
       case "bestemmingsplan":                                 //-----------------------------------------------------
           return 0;                                           // mother plan: no; dedicated procedure (dossier): yes
@@ -57,7 +57,7 @@ export class PlanDecoratorService {
     }
   }
 
-  status(plan) {
+  private status(plan) {
     const bestemmingsplanType = this.bestemmingsplanType(plan);
     if (bestemmingsplanType == -1) {
       return plan.planStatus;
@@ -105,21 +105,25 @@ export class PlanDecoratorService {
   }
 
   decorateOmgevingsdocument(plan) {
+    // TEMP!!
+    if ((plan.citeerTitel == "Omgevingsbesluit") || (plan.citeerTitel == "Omgevingsregeling")) {
+      plan.inwerkingVanaf = "2022-07-01";
+    }
+
     plan.tabFilter = "DSO";
-    plan.typePlan = (plan.type.waarde == "AMvB")? "AMvB": plan.type.waarde.toLowerCase();
-    plan.naam = plan.citeertitel || plan.opschrift;
-    plan.datum = plan.inwerkingVanaf;
+    plan.typePlan = (plan.type.waarde == "AMvB")? "AMvB": (plan.type.waarde == "Aanwijzingsbesluit N2000")? "aanwijzingsbesluit Natura 2000": plan.type.waarde.toLowerCase();
+    plan.naam = plan.citeerTitel || plan.officieleTitel || plan.opschrift;
+    plan.datum = (plan.procedurestatus == "ontwerp")? plan.procedureverloop.bekendOp: plan.inwerkingVanaf;
     plan.naamOverheid = plan.aangeleverdDoorEen.naam;
     plan.overheidsCode =
-      (plan.aangeleverdDoorEen.bestuurslaag == "MNRE")? "0000": (
-        (plan.aangeleverdDoorEen.bestuurslaag == "WS")? "9": (plan.aangeleverdDoorEen.bestuurslaag == "PV")? "99": ""
+      (plan.aangeleverdDoorEen.bestuurslaag == "ministerie")? "0000": (
+        (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? "9": (plan.aangeleverdDoorEen.bestuurslaag == "provincie")? "99": ""
       ) + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
-        (plan.aangeleverdDoorEen.bestuurslaag == "WS")? 1: 0
+        (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? 1: 0
       );
-    plan.planStatus = plan.procedurestatus;
+    plan.planStatus = (plan.procedurestatus == "ontwerp")? "ontwerp": (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig";
     plan.dossierId = plan.identificatie;
-    plan.dossierStatus = "vastgesteld";
-    plan.boundingBox = null;
+    plan.dossierStatus = plan.planStatus;
     plan.sourcetable = "dso";
     plan.vormvrijType = false;
     plan.kaarten = [];

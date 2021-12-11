@@ -1,0 +1,77 @@
+<div class="inner" [ngClass]="{wide: wide}">
+  <div class="header">
+    <button (click)="close.emit()" title="Legenda sluiten" class="btn btn-link close">
+      <svg class="di">
+        <use href="../assets/dso-icons.svg#times"></use>
+      </svg>
+    </button>
+    <button *ngIf="!wide" (click)="wide = true" title="Legenda breder maken" class="btn btn-link close">
+      <svg class="di">
+        <use href="../assets/dso-icons.svg#chevron-left"></use>
+      </svg>
+    </button>
+    <button *ngIf="wide" (click)="wide = false" title="Legenda smaller maken" class="btn btn-link close">
+      <svg class="di">
+        <use href="../assets/dso-icons.svg#chevron-right"></use>
+      </svg>
+    </button>
+    <ul class="dso-nav dso-nav-sub">
+      <li (click)="tab = 'legend'" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == 'legend'}">
+        <a href="javascript:void(0)">Legenda</a>
+      </li>
+      <li (click)="tab = 'background'" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == 'background'}">
+        <a href="javascript:void(0)">Achtergrond</a>
+      </li>
+    </ul>
+  </div>
+  <div *ngIf="tab == 'legend'" class="content legend">
+    <div *ngIf="!imowModel.annotationLayers.length" class="mb-1">Geen kaartlagen.</div>
+    <a href="javascript:void(0)" *ngIf="imowModel.annotationLayers.length > 1" (click)="imowModel.removeAnnotationLayers()"><span class="fa fa-angle-right mr-2"></span>alle kaartlagen verwijderen</a>
+    <div *ngFor="let annotationLayer of imowModel.annotationLayers; index as i">
+      <button (click)="imowModel.removeAnnotationLayer(annotationLayer)" title="Deze kaartlaag uit de legenda verwijderen" class="btn btn-link close">
+        <svg class="di">
+          <use href="../assets/dso-icons.svg#times"></use>
+        </svg>
+      </button>
+      <label>
+        <input type="checkbox" (change)="annotationLayer.setVisible($event.target.checked)" [checked]="annotationLayer.visible"><span class="checkmark"></span>
+        {{annotationLayer.annotation.viewName || annotationLayer.annotation.noemer}}
+      </label>
+      <div *ngIf="annotationLayer.visible" class="up-down-grid">
+        <div class="up-down">
+          <button *ngIf="i &lt; imowModel.annotationLayers.length - 1" (click)="imowModel.moveAnnotationLayer(annotationLayer, +1)" title="Deze kaartlaag een positie laten stijgen in de legenda" class="btn btn-link"><span class="fa fa-long-arrow-alt-up"></span></button>
+          <button *ngIf="i > 0" (click)="imowModel.moveAnnotationLayer(annotationLayer, -1)" title="Deze kaartlaag een positie laten zakken in de legenda" class="btn btn-link"><span class="fa fa-long-arrow-alt-down"></span></button>
+        </div>
+        <div class="grid">
+          <div *ngIf="annotationLayer.type != 'N'; else normGrid" class="cell">
+            <span class="legend" [ngStyle]="annotationLayer.legendStyle"></span>
+            <div (mouseover)="highlightModel.setHighlight(annotationLayer.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
+          </div>
+          <ng-template #normGrid>
+            <div *ngFor="let normwaardeObject of annotationLayer.normwaardeObjects" class="cell">
+              <span class="legend" [ngStyle]="{'background-color': normwaardeObject.color}"></span>
+              <span>{{normwaardeObject.normwaarde.viewValue}}</span>
+              <div (mouseover)="highlightModel.setHighlight(normwaardeObject.normwaarde, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="tab == 'background'" class="content background">
+    <div *ngFor="let backgroundLayer of layerModel.backgroundLayers">
+      <div *ngIf="expertSettingsVisible || !backgroundLayer.expert">
+        <a href="javascript:void(0)" (click)="layerModel.setBackgroundLayer(backgroundLayer)" class="tilebox" [ngClass]="{disabled: (nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (backgroundLayer == layerModel.backgroundLayers[3])}">
+          <div [ngClass]="{selected: (backgroundLayer == layerModel.backgroundLayer)}">
+            <img [src]="backgroundLayer.titleURL"/>
+          </div>
+          {{backgroundLayer.title}}
+        </a>
+        <div *ngIf="expertSettingsVisible && (nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (backgroundLayer == layerModel.backgroundLayers[3])" class="alert alert-info">
+          <a href="javascript:void(0)" (click)="zoomInToDetailLevel()" class="alert-link">Zoom in</a> voor BGT.
+        </div>
+      </div>
+    </div>
+    <a href="javascript:void(0)" (click)="toggleExpertSettingsVisible()"><span class="fa fa-angle-right mr-2"></span>{{expertSettingsVisible? 'standaard kaartinstellingen': 'meer kaartinstellingen'}}</a>
+  </div>
+</div>

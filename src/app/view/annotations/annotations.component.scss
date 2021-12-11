@@ -1,6 +1,6 @@
 :host {
   display: block;
-  position: relative;
+  height: 100%;
   padding: 16px;
   background-color: #e5e5e5;
 }
@@ -8,87 +8,22 @@ strong {
   font-size: 18px;
   color: #275937;
 }
-.separator {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-  padding-bottom: 12px;
-}
-h6 {
-  margin: 12px 0;
-  line-height: 1.5;
-  color: #191919;
-}
-label {
-  position: relative;
-  margin: 0 0.75rem 0.75rem 0;
-  padding-left: calc(24px + 0.5rem);
-  cursor: pointer;
-  input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
+.content {
+  height: calc(100% - 27px);
+  .separator {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding-bottom: 12px;
   }
-  input[type="checkbox"] + .checkmark {
-    position: absolute;
-    left: 0;
-    width: 24px;
-    height: 24px;
-  }
-  input[type="checkbox"] + .checkmark::before {
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 20px;
-    height: 20px;
-    border: 0;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px #275937;
-    background: #fff;
-    content: "";
-  }
-  input[type="checkbox"]:focus + .checkmark::before {
-    left: 3px;
-    top: 3px;
-    width: 18px;
-    height: 18px;
-    box-shadow: 0 0 0 3px #275937;
-  }
-  input[type="checkbox"]:disabled + .checkmark::before {
-    opacity: 0.5;
-  }
-  input[type="checkbox"] + .checkmark::after {
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 13px;
-    height: 8px;
-    border: solid #39870c;
-    border-width: 0 0 3px 3px;
-    transform: rotate(-45deg);
-    content: "";
-    display: none;
-  }
-  input[type="checkbox"]:checked + .checkmark::after {
-    display: inline;
-  }
-}
-.legend {
-  display: inline-block;
-  width: 24px;
-  height: 13px;
-  margin-right: 0.5rem;
-}
-.grid {
-  display: flex;
-  align-items: flex-end;
-  gap: 2rem;
-  margin-left: calc(24px + 0.5rem);
-  .cell {
-    position: relative;
-    .overlay {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
+  .subcontent {
+    height: calc(100% - 37px);
+    overflow: auto;
+    h6 {
+      margin: 12px 0;
+      line-height: 1.5;
+      color: #191919;
+    }
+    label {
+      margin-bottom: 0.75rem;
     }
   }
 }

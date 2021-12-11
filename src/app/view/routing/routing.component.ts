@@ -12,7 +12,9 @@ import { PlanModelService } from "src/app/model/plan-model.service";
 })
 export class RoutingComponent implements DoCheck {
   private markerXY = this.markerModel.xy;
-  private plan = this.planModel.plan;
+  private planIdentificatie = (this.planModel.plan? this.planModel.plan.identificatie: null);
+
+  private ignoreRoute = false;
 
   constructor(
     private router: Router,
@@ -47,6 +49,11 @@ export class RoutingComponent implements DoCheck {
     focusModel.maxScale = 2438247.282993837;
 
     this.activatedRoute.params.subscribe(params => {
+      if (this.ignoreRoute) {
+        this.ignoreRoute = false;
+        return;
+      }
+
       const centerX = parseFloat(params.centerX);
       const centerY = parseFloat(params.centerY);
       const scale = parseFloat(params.scale);
@@ -62,20 +69,20 @@ export class RoutingComponent implements DoCheck {
       if (params.documentId != null) {
         const identificatie = decodeURIComponent(params.documentId);
         const local = this.activatedRoute.snapshot.data.local;
-        setTimeout(() => { this.planModel.loadPlan(identificatie, null, false, local); });
+        setTimeout(() => { this.planModel.loadPlan(identificatie, null, false, local, () => { this.planIdentificatie = identificatie; }); });
       } else {
-        setTimeout(() => { this.planModel.setPlan(null, null); });
+        setTimeout(() => { this.planModel.setPlan(null, null); this.planIdentificatie = null; });
       }
     });
   }
 
   ngDoCheck() {
-    if ((this.markerXY != this.markerModel.xy) || (this.plan != this.planModel.plan)) {
+    if ((this.markerXY != this.markerModel.xy) || (this.planIdentificatie != (this.planModel.plan? this.planModel.plan.identificatie: null))) {
       if (this.markerXY != this.markerModel.xy) {
         this.markerXY = this.markerModel.xy;
       }
-      if (this.plan != this.planModel.plan) {
-        this.plan = this.planModel.plan;
+      if (this.planIdentificatie != (this.planModel.plan? this.planModel.plan.identificatie: null)) {
+        this.planIdentificatie = (this.planModel.plan? this.planModel.plan.identificatie: null);
       }
 
       const cs = this.nineyDefault.defaultFocusModel.centerScale;
@@ -89,7 +96,11 @@ export class RoutingComponent implements DoCheck {
       if (this.activatedRoute.snapshot.data.local) {
         url += "/local";
       }
-      this.router.navigateByUrl(url);
+
+      if (this.router.url != url) {
+        this.ignoreRoute = true;
+        this.router.navigateByUrl(url);
+      }
     }
   }
 }

@@ -21,9 +21,9 @@ export class OmgevingsdocumentModelService {
 
   private loadOmgevingsdocumenten() {
     const options = environment.dsoOptions;
-    const url = environment.dsoUrl + "omgevingsdocumenten?page=0&size=2000";
+    const url = environment.dsoUrl + "regelingen?page=0&size=2000";
     this.http.get(url, options).subscribe(response => {
-      this.omgevingsdocumenten = response["_embedded"].omgevingsdocumenten;
+      this.omgevingsdocumenten = response["_embedded"].regelingen;
       this.omgevingsdocumenten.forEach(omgevingsdocument => {
         if (omgevingsdocument.aangeleverdDoorEen == null) {
           console.warn("Omgevingsdocument " + omgevingsdocument.identificatie + " has no owner.");

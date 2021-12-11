@@ -28,6 +28,7 @@ import { VectorTilesLayerComponent } from "./shared/vector-tiles-layer/vector-ti
 import { MarkanvasComponent } from "./view/markanvas/markanvas.component";
 import { AnnotationsComponent } from './view/annotations/annotations.component';
 import { HomeComponent } from './home/home.component';
+import { LegendPanelComponent } from './view/legend-panel/legend-panel.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { HomeComponent } from './home/home.component';
     VectorTilesLayerComponent,
     MarkanvasComponent,
     AnnotationsComponent,
-    HomeComponent
+    HomeComponent,
+    LegendPanelComponent
   ],
   imports: [
     BrowserModule,

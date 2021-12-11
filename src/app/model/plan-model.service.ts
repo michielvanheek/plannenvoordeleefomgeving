@@ -20,6 +20,8 @@ import { environment } from "../../environments/environment"
 export class PlanModelService {
   private markerXY = null;
 
+  numLoadingR = 0;
+
   planalysis = null;
   plan = null;
   dossierSet = null;
@@ -57,7 +59,7 @@ export class PlanModelService {
 
       this.stateModel.leaveSelectPlan();
 
-      this.imowModel.setMarkerLocaties([]);
+      this.imowModel.setMarkerLocatieIdentificaties([]);
     } else {
       const point = this.markerModel.xy;
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/xy/" + point.x + "/" + point.y;
@@ -71,7 +73,7 @@ export class PlanModelService {
         this.stateModel.enterSelectPlan();
 
         const options = environment.dsoOptions;
-        const url = environment.dsoUrl + "locaties/zoekgebied/_zoek";
+        const url = environment.dsoUrl + "locatieidentificaties/_zoek";
         const post = {
           geo: {
             geometrie: {
@@ -81,38 +83,58 @@ export class PlanModelService {
             spatialOperator:"intersects"
           }
         };
-        this.imowModel.markerLoading = true;
-        this.http.post(url, post, options).subscribe(response => {
-          this.imowModel.setMarkerLocaties(response["_embedded"].locaties);
-          this.imowModel.markerLoading = false;
+        this.numLoadingR += 3;
+        this.http.post(url, post, options).subscribe(
+          response => {
+            const locatieIdentificaties = response["_embedded"].locatieidentificaties;
 
-          const locatieIdentificaties = this.imowModel.markerLocaties.map(locatie => locatie.identificatie);
-          const url = environment.dsoUrl + "omgevingsdocumenten/_zoek?page=0&size=2000";
-          const post = {
-            zoekParameters: [{
-              parameter: "locatie.identificatie",
-              zoekWaarden: locatieIdentificaties
-            }]
-          };
-          this.http.post(url, post, options).subscribe(response => {
-            const omgevingsdocumenten = response["_embedded"].omgevingsdocumenten;
-            omgevingsdocumenten.forEach(plan => {
-              this.planDecorator.decorateOmgevingsdocument(plan);
-              this.planDecorator.decoratePlan(plan, true);
-            });
-            this.setPlanalysis(plannen.concat(omgevingsdocumenten));
+            const url = environment.dsoUrl + "regelingen/regels/_zoek?page=0&size=2000";
+            const beleidUrl = environment.dsoUrl + "regelingen/tekstdelen/_zoek?page=0&size=2000";
+            const post = {
+              zoekParameters: [{
+                parameter: "locatie.identificatie",
+                zoekWaarden: locatieIdentificaties
+              }]
+            };
+            let regelingen = [];
+            let beleidRegelingen = [];
+            this.http.post(url, post, options).subscribe(
+              response => {
+                regelingen = response["_embedded"].regelingen;
+                regelingen.forEach(plan => {
+                  this.planDecorator.decorateOmgevingsdocument(plan);
+                  this.planDecorator.decoratePlan(plan, true);
+                });
+                this.setPlanalysis(plannen.concat(regelingen, beleidRegelingen));
+                this.numLoadingR--;
+              },
+              error => {
+                this.numLoadingR--;
+              }
+            );
+            this.http.post(beleidUrl, post, options).subscribe(
+              response => {
+                beleidRegelingen = response["_embedded"].regelingen;
+                beleidRegelingen.forEach(plan => {
+                  this.planDecorator.decorateOmgevingsdocument(plan);
+                  this.planDecorator.decoratePlan(plan, true);
+                });
+                this.setPlanalysis(plannen.concat(regelingen, beleidRegelingen));
+                this.numLoadingR--;
+              },
+              error => {
+                this.numLoadingR--;
+              }
+            );
 
-            const url = environment.dsoUrl + "omgevingsdocumenten/beleid/_zoek?page=0&size=2000";
-            this.http.post(url, post, options).subscribe(response => {
-              const omgevingsdocumentenBeleid = response["_embedded"].omgevingsdocumenten;
-              omgevingsdocumentenBeleid.forEach(plan => {
-                this.planDecorator.decorateOmgevingsdocument(plan);
-                this.planDecorator.decoratePlan(plan, true);
-              });
-              this.setPlanalysis(plannen.concat(omgevingsdocumenten, omgevingsdocumentenBeleid));
-            });
-          });
-        });
+            this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
+
+            this.numLoadingR--;
+          },
+          error => {
+            this.numLoadingR -= 3;
+          }
+        );
       });
     }
   }
@@ -126,7 +148,7 @@ export class PlanModelService {
     this.setPlanInPlanalysis();
   }
 
-  loadPlan(idn, dossierSet, zoomToPlan, local) {
+  loadPlan(idn, dossierSet, zoomToPlan, local, postAction = null) {
     if ((this.plan != null) && (idn == this.plan.identificatie)) {
       return;
     }
@@ -167,6 +189,9 @@ export class PlanModelService {
         if (zoomToPlan) {
           this.zoomToPlan();
         }
+        if (postAction != null) {
+          postAction();
+        }
 
         const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + idn + "/geometrie";
         this.http.get(url).subscribe(response => {
@@ -176,13 +201,17 @@ export class PlanModelService {
     } else {  // AKN.
       const plan = this.omgevingsdocumentModel.omgevingsdocumenten.find(omgevingsdocument => omgevingsdocument.identificatie == idn);
       this.setPlan(plan, dossierSet);
-//      if (zoomToPlan) {
-//        this.zoomToPlan();
-//      }
+      if (zoomToPlan) {
+        this.imowModel.loadLocatieForPlanPostActions["zoomToPlan"] = () => { if (this.plan == plan) { this.zoomToPlan(); }};
+      }
+      this.imowModel.loadLocatieForPlan(plan);
+      if (postAction != null) {
+        postAction();
+      }
 
       const underscoredDocumentId = idn.replace(/[^a-zA-Z0-9]/g, "_");
       const options = environment.dsoOptions;
-      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "omgevingsdocumenten/" + underscoredDocumentId + "/documentcomponenten";
+      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "regelingen/" + underscoredDocumentId + "/documentcomponenten";
       this.http.get(url, options).subscribe(response => {
         let i = 0;
         const components = [];
@@ -197,8 +226,23 @@ export class PlanModelService {
                 component.opschrift = component[key].replace("_", " ");
                 component[key] = "DIVISIE";
               }
+            } else if (key == "opschrift") {
+              if (component[key].includes("od-Noot")) {
+                const el = doc.createElement("div");
+                el.innerHTML = component[key];
+                const nootElements = el.getElementsByClassName("od-Noot");
+                for (let j = 0; j < nootElements.length; j++) {
+                  const nootElement = nootElements.item(j);
+                  const nootChildren = nootElement.children;
+                  const nootId = "noot_" + i++;
+                  const nootIndex = nootChildren.item(0).textContent;
+                  const nootText = nootChildren.item(1).innerHTML;
+                  nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
+                }
+                component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
+              }
             } else if (key == "inhoud") {
-              if (component[key].includes("od-Li") || component[key].includes("od-Noot")) {
+              if (component[key].includes("od-Li") || component[key].includes("class=\"noot\"")) {
                 const el = doc.createElement("div");
                 el.innerHTML = component[key];
                 const liElements = el.getElementsByClassName("od-Li");
@@ -217,14 +261,14 @@ export class PlanModelService {
                     liElement.before(liNummerElement);
                   }
                 }
-                const nootElements = el.getElementsByClassName("od-Noot");
+                const nootElements = el.querySelectorAll("div.noot");
                 for (let j = 0; j < nootElements.length; j++) {
                   const nootElement = nootElements.item(j);
-                  const nootChildren = nootElement.children;
                   const nootId = "noot_" + i++;
-                  const nootIndex = nootChildren.item(0).textContent;
-                  const nootText = nootChildren.item(1).innerHTML;
-                  nootElement.innerHTML = "<sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div>";
+                  const nootIndex = nootElement.firstElementChild.textContent;
+                  const nootText = nootElement.nextElementSibling.firstElementChild.innerHTML;
+                  nootElement.nextSibling.remove();
+                  nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
                 }
                 component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
               }
@@ -369,12 +413,6 @@ export class PlanModelService {
   }
 
   zoomToPlan() {
-    const centerX = this.plan.boundingBox.minX + this.plan.boundingBox.width / 2;
-    const centerY = this.plan.boundingBox.minY + this.plan.boundingBox.height / 2;
-    const scale = Math.max(
-      this.plan.boundingBox.width / this.nineyDefault.defaultBoundsModel.bounds.width,
-      this.plan.boundingBox.height / this.nineyDefault.defaultBoundsModel.bounds.height
-    ) / this.nineyDefault.defaultFocusModel.centerScale.coordPixFactor * 1.05;
-    this.nineyDefault.defaultFocusModel.setCenterScale(new CenterScale(centerX, centerY, scale), FocusModel.IF_REQUIRED_UPPER);
+    this.nineyDefault.defaultEnvelopeModel.setEnvelope(this.plan.viewEnvelope);
   }
 }

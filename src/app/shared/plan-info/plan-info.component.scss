@@ -5,19 +5,25 @@
   padding: 25px 20px;
   background-color: #e5e5e5;
 }
-h4 {
-  margin: 0 0 15px;
-  font-size: 32px;
-}
-.btn-zoom {
-  position: absolute;
-  right: 25px;
-  top: 30px;
+.header {
+  display: flex;
+  margin-bottom: 7px;
+  align-items: flex-start;
+  h4 {
+    flex-grow: 1;
+    font-size: 32px;
+  }
+  .btn-link {
+    position: relative;
+    top: 4px;
+  }
 }
 .expert {
-  position: absolute;
-  right: 25px;
-  top: 75px;
+  float: right;
+  .btn-link {
+    display: block;
+    border: 0;
+  }
 }
 .pr-sm {
   padding-right: 120px;

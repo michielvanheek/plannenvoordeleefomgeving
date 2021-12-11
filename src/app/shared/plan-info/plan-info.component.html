@@ -1,6 +1,14 @@
-<h4>{{plan.naam}}</h4>
-<div title="Zoom naar plangeometrie" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn-zoom">
-  <dso-svg-icon class="clickable" icon="/assets/icons.svg#map-location"></dso-svg-icon>
+<div class="header">
+  <h4>{{plan.naam}}</h4>
+  <button (click)="planModel.zoomToPlan()" title="Zoom naar plangeometrie" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn btn-link">
+    <dso-svg-icon icon="/assets/icons.svg#map-location"></dso-svg-icon>
+  </button>
+</div>
+<div class="expert">
+  <button (click)="toggleExpertInfoVisible()" class="btn btn-link">
+    <span *ngIf="!expertInfoVisible"><span class="fa fa-angle-right mr-2"></span>meer planinfo</span>
+    <span *ngIf="expertInfoVisible"><span class="fa fa-angle-down mr-2"></span>minder planinfo</span>
+  </button>
 </div>
 <div *ngIf="!expertInfoVisible">
   <div class="pr-sm">{{plan.viewOverheidName}}</div>
@@ -54,10 +62,4 @@
 </div>
 <div *ngIf="planModel.dossierSet && (planModel.dossierSet.mainPlan.identificatie != plan.identificatie)" class="alert alert-warning">
   Van dit plan is een <a href="javascript:void(0)" (click)="planModel.loadPlan(planModel.dossierSet.mainPlan.identificatie, 'CURRENT', false, false)" class="alert-link">nieuwere versie</a> beschikbaar.
-</div>
-<div class="expert">
-  <a href="javascript:void(0)" (click)="toggleExpertInfoVisible()">
-    <span *ngIf="!expertInfoVisible"><span class="fa fa-angle-right mr-2"></span>meer planinfo</span>
-    <span *ngIf="expertInfoVisible"><span class="fa fa-angle-down mr-2"></span>minder planinfo</span>
-  </a>
 </div>

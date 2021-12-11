@@ -27,6 +27,59 @@ a {
   color: #275937;
 }
 
+label {
+  position: relative;
+  padding-left: calc(24px + 0.5rem);
+  cursor: pointer;
+  input[type=checkbox] {
+    position: absolute;
+    opacity: 0;
+  }
+  input[type=checkbox] + .checkmark {
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 24px;
+  }
+  input[type=checkbox] + .checkmark::before {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px #275937;
+    background: #fff;
+    content: "";
+  }
+  input[type=checkbox]:focus + .checkmark::before {
+    left: 3px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    box-shadow: 0 0 0 3px #275937;
+  }
+  input[type=checkbox]:disabled + .checkmark::before {
+    opacity: 0.5;
+  }
+  input[type=checkbox] + .checkmark::after {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 13px;
+    height: 8px;
+    border: solid #39870c;
+    border-width: 0 0 3px 3px;
+    transform: rotate(-45deg);
+    content: "";
+    display: none;
+  }
+  input[type=checkbox]:checked + .checkmark::after {
+    display: inline;
+  }
+}
+
 .fa, .fab, .fad, .fal, .far, .fas {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
@@ -44,10 +97,6 @@ a {
 span.dso-outline:focus {
   font-weight: bolder;
   color: green;
-}
-
-.clickable {
-  cursor: pointer;
 }
 
 .cursor-default {
@@ -281,6 +330,14 @@ svg:not(:root) {
   padding: 4px 8px 3px
 }
 
+.tab-content {
+  position: relative;
+  top: -1px;
+  margin: 0 -20px -1px;
+  padding: 1px 20px 0;
+  overflow: auto;
+}
+
 .list-group-item {
   color: inherit;
   cursor: pointer;
@@ -298,7 +355,9 @@ li.list-group-item.active:hover {
   color: inherit;
   background-color: #f2f2f2;
 }
-.list-group-item.header {
+.list-group-item.header,
+.list-group-item.header:hover {
+  position: sticky;
   z-index: 3;
   height: 32px;
   margin: -1px -16px 0;
@@ -308,7 +367,7 @@ li.list-group-item.active:hover {
   line-height: 28px;
   color: rgb(139, 74, 106);
   background-color: rgb(243, 236, 240);
-  pointer-events: none;
+  cursor: default;
 }
 .list-group-item strong {
   font-size: 18px;
@@ -351,10 +410,19 @@ table {
   }
 }
 
+a, .btn-link {
+  padding: 0;
+  color: #39870c;
+  &:hover {
+    color: #275937;
+  }
+}
+
 .dso-progress-indicator {
   position: absolute;
   left: calc(50% - 35px);
-  top: 44px;
+  top: 74px;
+  z-index: 3;
   padding: 11px;
   &-bg {
     position:absolute;

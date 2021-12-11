@@ -1,48 +1,39 @@
 <button (click)="display.emit('annotationsVisible', false)" title="Annotaties sluiten" class="btn btn-link close">
-  <svg class="di di-times">
+  <svg class="di">
     <use href="../assets/dso-icons.svg#times"></use>
   </svg>
 </button>
 <strong>{{header}}</strong>
-<div *ngIf="regeltekst">
+<div *ngIf="regeltekst" class="content">
   <div [class.separator]="regeltekst.locaties || regeltekst.gebiedsaanwijzingen || regeltekst.omgevingsnormen">
     {{regeltekst.typeJuridischeRegels}}
   </div>
-  <div *ngIf="regeltekst.locaties">
-    <h6>Werkingsgebied{{regeltekst.locaties.length > 1? 'en': ''}}</h6>
-    <div *ngFor="let locatie of regeltekst.locaties">
-      <label>
-        <input type="checkbox" (change)="setAnnotation($event.target.checked? locatie: null, 'L')" [checked]="annotation == locatie"><span class="checkmark"></span>
-        {{locatie.noemer || 'naamloos gebied'}}
-      </label>
-      <span *ngIf="annotation == locatie" class="legend" [ngStyle]="{'background-color': '#8b4903'}"></span>
+  <div class="subcontent">
+    <div *ngIf="regeltekst.locaties">
+      <h6>Werkingsgebied{{regeltekst.locaties.length > 1? 'en': ''}}</h6>
+      <div *ngFor="let locatie of regeltekst.locaties">
+        <label>
+          <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(locatie, 'L')" [checked]="isChecked(locatie)"/><span class="checkmark"></span>
+          {{locatie.noemer || "naamloos werkingsgebied"}}
+        </label>
+      </div>
     </div>
-  </div>
-  <div *ngIf="regeltekst.gebiedsaanwijzingen">
-    <h6>Gebiedsaanwijzing{{regeltekst.gebiedsaanwijzingen.length > 1? 'en': ''}}</h6>
-    <div *ngFor="let gebiedsaanwijzing of regeltekst.gebiedsaanwijzingen">
-      <label>
-        <input type="checkbox" (change)="setAnnotation($event.target.checked? gebiedsaanwijzing: null, 'A')" [disabled]="isGebiedsaanwijzingDisabled(gebiedsaanwijzing)" [checked]="annotation == gebiedsaanwijzing"><span class="checkmark"></span>
-        {{gebiedsaanwijzing.naam}}
-      </label>
-      <span *ngIf="annotation == gebiedsaanwijzing" class="legend" [ngStyle]="{'background-color': '#faa346'}"></span>
+    <div *ngIf="regeltekst.gebiedsaanwijzingen">
+      <h6>Gebiedsaanwijzing{{regeltekst.gebiedsaanwijzingen.length > 1? 'en': ''}}</h6>
+      <div *ngFor="let gebiedsaanwijzing of regeltekst.gebiedsaanwijzingen">
+        <label>
+          <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(gebiedsaanwijzing, 'A')" [disabled]="isGebiedsaanwijzingDisabled(gebiedsaanwijzing)" [checked]="isChecked(gebiedsaanwijzing)"/><span class="checkmark"></span>
+          {{gebiedsaanwijzing.viewName}}
+        </label>
+      </div>
     </div>
-  </div>
-  <div *ngIf="regeltekst.omgevingsnormen">
-    <h6>Omgevingsnorm{{regeltekst.omgevingsnormen.length > 1? 'en': ''}}</h6>
-    <div *ngFor="let omgevingsnorm of regeltekst.omgevingsnormen">
-      <label>
-        <input type="checkbox" (change)="setAnnotation($event.target.checked? omgevingsnorm: null, 'N')" [disabled]="isOmgevingsnormDisabled(omgevingsnorm)" [checked]="annotation == omgevingsnorm"><span class="checkmark"></span>
-        {{omgevingsnorm.type.waarde}}
-      </label>
-      <div *ngIf="annotation == omgevingsnorm" class="grid">
-        <div *ngFor="let normwaardenColumn of normwaardenGrid">
-          <div *ngFor="let normwaardeObject of normwaardenColumn" class="cell">
-            <span class="legend" [ngStyle]="{'background-color': normwaardeObject.color}"></span>
-            <span>{{normwaardeObject.normwaarde.kwalitatieveWaarde || normwaardeObject.normwaarde.kwantitatieveWaarde}} {{omgevingsnorm.eenheid? omgevingsnorm.eenheid[0].waarde: ""}}</span>
-            <div (mouseover)="highlightModel.setHighlight(normwaardeObject.normwaarde.locaties[0], false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
-          </div>
-        </div>
+    <div *ngIf="regeltekst.omgevingsnormen">
+      <h6>Omgevingsnorm{{regeltekst.omgevingsnormen.length > 1? 'en': ''}}</h6>
+      <div *ngFor="let omgevingsnorm of regeltekst.omgevingsnormen">
+        <label>
+          <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(omgevingsnorm, 'N')" [disabled]="isOmgevingsnormDisabled(omgevingsnorm)" [checked]="isChecked(omgevingsnorm)"/><span class="checkmark"></span>
+          {{omgevingsnorm.viewName}}
+        </label>
       </div>
     </div>
   </div>
