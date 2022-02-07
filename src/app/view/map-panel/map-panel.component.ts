@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { CenterScale, FocusModel, Loader } from "ng-niney";
+import { CenterScale, FocusModel, Loader, Polygon } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
@@ -29,6 +29,11 @@ export class MapPanelComponent {
     {fill: "none", "stroke-width": "3px"},
     {fill: "none", "stroke-width": "2.5px"},
     {fill: "none", "stroke-width": "2px"}
+  ];
+  private underlines = [
+    {fill: "none", "stroke-width": "7px"},
+    {fill: "none", "stroke-width": "6px"},
+    {fill: "none", "stroke-width": "5px"}
   ];
   private bumpses = [
     {fill: "none", "stroke-width": "10px", "stroke-dasharray": "0 26.05", "stroke-linecap": "round"},
@@ -81,6 +86,17 @@ export class MapPanelComponent {
     return this.highlines[2];
   }
 
+  get underline() {
+    const focusModel = this.nineyDefaultService.defaultFocusModel;
+    if (focusModel.centerScale.scale < 892.912823362) {
+      return this.underlines[0];
+    }
+    if (focusModel.centerScale.scale < 3571.651293448) {
+      return this.underlines[1];
+    }
+    return this.underlines[2];
+  }
+
   get bumps() {
     const focusModel = this.nineyDefaultService.defaultFocusModel;
     if (focusModel.centerScale.scale < 892.912823362) {
@@ -110,6 +126,16 @@ export class MapPanelComponent {
     return this.imowModel.annotationLayers.some(annotationLayer => annotationLayer.visible);
   }
 
+  get measureButtonTitle() {
+    if (this.measureModel.geometry == null) {
+      return "Een lijn of gebied tekenen:\n - afstand, oppervlakte meten\n - als plek markeren";
+    } else if (!(this.measureModel.geometry instanceof Polygon)) {
+      return "Stoppen met tekenen";
+    } else {
+      return "Het getekende gebied wissen";
+    }
+  }
+
   get legendButtonTitle() {
     if (this.legendPanelVisible) {
       return "Legenda sluiten";
@@ -120,7 +146,20 @@ export class MapPanelComponent {
     return "Een andere achtergrondkaart kiezen";
   }
 
+  get pointOrLineString() {
+    return ((this.measureModel.geometry != null) && !(this.measureModel.geometry instanceof Polygon));
+  }
+
+  get lineStringOrPolygon() {
+    return ((this.measureModel.geometry != null) && this.measureModel.geometry.childGeometries.length);
+  }
+
+  get realPolygon() {
+    return ((this.measureModel.geometry != null) && (this.measureModel.geometry instanceof Polygon) && this.measureModel.geometry.getArea());
+  }
+
   mark(x, y) {
+    this.measureModel.reset();
     this.markerModel.setXY(x, y, null);
   }
 

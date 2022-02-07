@@ -4,25 +4,22 @@ import { HomeComponent } from "./home/home.component";
 import { RoutingComponent } from "./view/routing/routing.component";
 
 const routes: Routes = [{
-  path: "viewer/:centerX/:centerY/:scale/:documentId/local",
+  path: "viewer/:centerX/:centerY/:scale/:marker/:plan/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:documentId",
-  component: RoutingComponent
-}, {
-  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY/:documentId/local",
+  path: "viewer/:centerX/:centerY/:scale/:plan/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY/:documentId",
+  path: "viewer/:centerX/:centerY/:scale/:marker/:plan",
   component: RoutingComponent
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:markerX/:markerY",
+  path: "viewer/:centerX/:centerY/:scale/:markerOrPlan",
   component: RoutingComponent
 }, {
   path: "viewer/:centerX/:centerY/:scale",

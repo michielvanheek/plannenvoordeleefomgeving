@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { CenterScale, FocusModel, Point, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
+import { MeasureModelService } from "src/app/model/measure-model.service";
 import { StateModelService } from "src/app/model/state-model.service";
 
 @Component({
@@ -21,7 +22,8 @@ export class SearchPlaceComponent implements DoCheck {
     private http:HttpClient,
     private nineyDefault:NineyDefaultService,
     public stateModel: StateModelService,
-    public markerModel: MarkerModelService
+    public markerModel: MarkerModelService,
+    public measureModel: MeasureModelService
   ) { }
 
   ngDoCheck() {

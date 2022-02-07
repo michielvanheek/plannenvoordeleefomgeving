@@ -18,13 +18,24 @@ export const environment = {
   dsoOptions: {
     headers: new HttpHeaders({
       "Accept" : "application/json, application/hal+json",
-      "x-api-key": "f9303b04-8db4-4d34-b2a9-356ba490f977",
+      "Accept-CRS": "EPSG:28992",
       "Content-CRS": "EPSG:28992",
-      "Accept-CRS": "EPSG:28992"
+      "X-Api-Key": "f9303b04-8db4-4d34-b2a9-356ba490f977"
     })
   },
-//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-acc/wmts/v1_0/locaties/EPSG:28992/"
-  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-pre/wmts/v1_0/locaties/EPSG:28992/"
+  ihr: false,
+  ihrUrl: "https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4/",
+  ihrOptions: {
+    headers: new HttpHeaders({
+      "Accept" : "application/json, application/hal+json",
+      "Accept-CRS": "epsg:28992",
+      "Content-CRS": "epsg:28992",
+      "X-Api-Key": "l748f36af7648c43cd8b9a7183218f26e1"
+    })
+  },
+//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-acc/wmts/v1_0/locaties/EPSG:28992/",
+  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-pre/wmts/v1_0/locaties/EPSG:28992/",
+  hybridAnnotations: false
 };
 
 /*

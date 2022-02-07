@@ -8,34 +8,54 @@ import { environment } from "../../environments/environment";
 })
 export class OmgevingsdocumentModelService {
   private resolve = null;
+  private loading = {
+    "false": true,
+    "true": true  // Ontwerp.
+  };
 
-  omgevingsdocumenten = null;
+  regelingen = [];
   identificaties = null;
 
   constructor(
     private http: HttpClient,
     private planDecorator: PlanDecoratorService
   ) {
-    this.loadOmgevingsdocumenten();
+    this.loadRegelingen(false, 0);
+    this.loadRegelingen(true, 0);
   }
 
-  private loadOmgevingsdocumenten() {
+  private loadRegelingen(ontwerp, page) {
     const options = environment.dsoOptions;
-    const url = environment.dsoUrl + "regelingen?page=0&size=2000";
+    const url = environment.dsoUrl + (ontwerp? "ontwerp": "") + "regelingen?page=" + page + "&size=200&sort=" + (!ontwerp? "identificatie": "technischId");
     this.http.get(url, options).subscribe(response => {
-      this.omgevingsdocumenten = response["_embedded"].regelingen;
-      this.omgevingsdocumenten.forEach(omgevingsdocument => {
-        if (omgevingsdocument.aangeleverdDoorEen == null) {
-          console.warn("Omgevingsdocument " + omgevingsdocument.identificatie + " has no owner.");
-          return;
-        }
-        this.planDecorator.decorateOmgevingsdocument(omgevingsdocument);
-        this.planDecorator.decoratePlan(omgevingsdocument, true);
-      });
-      this.identificaties = this.omgevingsdocumenten.map(omgevingsdocument => omgevingsdocument.identificatie);
+      this.regelingen = this.regelingen.concat(response["_embedded"].regelingen || response["_embedded"].ontwerpRegelingen);
 
-      this.resolve(true);
+      if (page < response["page"].totalPages - 1) {
+        this.loadRegelingen(ontwerp, page + 1);
+      } else {
+        this.loading[ontwerp] = false;
+        if (!this.loading["false"] && !this.loading["true"]) {
+          this.processRegelingen();
+        }
+      }
     });
+  }
+
+  private processRegelingen() {
+    this.regelingen.forEach(regeling => {
+      if (regeling.aangeleverdDoorEen == null) {
+        console.warn("Regeling " + regeling.identificatie + " has no owner.");
+        return;
+      }
+      if (regeling._links.heeftBeoogdeOpvolgers != null) {
+        console.log("BEOOGDE OPVOLGERS", regeling._links.heeftBeoogdeOpvolgers);
+      }
+      this.planDecorator.decorateOmgevingsdocument(regeling);
+      this.planDecorator.decoratePlan(regeling, true);
+    });
+    this.identificaties = this.regelingen.map(regeling => regeling.identificatie);
+
+    this.resolve(true);
   }
 
   getPromise() {

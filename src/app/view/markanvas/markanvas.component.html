@@ -7,21 +7,31 @@
     <li *ngIf="(i == 1) && infos[0].length && infos[1].length" class="list-group-item header" [ngStyle]="{top: '30px', bottom: ((infos[2].length? 1: 0) + ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0)) * 31 + 'px'}">ook op deze plek <span class="small light">({{infos[1].length}})</span></li>
     <li *ngIf="(i == 2) && infos[2].length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0)) * 31 - 1) + 'px', bottom: ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0) * 31 + 'px'}">op deze plek in andere plannen <span class="small light">({{infos[2].length}})</span></li>
     <div *ngIf="(i == 2) && !infos[0].length && !infos[1].length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
-    <li *ngFor="let info of infos1" class="list-group-item info">
+    <li *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
-      <div [innerHTML]="info.text"></div>
-      <div (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" (click)="highlightModel.setHighlight(null, false); openInfo(info)" title="Bijbehorende regels tonen" class="overlay"></div>
+      <div>
+        <div [innerHTML]="info.text"></div>
+        <div *ngIf="info.plannen" class="links">
+          <button (click)="highlightModel.setHighlight(null, false); info.plannen = null" title="Sluiten" class="btn btn-link close">
+            <svg class="di">
+              <use href="../assets/dso-icons.svg#times"></use>
+            </svg>
+          </button>
+          <div>komt voor in {{info.plannen.length}} plannen:</div>
+          <div *ngFor="let plan of info.plannen">&#8226; <a href="javascript:void(0)" (click)="highlightModel.setHighlight(null, false); planModel.loadPlan(plan.technischId || plan.identificatie, null, false, false)" title="Dit plan openen">{{plan.naam}}</a></div>
+        </div>
+      </div>
+      <div *ngIf="!info.plannen" (click)="highlightModel.setHighlight(null, false); openInfo(info)" [title]="(i &lt; 2)? 'Bijbehorende regels tonen': 'Bijbehorend plan openen'" class="overlay"></div>
     </li>
   </ng-template>
   <ng-template [ngIf]="appService.settings.placeInfoShowOrphans">
     <li *ngIf="orphanLocaties.length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0) + (infos[2].length? 1: 0)) * 31 - 1) + 'px', bottom: 0}">zonder annotatie <span class="small light">({{orphanLocaties.length}})</span></li>
-    <li *ngFor="let locatie of orphanLocaties" class="list-group-item info">
+    <li *ngFor="let locatie of orphanLocaties" (mouseover)="highlightModel.setHighlight(locatie, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
       <div class="legend"><img src="assets/nosymbol.png"/></div>
       <div>
         <strong>{{locatie.noemer || "Geen naam"}}</strong><br/>
         locatie
       </div>
-      <div (mouseover)="highlightModel.setHighlight(locatie, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay no-pointer"></div>
     </li>
   </ng-template>
 </ul>

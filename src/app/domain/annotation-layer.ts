@@ -46,11 +46,17 @@ export class AnnotationLayer {
         this.getFilter(locatie),
         this.imowValueModel.symboolcodes["vah400"]
       );
-    } else if (type == "A") {
+    } else if (type == "G") {
       const locaties = annotation.locaties;
       this.setUniformCssFunction(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
         this.imowValueModel.getSymboolcode(annotation.subType, annotation.groep)
+      );
+    } else if (type == "A") {
+      const locaties = annotation.locaties;
+      this.setUniformCssFunction(
+        this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
+        this.imowValueModel.getSymboolcode("Activiteit", annotation.betreftEenActiviteit.groep)
       );
     } else {  // type == "N"
       const omgevingsnorm = annotation;

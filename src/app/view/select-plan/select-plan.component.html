@@ -24,7 +24,7 @@
             <strong *ngIf="planItem.plan.viewPlanLevel == planLevelModel.planLevel">{{planItem.plan.naam}}</strong>
             <div *ngIf="planItem.plan.viewPlanLevel != planLevelModel.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
             <div [ngClass]="{small: planItem.plan.viewPlanLevel != planLevelModel.planLevel}">{{planItem.plan.typePlan}}, <span [ngClass]="{'red': ['ontwerp', 'toekomstig'].includes(planItem.plan.viewStatus)}">{{planItem.plan.viewStatus}}</span> ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
-            <div (click)="planModel.loadPlan(planItem.plan.identificatie, 'PLANALYSIS', false, false)" (mouseover)="highlightModel.setHighlight(planItem.plan, !!planItem.plan.versieImro)" (mouseout)="highlightModel.setHighlight(null, !!planItem.plan.versieImro)" class="overlay"></div>
+            <div (click)="planModel.loadPlan(planItem.plan.technischId || planItem.plan.identificatie, 'PLANALYSIS', false, false)" (mouseover)="highlightModel.setHighlight(planItem.plan, !!planItem.plan.versieImro)" (mouseout)="highlightModel.setHighlight(null, !!planItem.plan.versieImro)" class="overlay"></div>
           </li>
         </ng-template>
       </ng-template>

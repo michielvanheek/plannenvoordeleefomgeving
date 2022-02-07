@@ -20,7 +20,8 @@ export class PlanAccordionComponent {
   };
   private preselectedComponent = null;
 
-  @Input() item;
+  @Input() component;
+  @Input() structured;
   @Input() level;
   @Input() toc;
   @Input() display;
@@ -28,7 +29,10 @@ export class PlanAccordionComponent {
 
   isVisible(element) {
     return (
-      (!this.toc || (this.titleLevels[element.type] || 6) <= this.display.tocLevel) &&
+      (!this.toc ||
+        (this.structured && ((this.titleLevels[element.type] || 6) <= this.display.tocLevel)) ||
+        (!this.structured && (this.level <= this.display.tocLevel))
+      ) &&
       (this.display.allVisible ||
         ((this.componentIdentificaties.specific == null) && (this.componentIdentificaties.filtered == null)) ||
         ((this.componentIdentificaties.filtered == null) && (this.componentIdentificaties.specific[element.identificatie] != null)) ||
@@ -38,7 +42,7 @@ export class PlanAccordionComponent {
   }
 
   hasChildren(element) {
-    return element._embedded.documentComponenten.length > 0;
+    return (element._embedded.documentComponenten || element._embedded.ontwerpDocumentComponenten).length > 0;
   }
 
   hasNoOpschrift(element) {

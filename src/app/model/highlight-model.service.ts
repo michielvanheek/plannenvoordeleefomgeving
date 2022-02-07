@@ -61,10 +61,13 @@ export class HighlightModelService {
         this.imowHighlight = planOrInfo;
       } else {
         this.layerModel.layers[7].visible = true;
-        if (planOrInfo.locaties != null) {  // IMOW info or IMOW annotation (with locaties).
+        if (planOrInfo.locaties != null) {           // IMOW info or IMOW annotation (with locaties).
           const locaties = planOrInfo.locaties.concat(planOrInfo.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []));
           this.imowHighlight = {locaties: locaties, locatie: null};
-        } else {                            // IMOW locatie.
+        } else if (planOrInfo.normwaarde != null) {  // IMOW omgevingsnorm.
+          const locaties = planOrInfo.normwaarde.reduce((locaties, normwaarde) => locaties.concat(normwaarde.locaties.concat(normwaarde.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))), []);
+          this.imowHighlight = {locaties: locaties, locatie: null};
+        } else {                                     // IMOW locatie.
           this.imowHighlight = {locaties: null, locatie: planOrInfo};
         }
       }

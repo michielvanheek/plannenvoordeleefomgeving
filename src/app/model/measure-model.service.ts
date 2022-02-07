@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { LineString, Point } from "ng-niney";
+import { LineString, Point, Polygon } from "ng-niney";
 
 @Injectable({
   providedIn: "root"
@@ -35,6 +35,16 @@ export class MeasureModelService {
     } else {
       this.geometry.addChild(new Point(x, y));
     }
+    this.setView();
+  }
+
+  close() {
+    if (this.geometry.childGeometries.length < 3) {
+      return;
+    }
+
+    this.geometry.addChild(this.geometry.childGeometries[0].clone());
+    this.geometry = new Polygon([this.geometry]);
     this.setView();
   }
 

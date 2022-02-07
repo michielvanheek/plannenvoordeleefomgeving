@@ -81,19 +81,63 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
   
     tileModel.loadTileData = tile => {
       if (tile.vectorData == null) {
-        this.http.get(tile.url, {responseType: "arraybuffer"}).subscribe(
-          response => {
-            if (this.layer == null) {
+        const tileZxy = tile.url.match(/(\/\d+\/\d+\/\d+)\.pbf$/)[1];
+        const excludedTileZxys = [
+          "/3/2/5",
+          "/3/3/5",
+          "/3/4/0",
+          "/3/5/0",
+          "/3/5/1",
+          "/3/5/4",
+          "/3/5/5",
+          "/4/4/0",
+          "/4/4/1",
+          "/4/4/2",
+          "/4/4/5",
+          "/4/4/6",
+          "/4/4/10",
+          "/4/5/10",
+          "/4/6/10",
+          "/4/7/10",
+          "/4/7/0",
+          "/4/8/0",
+          "/4/8/1",
+          "/4/8/2",
+          "/4/9/0",
+          "/4/9/1",
+          "/4/9/2",
+          "/4/9/3",
+          "/4/10/0",
+          "/4/10/1",
+          "/4/10/2",
+          "/4/10/3",
+          "/4/10/4",
+          "/4/10/8",
+          "/4/10/9",
+          "/4/10/10",
+        ];
+        if (!excludedTileZxys.includes(tileZxy)) {
+          this.http.get(tile.url, {responseType: "arraybuffer"}).subscribe(
+            response => {
+              if (this.layer == null) {
+                this.tileModel.completeTile(tile, false);
+                return;
+              }
+              const vectorTileLayer = new VectorTile(new Protobuf(response)).layers[this.layer.name];
+              if (vectorTileLayer != null) {
+                this.setTileData(tile, vectorTileLayer);
+              } else {
+                console.warn("Could not instantiate: " + tile.url);
+                this.tileModel.completeTile(tile, false);
+              }
+            },
+            error => {
               this.tileModel.completeTile(tile, false);
-              return;
             }
-            const vectorTileLayer = new VectorTile(new Protobuf(response)).layers[this.layer.name];
-            this.setTileData(tile, vectorTileLayer);
-          },
-          error => {
-            this.tileModel.completeTile(tile, false);
-          }
-        );
+          );
+        } else {
+          this.setTileData(tile, {extent: 4096, length: 0});
+        }
       } else {
         this.setTileData(tile, tile.vectorData);
       }

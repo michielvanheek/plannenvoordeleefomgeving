@@ -43,6 +43,16 @@
     <tr *ngIf="plan.versieImro">
       <td class="font-weight-bold">Uitgebreide status</td><td>{{plan.planStatus}} (plan); {{plan.dossierStatus? plan.dossierStatus + " (dossier)": "geen dossier"}}</td>
     </tr>
+    <tr *ngIf="plan.procedureverloop">
+      <td class="font-weight-bold">Procedure</td>
+      <td>
+        <table>
+          <tr *ngFor="let stap of plan.procedureverloop.procedurestappen.concat().reverse()">
+            <td>{{stap.soortStap.waarde.toLowerCase()}}</td><td>{{stap.voltooidOp.split("-").reverse().join("-")}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
     <tr *ngIf="plan.normAdressant">
       <td class="font-weight-bold">Doelgroep</td><td>{{plan.normAdressant}}</td>
     </tr>
@@ -50,10 +60,13 @@
       <td class="font-weight-bold">IMRO-versie</td><td>{{plan.versieImro}}</td>
     </tr>
     <tr>
-      <td class="font-weight-bold">Identificatie</td><td style="word-break: break-all">{{plan.identificatie}}</td>
+      <td class="font-weight-bold">Plannummer</td><td style="word-break: break-all">{{plan.identificatie}}</td>
     </tr>
     <tr *ngIf="plan.besluitNummer">
       <td class="font-weight-bold">Besluitnummer</td><td>{{plan.besluitNummer}}</td>
+    </tr>
+    <tr *ngIf="plan.ontwerpbesluitIdentificatie">
+      <td class="font-weight-bold">Besluitnummer</td><td>{{plan.ontwerpbesluitIdentificatie}}</td>
     </tr>
     <tr *ngIf="plan.ondergrond">
       <td class="font-weight-bold">Ondergrond</td><td style="word-break: break-all">{{plan.ondergrond}}</td>

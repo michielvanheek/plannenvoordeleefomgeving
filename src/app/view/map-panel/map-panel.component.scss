@@ -67,13 +67,23 @@ n-map {
 }
 .box-md {
   margin-bottom: 16px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 0 8px 8px;
-  background-color: rgba(243, 243, 243, 0.8);
   pointer-events: auto;
-  h6 {
-    margin: 8px 0 0;
-    line-height: 1.5;
-    color: #191919;
+  .inner {
+    width: 166px;
+    height: 100%;
+    border: 4px solid #fff;
+    border-radius: 4px;    
+    padding: 0.5rem;
+    background-color: rgba(243, 243, 243, 0.8);
+    .measure {
+      margin-bottom: 0.5rem;
+      h6 {
+        margin: 0;
+        line-height: 1.5;
+        color: #191919;
+      }
+    }
   }
 }

@@ -121,7 +121,7 @@ export class SearchPlanComponent {
 
           const keywords = this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").split(/[^a-zA-Z0-9]+/);
           const numPlannen = new Array(keywords.length).fill(0);
-          this.plannen = this.plannen.concat(this.omgevingsdocumentModel.omgevingsdocumenten).filter(plan => {
+          this.plannen = this.plannen.concat(this.omgevingsdocumentModel.regelingen).filter(plan => {
             return keywords.every((keyword, i) => {
               if (Object.values(plan).some(planValue => (planValue + "").toLowerCase().includes(keyword.toLowerCase()))) {
                 numPlannen[i]++;

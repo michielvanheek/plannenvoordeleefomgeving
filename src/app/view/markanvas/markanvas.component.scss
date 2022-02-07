@@ -5,15 +5,3 @@
   height: 76px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
 }
-.list-group-item.info {
-  display: flex;
-  align-items: center;
-  cursor: default;
-}
-.list-group-item.info .legend {
-  width: 60px;
-  flex-shrink: 0;
-}
-.list-group-item.info .overlay.no-pointer {
-  cursor: inherit;
-}

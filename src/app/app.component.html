@@ -13,7 +13,7 @@
     <as-split-area minSize="10" *ngIf="planModel.plan">
       <dso-plan-info></dso-plan-info>
       <dso-imro-plan-viewer *ngIf="planModel.plan.versieImro"></dso-imro-plan-viewer>
-      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [structuur]="planModel.plan.structuur"></dso-stop-plan-viewer>
+      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [planType]="planModel.plan.typePlan" [structuur]="planModel.plan.structuur"></dso-stop-plan-viewer>
     </as-split-area>
   </as-split>
 </div>
@@ -26,6 +26,12 @@
   <h4>Instellingen</h4>
   <div>
     <label>
+      <input type="checkbox" [(ngModel)]="environment.ihr"/><span class="checkmark"></span>
+      Informatiehuis Ruimte
+    </label>
+  </div>
+  <div>
+    <label>
       <input type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"/><span class="checkmark"></span>
       Plekinfo weeslocaties
     </label>
@@ -34,6 +40,12 @@
     <label>
       <input type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"/><span class="checkmark"></span>
       Plekinfo debug
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="checkbox" [(ngModel)]="environment.hybridAnnotations"/><span class="checkmark"></span>
+      Annotaties juridisch hybride
     </label>
   </div>
 </div>

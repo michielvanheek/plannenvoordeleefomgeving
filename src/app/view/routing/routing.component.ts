@@ -1,6 +1,6 @@
 import { Component, DoCheck } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { CenterScale, Envelope, ZoomLevel } from "ng-niney";
+import { CenterScale, Envelope, Point, WKTConverter, ZoomLevel } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
@@ -12,7 +12,7 @@ import { PlanModelService } from "src/app/model/plan-model.service";
 })
 export class RoutingComponent implements DoCheck {
   private markerXY = this.markerModel.xy;
-  private planIdentificatie = (this.planModel.plan? this.planModel.plan.identificatie: null);
+  private planIdentificatie = this.planModel.plan? (this.planModel.plan.technischId || this.planModel.plan.identificatie): null;
 
   private ignoreRoute = false;
 
@@ -59,15 +59,18 @@ export class RoutingComponent implements DoCheck {
       const scale = parseFloat(params.scale);
       focusModel.setCenterScale(new CenterScale(centerX, centerY, scale));
 
-      if ((params.markerX != null) && (params.markerY != null)) {
-        const markerX = parseFloat(params.markerX);
-        const markerY = parseFloat(params.markerY);
-        setTimeout(() => { this.markerModel.setXY(markerX, markerY, null); this.markerXY = this.markerModel.xy; });
+      if ((params.marker != null) || ((params.markerOrPlan != null) && params.markerOrPlan.match(/^PO/))) {
+        const marker = (new WKTConverter()).wktToGeometry((params.marker || params.markerOrPlan).replaceAll("[", "(").replaceAll("]", ")"));
+        if (marker instanceof Point) {
+          setTimeout(() => { this.markerModel.setXY(marker.x, marker.y, null); this.markerXY = this.markerModel.xy; });
+        } else {
+          setTimeout(() => { this.markerModel.setPolygon(marker); this.markerXY = this.markerModel.xy; });
+        }
       } else {
         setTimeout(() => { this.markerModel.clear(); this.markerXY = null; });
       }
-      if (params.documentId != null) {
-        const identificatie = decodeURIComponent(params.documentId);
+      if ((params.plan != null) || ((params.markerOrPlan != null) && !params.markerOrPlan.match(/^PO/))) {
+        const identificatie = decodeURIComponent(params.plan || params.markerOrPlan);
         const local = this.activatedRoute.snapshot.data.local;
         setTimeout(() => { this.planModel.loadPlan(identificatie, null, false, local, () => { this.planIdentificatie = identificatie; }); });
       } else {
@@ -77,21 +80,21 @@ export class RoutingComponent implements DoCheck {
   }
 
   ngDoCheck() {
-    if ((this.markerXY != this.markerModel.xy) || (this.planIdentificatie != (this.planModel.plan? this.planModel.plan.identificatie: null))) {
+    if ((this.markerXY != this.markerModel.xy) || (this.planIdentificatie != (this.planModel.plan? (this.planModel.plan.technischId || this.planModel.plan.identificatie): null))) {
       if (this.markerXY != this.markerModel.xy) {
         this.markerXY = this.markerModel.xy;
       }
-      if (this.planIdentificatie != (this.planModel.plan? this.planModel.plan.identificatie: null)) {
-        this.planIdentificatie = (this.planModel.plan? this.planModel.plan.identificatie: null);
+      if (this.planIdentificatie != (this.planModel.plan? (this.planModel.plan.technischId || this.planModel.plan.identificatie): null)) {
+        this.planIdentificatie = this.planModel.plan? (this.planModel.plan.technischId || this.planModel.plan.identificatie): null;
       }
 
       const cs = this.nineyDefault.defaultFocusModel.centerScale;
       let url = `/viewer/${cs.centerX}/${cs.centerY}/${cs.scale}`;
       if (this.markerModel.xy != null) {
-        url += `/${this.markerModel.xy.x}/${this.markerModel.xy.y}`;
+        url += "/" + (new WKTConverter()).geometryToWKT(this.markerModel.polygon || this.markerModel.xy).replaceAll("(", "[").replaceAll(")", "]");
       }
       if (this.planModel.plan != null) {
-        url += `/${encodeURIComponent(this.planModel.plan.identificatie)}`;
+        url += "/" + encodeURIComponent(this.planModel.plan.technischId || this.planModel.plan.identificatie);
       }
       if (this.activatedRoute.snapshot.data.local) {
         url += "/local";

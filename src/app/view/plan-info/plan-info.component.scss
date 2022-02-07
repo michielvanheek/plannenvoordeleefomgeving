@@ -37,6 +37,13 @@ table {
 td {
   padding: 0 8px 8px 0;
   vertical-align: top;
+  table {
+    tr:last-child {
+      td {
+        padding-bottom: 0;
+      }
+    }
+  }
 }
 .innertable tr:not(.active) {
   color: #39870c;

@@ -5,6 +5,7 @@ import { ImowModelService } from "./model/imow-model.service";
 import { OmgevingsdocumentModelService } from "./model/omgevingsdocument-model.service";
 import { PlanModelService } from "./model/plan-model.service";
 import { StateModelService } from "./model/state-model.service";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "app-root",
@@ -22,4 +23,8 @@ export class AppComponent {
     public imowModel: ImowModelService,
     public planModel: PlanModelService
   ) { }
+
+  get environment() {
+    return environment;
+  }
 }

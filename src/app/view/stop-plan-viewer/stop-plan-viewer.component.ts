@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
+import { Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
 import { ImowModelService } from "src/app/model/imow-model.service";
 
 @Component({
@@ -8,15 +8,16 @@ import { ImowModelService } from "src/app/model/imow-model.service";
 })
 export class StopPlanViewerComponent implements OnInit, OnChanges {
 
+  @Input() planType;
   @Input() structuur;
   @ViewChild("tabContent", {static: true}) private tabContentRef: ElementRef;
 
   tabs = [
-    { id: 0, label: "Plekinfo", type: null, scrollTop: 0 },
-    { id: 1, label: "Inhoud", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 2, label: "Regels", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 3, label: "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 4, label: "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
+    { id: 0, label: () => "Plekinfo", type: null, scrollTop: 0 },
+    { id: 1, label: () => "Inhoud", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 2, label: () => (this.planType != "omgevingsvisie")? "Regels": "Beleid", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 3, label: () => "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
+    { id: 4, label: () => "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
   ];
   tab = this.tabs[0];
   display = {
@@ -35,9 +36,12 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   };
 
   constructor(
+    private zone: NgZone,
     private hostRef: ElementRef,
     public imowModel: ImowModelService
-  ) { }
+  ) {
+    window["stopPlanViewerComponent"] = {displayEmit: (key, val) => setTimeout(() => this.zone.run(() => this.display.emit(key, val)))};
+  }
 
   ngOnInit(): void {
     this.initTabs();
@@ -65,6 +69,14 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     }
   }
 
+  isStructured() {
+    if (this.tab.documentComponenten._embedded.documentComponenten.length == 0) {
+      return false;
+    }
+
+    return !["DIVISIE", "DIVISIETEKST", "BIJLAGE"].includes(this.tab.documentComponenten._embedded.documentComponenten[0].type);
+  }
+
   selectNextComponentIdentificatie(type) {
     this.imowModel.selectNextComponentIdentificatie(type);
     this.scrollToSelected();
@@ -76,11 +88,11 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
         tab.documentComponenten = {_embedded: {documentComponenten: []}};
       } else if (!tab.subtypes) {
         tab.documentComponenten = {_embedded: {documentComponenten:
-          this.structuur._embedded.documentComponenten.filter(d => d.type == tab.type)
+          (this.structuur._embedded.documentComponenten || this.structuur._embedded.ontwerpDocumentComponenten).filter(d => d.type == tab.type)
         }};
       } else {
         tab.documentComponenten = {_embedded: {documentComponenten:
-          this.structuur._embedded.documentComponenten.filter(d => d.type == tab.type).reduce((dc, d) => dc.concat(d._embedded.documentComponenten), [])
+          (this.structuur._embedded.documentComponenten || this.structuur._embedded.ontwerpDocumentComponenten).filter(d => d.type == tab.type).reduce((dc, d) => dc.concat(d._embedded.documentComponenten || d._embedded.ontwerpDocumentComponenten), [])
         }};
       }
       tab.scrollTop = 0;

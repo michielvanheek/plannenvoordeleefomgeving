@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
 import { HttpClient } from "@angular/common/http";
-import { CenterScale, Envelope, FocusModel, Layer, WKTConverter } from "ng-niney";
+import { Envelope, JsonConverter, Layer, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
@@ -60,79 +60,116 @@ export class PlanModelService {
       this.stateModel.leaveSelectPlan();
 
       this.imowModel.setMarkerLocatieIdentificaties([]);
+      //this.imowModel.setMarkerOntwerpLocatieIds(locatieIdentificaties);
     } else {
+      let plannen = [];
+
       const point = this.markerModel.xy;
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/xy/" + point.x + "/" + point.y;
-      this.http.get(url).subscribe(response => {
-        const plannen = response["plannen"];
-        if (plannen != null) {
-          plannen.forEach(plan => this.planDecorator.decoratePlan(plan, true));
-        }
-        this.setPlanalysis(plannen);
+      this.numLoadingR++;
+      this.http.get(url).subscribe(
+        response => {
+          const plannen1 = response["plannen"] || [];
+          plannen1.forEach(plan => this.planDecorator.decoratePlan(plan, true));
+          plannen = plannen.concat(plannen1);
+          this.setPlanalysis(plannen);
 
-        this.stateModel.enterSelectPlan();
+          this.stateModel.enterSelectPlan();
 
-        const options = environment.dsoOptions;
-        const url = environment.dsoUrl + "locatieidentificaties/_zoek";
-        const post = {
-          geo: {
-            geometrie: {
-              type:"Point",
-              coordinates:[point.x, point.y]
-            },
-            spatialOperator:"intersects"
-          }
-        };
-        this.numLoadingR += 3;
-        this.http.post(url, post, options).subscribe(
-          response => {
-            const locatieIdentificaties = response["_embedded"].locatieidentificaties;
-
-            const url = environment.dsoUrl + "regelingen/regels/_zoek?page=0&size=2000";
-            const beleidUrl = environment.dsoUrl + "regelingen/tekstdelen/_zoek?page=0&size=2000";
+          if (environment.ihr) {
+            const options = environment.ihrOptions;
+            const url = environment.ihrUrl + "plannen/_zoek?pageSize=100&beleidsmatigVerantwoordelijkeOverheid.type=gemeentelijke overheid";
             const post = {
-              zoekParameters: [{
-                parameter: "locatie.identificatie",
-                zoekWaarden: locatieIdentificaties
-              }]
+              _geo: {
+                intersects: (new JsonConverter()).geometryToJson(this.markerModel.polygon || this.markerModel.xy, false)
+              }
             };
-            let regelingen = [];
-            let beleidRegelingen = [];
+            this.numLoadingR++;
             this.http.post(url, post, options).subscribe(
               response => {
-                regelingen = response["_embedded"].regelingen;
-                regelingen.forEach(plan => {
-                  this.planDecorator.decorateOmgevingsdocument(plan);
-                  this.planDecorator.decoratePlan(plan, true);
-                });
-                this.setPlanalysis(plannen.concat(regelingen, beleidRegelingen));
+                const rp = [window.location.pathname];
+                const rpPlannen = plannen1.filter(plan => plan.viewPlanLevel.name == "Gemeente").sort((a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: 0);
+                rpPlannen.filter(plan => plan.typePlan != "structuurvisie").forEach(plan => rp.push([plan.naam, plan.typePlan, plan.planStatus, plan.dossierStatus, plan.datum, plan.identificatie].join(" - ")));
+                rpPlannen.filter(plan => plan.typePlan == "structuurvisie").forEach(plan => rp.push([plan.naam, plan.typePlan, plan.planStatus, plan.dossierStatus, plan.datum, plan.identificatie].join(" - ")));
+
+                const ihr = [window.location.pathname];
+                const ihrPlannen = response["_embedded"].plannen.filter(plan => !plan.verwijderdOp && (!plan.dossier || (plan.dossier.status != "vervallen")));
+                ihrPlannen.filter(plan => plan.type != "structuurvisie").forEach(plan => ihr.push([plan.naam, plan.type, plan.planstatusInfo.planstatus, plan.dossier?.status, plan.planstatusInfo.datum, plan.id].join(" - ")));
+                ihrPlannen.filter(plan => plan.type == "structuurvisie").forEach(plan => ihr.push([plan.naam, plan.type, plan.planstatusInfo.planstatus, plan.dossier?.status, plan.planstatusInfo.datum, plan.id].join(" - ")));
+
+                console.log(rp.join("\n") + "\n\n");
+                console.log(ihr.join("\n") + "\n\n");
+
                 this.numLoadingR--;
               },
               error => {
                 this.numLoadingR--;
               }
             );
-            this.http.post(beleidUrl, post, options).subscribe(
-              response => {
-                beleidRegelingen = response["_embedded"].regelingen;
-                beleidRegelingen.forEach(plan => {
-                  this.planDecorator.decorateOmgevingsdocument(plan);
-                  this.planDecorator.decoratePlan(plan, true);
+          }
+          this.numLoadingR--;
+        },
+        error => {
+          this.numLoadingR--;
+        }
+      );
+
+      const options = environment.dsoOptions;
+      const post = {
+        geo: {
+          geometrie: (new JsonConverter()).geometryToJson(this.markerModel.polygon || this.markerModel.xy, false),
+          spatialOperator:"intersects"
+        }
+      };
+      [false, true].forEach(ontwerpLocaties => {
+        const url = environment.dsoUrl + (!ontwerpLocaties? "locatieidentificaties/_zoek": "ontwerplocaties/technischids/_zoek");
+        this.numLoadingR++;
+        this.http.post(url, post, options).subscribe(
+          response => {
+            const locatieIdentificaties = response["_embedded"].locatieidentificaties || response["_embedded"].technischIds;
+            if (locatieIdentificaties.length > 0) {
+              const post = {
+                zoekParameters: [{
+                  parameter: !ontwerpLocaties? "locatie.identificatie": "ontwerplocatie.technischId",
+                  zoekWaarden: locatieIdentificaties
+                }]
+              };
+              [false, true].forEach(ontwerpRegelingen => {
+                if (!ontwerpRegelingen && ontwerpLocaties) {
+                  return;
+                }
+
+                ["regels", "tekstdelen"].forEach(type => {
+                  const url = environment.dsoUrl + (ontwerpRegelingen? "ontwerp": "") + "regelingen/" + type + "/_zoek?page=0&size=200";
+                  this.numLoadingR++;
+                  this.http.post(url, post, options).subscribe(
+                    response => {
+                      const regelingen = response["_embedded"].regelingen || response["_embedded"].ontwerpRegelingen;
+                      regelingen.forEach(regeling => {
+                        this.planDecorator.decorateOmgevingsdocument(regeling);
+                        this.planDecorator.decoratePlan(regeling, true);
+                      });
+                      plannen = plannen.concat(regelingen);
+                      this.setPlanalysis(plannen);
+
+                      this.numLoadingR--;
+                    },
+                    error => {
+                      this.numLoadingR--;
+                    }
+                  );
                 });
-                this.setPlanalysis(plannen.concat(regelingen, beleidRegelingen));
-                this.numLoadingR--;
-              },
-              error => {
-                this.numLoadingR--;
-              }
-            );
-
-            this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
-
+              });
+            }
+            if (!ontwerpLocaties) {
+              this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
+            } else {
+              //this.imowModel.setMarkerOntwerpLocatieIds(locatieIdentificaties);
+            }
             this.numLoadingR--;
           },
           error => {
-            this.numLoadingR -= 3;
+            this.numLoadingR--;
           }
         );
       });
@@ -148,19 +185,19 @@ export class PlanModelService {
     this.setPlanInPlanalysis();
   }
 
-  loadPlan(idn, dossierSet, zoomToPlan, local, postAction = null) {
-    if ((this.plan != null) && (idn == this.plan.identificatie)) {
+  loadPlan(identificatie, dossierSet, zoomToPlan, local, postAction = null) {
+    if ((this.plan != null) && ((identificatie == this.plan.identificatie) || (identificatie == this.plan.technischId))) {
       return;
     }
 
     if (dossierSet == "CURRENT") {
       dossierSet = this.dossierSet;
     } else if (dossierSet == "PLANALYSIS") {
-      dossierSet = this.planalysis.dossierSets[idn];
+      dossierSet = this.planalysis.dossierSets[identificatie];
     }
 
-    if (idn.indexOf("NL.IMRO") == 0) {
-      const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + idn;
+    if (identificatie.indexOf("NL.IMRO") == 0) {
+      const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + identificatie;
       this.http.get(url).subscribe(response => {
         const plan: any = response;
 
@@ -193,13 +230,13 @@ export class PlanModelService {
           postAction();
         }
 
-        const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + idn + "/geometrie";
+        const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + identificatie + "/geometrie";
         this.http.get(url).subscribe(response => {
           plan.geometrie = (new WKTConverter()).wktToCoordPath(response["geometrie"]);
         });
       });
     } else {  // AKN.
-      const plan = this.omgevingsdocumentModel.omgevingsdocumenten.find(omgevingsdocument => omgevingsdocument.identificatie == idn);
+      const plan = this.omgevingsdocumentModel.regelingen.find(regeling => (regeling.identificatie == identificatie) || (regeling.technischId == identificatie));
       this.setPlan(plan, dossierSet);
       if (zoomToPlan) {
         this.imowModel.loadLocatieForPlanPostActions["zoomToPlan"] = () => { if (this.plan == plan) { this.zoomToPlan(); }};
@@ -209,20 +246,40 @@ export class PlanModelService {
         postAction();
       }
 
-      const underscoredDocumentId = idn.replace(/[^a-zA-Z0-9]/g, "_");
+      const underscoredDocumentId = identificatie.replace(/[^a-zA-Z0-9]/g, "_");
       const options = environment.dsoOptions;
-      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + "regelingen/" + underscoredDocumentId + "/documentcomponenten";
+      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + (plan.technischId? "ontwerp": "") + "regelingen/" + underscoredDocumentId + "/" + (plan.technischId? "ontwerp": "") + "documentcomponenten";
       this.http.get(url, options).subscribe(response => {
         let i = 0;
         const components = [];
         const doc = document.implementation.createHTMLDocument();
-        const processComponent = component => {
+        const processComponent = (component, parentComponent) => {
           if (component.identificatie != null) {
             components.push(component);
           }
+          if ((parentComponent != null) && (parentComponent._links != null)) {
+            if (parentComponent._links.inheritedDivisies != null) {
+              component._links.inheritedDivisies = parentComponent._links.inheritedDivisies.concat();
+            }
+            if (parentComponent._links.divisie != null) {
+              component._links.inheritedDivisies = component._links.inheritedDivisies || [];
+              component._links.inheritedDivisies.push(parentComponent._links.divisie);
+            }
+            if (parentComponent._links.inheritedOntwerpDivisies != null) {
+              component._links.inheritedOntwerpDivisies = parentComponent._links.inheritedOntwerpDivisies.concat();
+            }
+            if (parentComponent._links.ontwerpdivisie != null) {
+              component._links.inheritedOntwerpDivisies = component._links.inheritedOntwerpDivisies || [];
+              component._links.inheritedOntwerpDivisies.push(parentComponent._links.ontwerpdivisie);
+            }
+          }
           for (const key in component) {
             if (key == "type") {
-              if ((component[key] == "ALGEMENE_TOELICHTING") || (component[key] == "ARTIKELGEWIJZE_TOELICHTING")) {
+              if (component[key] == "LID") {
+                component.artikelNummer = parentComponent.nummer;
+              } else if ((component[key] == "DIVISIETEKST") && (component.nummer == null)) {
+                component.divisieNummer = parentComponent.nummer;
+              } else if ((component[key] == "ALGEMENE_TOELICHTING") || (component[key] == "ARTIKELGEWIJZE_TOELICHTING")) {
                 component.opschrift = component[key].replace("_", " ");
                 component[key] = "DIVISIE";
               }
@@ -242,7 +299,7 @@ export class PlanModelService {
                 component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
               }
             } else if (key == "inhoud") {
-              if (component[key].includes("od-Li") || component[key].includes("class=\"noot\"")) {
+              if (component[key].includes("od-Li") || component[key].includes("class=\"noot\"") || component[key].includes("od-IntIoRef")) {
                 const el = doc.createElement("div");
                 el.innerHTML = component[key];
                 const liElements = el.getElementsByClassName("od-Li");
@@ -270,14 +327,22 @@ export class PlanModelService {
                   nootElement.nextSibling.remove();
                   nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
                 }
+                const intIoRefElements = el.getElementsByClassName("od-IntIoRef");
+                for (let j = 0; j < intIoRefElements.length; j++) {
+                  const intIoRefElement = intIoRefElements.item(j);
+                  const content = intIoRefElement.innerHTML;
+                  intIoRefElement.innerHTML = "<a href=\"javascript:void(0)\" onclick=\"window.stopPlanViewerComponent.displayEmit('annotationsVisible', '" + content + "')\" title=\"Geografische begrenzing tonen\">" + content + "</a>";
+                }
                 component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
               }
-            } else if ((component[key] != null) && (typeof component[key] == "object")) {
-              processComponent(component[key]);
+            } else if ((key == "_embedded") && (component[key].documentComponenten != null)) {
+              component[key].documentComponenten.forEach(childComponent => processComponent(childComponent, component));
+            } else if ((key == "_embedded") && (component[key].ontwerpDocumentComponenten != null)) {
+              component[key].ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent, component));
             }
           }
         }
-        processComponent(response);
+        processComponent(response, null);
         this.imowModel.components = components;
 
         plan.structuur = response;
@@ -331,7 +396,7 @@ export class PlanModelService {
     }
     this.setPlanInPlanalysis();
     this.setDocuments();
-    this.setImowPlanIdentificatie();
+    this.setImowPlan();
 //    this.setOutOfBounds();
   }
 
@@ -403,16 +468,16 @@ export class PlanModelService {
     }
   }
 
-  setImowPlanIdentificatie() {
+  zoomToPlan() {
+    this.nineyDefault.defaultEnvelopeModel.setEnvelope(this.plan.viewEnvelope);
+  }
+
+  private setImowPlan() {
     if ((this.plan == null) || (this.plan.versieImro != null)) {
-      this.imowModel.setPlanIdentificatie(null);
+      this.imowModel.setPlan(null);
       return;
     }
 
-    this.imowModel.setPlanIdentificatie(this.plan.identificatie);
-  }
-
-  zoomToPlan() {
-    this.nineyDefault.defaultEnvelopeModel.setEnvelope(this.plan.viewEnvelope);
+    this.imowModel.setPlan(this.plan);
   }
 }

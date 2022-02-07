@@ -1,6 +1,6 @@
 <ul class="dso-nav dso-nav-sub">
   <li *ngFor="let tab1 of tabs" (click)="setTab(tab1, false)" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab1 == tab}">
-    <a href="javascript:void(0)">{{tab1.label}}</a>
+    <a href="javascript:void(0)">{{tab1.label()}}</a>
   </li>
 </ul>
 <div *ngIf="tab.id >= 1" class="tekstenbar">
@@ -19,8 +19,8 @@
         <span class="fa fa-eye-slash"></span>
       </button>
     </div>
-    <div *ngIf="tab.id == 1" class="box-sm">
-      <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 1">
+    <div *ngIf="(tab.id == 1) && isStructured()" class="box-sm">
+      <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 1">
         <span>H</span>
       </button>
       <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 9px" [class.selected]="display.tocLevel == 2">
@@ -29,11 +29,28 @@
       <button (click)="display.emit('tocLevel', 3)" title="Tot op paragraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 11px" [class.selected]="display.tocLevel == 3">
         <span>§</span>
       </button>
-      <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 4">
+      <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 4">
         <span>§²</span>
       </button>
-      <button (click)="display.emit('tocLevel', 5)" title="Tot op sub-subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" [class.selected]="display.tocLevel == 5">
+      <button (click)="display.emit('tocLevel', 5)" title="Tot op sub-subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 5">
         <span>§³</span>
+      </button>
+    </div>
+    <div *ngIf="(tab.id == 1) && !isStructured()" class="box-sm">
+      <button (click)="display.emit('tocLevel', 1)" title="Alleen het hoogste niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 1">
+        <span>=¹</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 2)" title="Tot op het tweede niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 2">
+        <span>≡²</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 3)" title="Tot op het derde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 3">
+        <span>≡³</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 4)" title="Tot op het vierde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 4">
+        <span>≣⁴</span>
+      </button>
+      <button (click)="display.emit('tocLevel', 999)" title="Alle niveaus tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 3.3px" [class.selected]="display.tocLevel == 999">
+        <span>≣ˣ</span>
       </button>
     </div>
     <div *ngIf="tab.id > 1" class="box-sm">
@@ -56,7 +73,7 @@
 </div>
 <div #tabContent class="tab-content">
   <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[2], true)"></dso-markanvas>
-  <dso-plan-accordion *ngIf="tab.id > 0" [item]="tab.documentComponenten" [level]="1" [toc]="tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+  <dso-plan-accordion *ngIf="tab.id > 0" [component]="tab.documentComponenten" [structured]="isStructured()" [level]="1" [toc]="tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
 </div>
 <div *ngIf="(tab.id == 2) && display.annotationsVisible" class="anno">
   <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>

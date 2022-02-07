@@ -121,14 +121,14 @@ export class PlanDecoratorService {
       ) + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
         (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? 1: 0
       );
-    plan.planStatus = (plan.procedurestatus == "ontwerp")? "ontwerp": (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig";
+    plan.planStatus = (plan.procedurestatus == "ontwerp")? "ontwerp": (plan.datum <= (new Date()).toISOString().split("T")[0])? "vastgesteld": "toekomstig";
     plan.dossierId = plan.identificatie;
-    plan.dossierStatus = plan.planStatus;
+    plan.dossierStatus = (plan.procedurestatus == "ontwerp")? "in voorbereiding": (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig";
     plan.sourcetable = "dso";
     plan.vormvrijType = false;
     plan.kaarten = [];
 
-    plan.locatieIdentificatie = plan._links.heeftRegelingsgebied.href.match(/\/([^\/]+)$/)[1];
+    plan.locatieIdentificatie = (plan._links.heeftRegelingsgebied || plan._links.heeftOntwerpRegelingsgebied).href.match(/\/([^\/]+)$/)[1];
   }
 
   decoratePlan(plan, includeStatus) {

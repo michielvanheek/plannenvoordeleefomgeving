@@ -9,9 +9,11 @@
 </ul>
 <div *ngIf="!locaties.length && !locatie && !markerModel.xy" class="alert alert-info">
   Vul een adres in, of wijs een plek aan op de kaart.
+  <span *ngIf="!measureModel.geometry">Dat kan door een punt te zetten of door <a href="javascript:void(0)" (click)="measureModel.toggle()" class="alert-link">een gebied te tekenen</a>.</span>
+  <span *ngIf="measureModel.geometry">Dat kan door <a href="javascript:void(0)" (click)="measureModel.toggle()" class="alert-link">een punt te zetten</a> of door een gebied te tekenen.</span>
 </div>
 <div *ngIf="!locaties.length && (locatie || markerModel.xy)" class="alert" [ngClass]="markerModel.xy? 'alert-info' : 'alert-warning'">
-  <span *ngIf="!locatie && !markerModel.name">De aangewezen plek is gemarkeerd met <a href="javascript:void(0)" (click)="markerModel.zoomToMarker()" title="Naar de aangewezen plek zoomen" class="alert-link fa fa-map-marker"></a></span>
+  <span *ngIf="!locatie && !markerModel.name">De aangewezen plek is gemarkeerd met een <a href="javascript:void(0)" (click)="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="alert-link">paarse {{markerModel.polygon? "contour": "stip"}}</a>.</span>
   <span *ngIf="locatie || markerModel.name">De gekozen plek is <a href="javascript:void(0)" *ngIf="locatie" (click)="zoomToLocatie(locatie)" class="alert-link">{{locatie.weergavenaam}}</a><a href="javascript:void(0)" *ngIf="markerModel.name" (click)="markerModel.zoomToMarker()" class="alert-link">{{markerModel.name}}</a><span *ngIf="!markerModel.xy">, maar dat is niet specifiek genoeg om een plan te vinden. Vul een adres in met huisnummer, of wijs een plek aan op de kaart</span>.</span>
   <span *ngIf="markerModel.xy"><br/><a href="javascript:void(0)" (click)="stateModel.enterSelectPlan()" class="alert-link">Kies een plan</a> op deze plek. Of vul een <span *ngIf="locatie || markerModel.name">ander</span> adres in, of wijs een andere plek aan op de kaart.</span>
 </div>

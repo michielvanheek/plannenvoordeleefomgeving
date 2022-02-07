@@ -1,4 +1,4 @@
-<n-map [nTap]="measureModel.geometry? measureModel.addXY.bind(measureModel): mark.bind(this)" [nMousemove]="measureModel.geometry? measureModel.setXY.bind(measureModel): null" (dblclick)="measureModel.reset()">
+<n-map [nTap]="pointOrLineString? measureModel.addXY.bind(measureModel): mark.bind(this)" [nMousemove]="pointOrLineString? measureModel.setXY.bind(measureModel): null" (dblclick)="pointOrLineString? measureModel.close(): null">
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
   <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
@@ -33,8 +33,16 @@
     <canvassymbolizer class="blackhighlight"></canvassymbolizer>
     <canvassymbolizer [ngStyle]="highline" style="stroke: #f40"></canvassymbolizer>
   </vectortileslayer>
+  <ng-template [ngIf]="markerModel.polygon" [ngIfElse]="noMarkerPolygon">
+    <geometrylayer [geometry]="markerModel.polygon" [ngStyle]="underline" style="stroke: #fff; stroke-linejoin: round"></geometrylayer>
+    <geometrylayer [geometry]="markerModel.polygon" [ngStyle]="highline" style="stroke: #8b4a6a"></geometrylayer>
+    <geometrylayer [geometry]="markerModel.polygon" [ngStyle]="bumps" style="stroke: #8b4a6a"></geometrylayer>
+  </ng-template>
+  <ng-template #noMarkerPolygon>
+    <geometrylayer [geometry]="markerModel.xy" [ngStyle]="underline" style="stroke: #fff"></geometrylayer>
+    <geometrylayer [geometry]="markerModel.xy" style="fill: #8b4a6a; stroke: #8b4a6a"></geometrylayer>
+  </ng-template>
   <geometrylayer [geometry]="measureModel.geometry" [deepwatch]="true" class="measure"></geometrylayer>
-  <geometrylayer [geometry]="markerModel.xy"></geometrylayer>
 </n-map>
 <div *ngIf="loader.numLoading == 1" class="loader">
   <span class="fa fa-spinner"></span> nog 1 plaatje aan het laden...
@@ -53,7 +61,7 @@
     <button (click)="zoomOut()" title="Uitzoomen" class="btn btn-default btn-sm">
       <span class="fa fa-minus"></span>
     </button>
-    <button (click)="measureModel.toggle()" title="Afstand en/of oppervlakte meten" class="btn btn-default btn-sm" [class.selected]="measureModel.geometry">
+    <button (click)="measureModel.toggle()" [title]="measureButtonTitle" class="btn btn-default btn-sm" [class.selected]="measureModel.geometry">
       <span class="fa fa-ruler-combined"></span>
     </button>
     <button (click)="legendPanelVisible = !legendPanelVisible" [title]="legendButtonTitle" class="btn btn-default btn-sm" [class.selected]="legendPanelVisible">
@@ -68,12 +76,31 @@
     </button>
   </div>
   <div *ngIf="measureModel.geometry" class="box-md">
-    <h6>RD-coördinaten</h6>
-    {{measureModel.viewCoords}}
-    <h6>Afstand</h6>
-    {{measureModel.viewLength}}
-    <h6>Oppervlakte</h6>
-    {{measureModel.viewArea}}
+    <div class="inner">
+      <button (click)="measureModel.toggle()" [title]="measureButtonTitle" class="btn btn-link close">
+        <svg class="di">
+          <use href="../assets/dso-icons.svg#times"></use>
+        </svg>
+      </button>
+      <div class="measure">
+        <h6>RD-coördinaten</h6>
+        {{measureModel.viewCoords}}
+      </div>
+      <div class="measure">
+        <h6>Afstand</h6>
+        {{measureModel.viewLength}}
+      </div>
+      <div class="measure">
+        <h6>Oppervlakte</h6>
+        {{measureModel.viewArea}}
+      </div>
+      <div *ngIf="lineStringOrPolygon">
+        <a href="javascript:void(0)" (click)="measureModel.reset(); measureModel.toggle()"><span class="fa fa-angle-right mr-2"></span>opnieuw tekenen</a>
+      </div>
+      <div *ngIf="realPolygon">
+        <a href="javascript:void(0)" (click)="markerModel.setPolygon(measureModel.geometry); measureModel.reset()"><span class="fa fa-angle-right mr-2"></span>als plek markeren</a>
+      </div>
+    </div>
   </div>
   <dso-legend-panel *ngIf="legendPanelVisible" (close)="legendPanelVisible = false"></dso-legend-panel>
 </div>
