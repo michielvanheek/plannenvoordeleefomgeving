@@ -531,7 +531,7 @@ export class ImowModelService {
     }
     if (gebiedsaanwijzing.viewName.toLowerCase() == gebiedsaanwijzing.groep.waarde) {
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde;
-    } else {
+    } else if (gebiedsaanwijzing.groep.waarde != "overig") {
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde + " - " + gebiedsaanwijzing.viewName;
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.viewName.replace(/^(\w+) - \1[^\w]{2,}/, "$1 - ");
     }

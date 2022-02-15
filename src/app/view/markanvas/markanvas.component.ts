@@ -10,6 +10,7 @@ import { ImowModelService } from "src/app/model/imow-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
+import { StateModelService } from "src/app/model/state-model.service";
 import { SVGConverter } from "src/app/shared/svg-converter";
 import { environment } from "../../../environments/environment";
 
@@ -33,6 +34,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private tileSize = 256;
   private canvasSize = 400;
 
+  legal = false;
   specify = false;
   @Output() close: EventEmitter<any> = new EventEmitter(false);
   @ViewChild("canvas", {static: true}) private canvasRef: ElementRef;
@@ -48,13 +50,16 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     private nineyDefault: NineyDefaultService,
     public appService: AppService,
     public highlightModel: HighlightModelService,
-    private markerModel: MarkerModelService,
+    public stateModel: StateModelService,
+    public markerModel: MarkerModelService,
     private omgevingsdocumentModel: OmgevingsdocumentModelService,
     public imowModel: ImowModelService,
     public planModel: PlanModelService
   ) {
     this.layer.baseURL = environment.locatiesUrl;
     this.layer.urlExtension = "$Z/$X/$Y.pbf";
+
+    this.legal = environment.legalAnnotations;
   }
 
   ngOnInit(): void {
@@ -86,6 +91,12 @@ export class MarkanvasComponent implements OnInit, DoCheck {
       }
       this.setCollections();
     }
+  }
+
+  setLegal(legal) {
+    this.legal = legal;
+
+    this.setCollections();
   }
 
   openInfo(info) {
@@ -122,10 +133,14 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
       this.imowModel.markerLocatieIdentificaties.forEach(identificatie => {
         const locatie = this.imowModel.locaties[identificatie];
-        this.specificLocaties[locatie.identificatie] = locatie;
+        if (locatie == null) {
+          return;
+        }
+
+        this.specificLocaties[locatie.technischId || locatie.identificatie] = locatie;
         if (locatie.groepen != null) {
           for (const groep of locatie.groepen) {
-            this.specificLocaties[groep.identificatie] = groep;
+            this.specificLocaties[groep.technischId || groep.identificatie] = groep;
           }
         }
       });
@@ -244,45 +259,77 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     this.infos = [[], [], []];  // Specific, non-specific, in other plans.
 
     const locaties = (Object.values(Object.assign({}, this.specificLocaties, this.nonSpecificLocaties)) as any[]);
-    const gebiedsaanwijzingen = locaties.reduce((gebiedsaanwijzingen, locatie) => gebiedsaanwijzingen.concat(locatie.gebiedsaanwijzingen || []), []);
-    const activiteitlocatieaanduidingen = locaties.reduce((activiteitlocatieaanduidingen, locatie) => activiteitlocatieaanduidingen.concat(locatie.activiteitlocatieaanduidingen || []), []);
-    const normwaarden = locaties.reduce((normwaarden, locatie) => normwaarden.concat(locatie.normwaarden || []), []);
 
-    gebiedsaanwijzingen.forEach(gebiedsaanwijzing => {
-      const inPlan = gebiedsaanwijzing.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-      const specific = gebiedsaanwijzing.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
-      if (inPlan && specific) {
-        this.infos[0].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
-      } else if (inPlan && !specific) {
-        this.infos[1].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
-      } else {  // !inPlan
-        this.infos[2].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
-      }
-    });
+    if (!this.legal) {
+      const gebiedsaanwijzingen = locaties.reduce((gebiedsaanwijzingen, locatie) => gebiedsaanwijzingen.concat(locatie.gebiedsaanwijzingen || []), []);
+      const activiteitlocatieaanduidingen = locaties.reduce((activiteitlocatieaanduidingen, locatie) => activiteitlocatieaanduidingen.concat(locatie.activiteitlocatieaanduidingen || []), []);
+      const normwaarden = locaties.reduce((normwaarden, locatie) => normwaarden.concat(locatie.normwaarden || []), []);
 
-    activiteitlocatieaanduidingen.forEach(activiteitlocatieaanduiding => {
-      const inPlan = true;
-      const specific = activiteitlocatieaanduiding.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
-      if (inPlan && specific) {
-        this.infos[0].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
-      } else if (inPlan && !specific) {
-        this.infos[1].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
-      } else {  // !inPlan
-        this.infos[2].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
-      }
-    });
+      gebiedsaanwijzingen.forEach(gebiedsaanwijzing => {
+        const inPlan = gebiedsaanwijzing.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
+        const specific = gebiedsaanwijzing.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        if (inPlan) {
+          this.infos[specific? 0: 1].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+        } else {  // !inPlan
+          this.infos[2].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+        }
+      });
 
-    normwaarden.forEach(normwaarde => {
-      const inPlan = normwaarde.omgevingsnorm.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-      const specific = normwaarde.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
-      if (inPlan && specific) {
-        this.infos[0].push(this.normwaardeToInfo(normwaarde));
-      } else if (inPlan && !specific) {
-        this.infos[1].push(this.normwaardeToInfo(normwaarde));
-      } else {  // !inPlan
-        this.infos[2].push(this.normwaardeToInfo(normwaarde));
-      }
-    });
+      activiteitlocatieaanduidingen.forEach(activiteitlocatieaanduiding => {
+        const inPlan = true;
+        const specific = activiteitlocatieaanduiding.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        if (inPlan) {
+          const twinfo = this.infos[specific? 0: 1].find(info =>
+            info.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") == activiteitlocatieaanduiding.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") &&
+            (info.teksten || []).map(tekst => tekst.technischId || tekst.identificatie).sort().join("|") == (activiteitlocatieaanduiding.teksten || []).map(tekst => tekst.technischId || tekst.identificatie).sort().join("|")
+          );
+          if (twinfo != null) {
+            this.addActiviteitToInfo(twinfo, activiteitlocatieaanduiding);
+          } else {
+            this.infos[specific? 0: 1].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
+          }
+        } else {  // !inPlan
+          this.infos[2].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
+        }
+      });
+
+      normwaarden.forEach(normwaarde => {
+        const inPlan = normwaarde.omgevingsnorm.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
+        const specific = normwaarde.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        if (inPlan) {
+          this.infos[specific? 0: 1].push(this.normwaardeToInfo(normwaarde));
+        } else {  // !inPlan
+          this.infos[2].push(this.normwaardeToInfo(normwaarde));
+        }
+      });
+    } else {
+      locaties.filter(locatie => {
+        const teksten = {};
+        const otherPlansTeksten = {};
+        let specific = false;
+
+        (locatie.gebiedsaanwijzingen || []).concat(locatie.activiteitlocatieaanduidingen || []).concat(locatie.normwaarden || []).forEach(annotation => {
+          (annotation.teksten || annotation.omgevingsnorm?.teksten || []).forEach(tekst => {
+            if ((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
+              teksten[tekst.technischId || tekst.identificatie] = tekst;
+            } else {
+              otherPlansTeksten[tekst.technischId || tekst.identificatie] = tekst;
+            }
+          });
+          specific = specific || annotation.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        });
+
+        if (Object.values(teksten).length > 0) {
+          this.infos[specific? 0: 1].push(this.locatieToInfo(locatie, Object.values(teksten)));
+        } else if (Object.values(otherPlansTeksten).length > 0) {
+          this.infos[2].push(this.locatieToInfo(locatie, Object.values(otherPlansTeksten)));
+        }
+      });
+
+      this.infos.forEach(infos =>
+        infos.sort((a, b) => (!a.locaties[0].noemer || (a.locaties[0].noemer > b.locaties[0].noemer))? 1: (a.locaties[0].noemer && (a.locaties[0].noemer < b.locaties[0].noemer))? -1: 0)
+      );
+    }
 
     this.orphanLocaties = locaties.filter(locatie => 
       locatie.gebiedsaanwijzingen && !locatie.gebiedsaanwijzingen.length &&
@@ -298,6 +345,17 @@ export class MarkanvasComponent implements OnInit, DoCheck {
         return sublocatie.normwaarden && !sublocatie.normwaarden.length
       }))
     );
+  }
+
+  private locatieToInfo(locatie, teksten) {
+    return {
+      image: "assets/legend/relatie.png",
+      text: "<strong>" + (locatie.noemer? (locatie.noemer[0].toUpperCase() + locatie.noemer.slice(1)): "Naamloze begrenzing") + "</strong><br/>" + locatie.locatieType.toLowerCase(),
+      label: locatie.noemer || "naamloze begrenzing",
+      locaties: [locatie],
+      teksten: teksten,
+      annotation: null
+    };
   }
 
   private gebiedsaanwijzingToInfo(gebiedsaanwijzing) {
@@ -331,5 +389,9 @@ export class MarkanvasComponent implements OnInit, DoCheck {
       teksten: normwaarde.omgevingsnorm.teksten,
       annotation: normwaarde
     };
+  }
+
+  private addActiviteitToInfo(gebiedsaanwijzingInfo, activiteitlocatieaanduiding) {
+    gebiedsaanwijzingInfo.text += "<br/>" + activiteitlocatieaanduiding.betreftEenActiviteit.naam;
   }
 }

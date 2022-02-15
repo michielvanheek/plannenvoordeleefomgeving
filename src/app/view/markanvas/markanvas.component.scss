@@ -1,6 +1,14 @@
 :host {
   display: block;
 }
+.alert {
+  margin-top: 1rem;
+}
+.di.di-sm {
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+}
 .empty {
   height: 76px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);

@@ -2,16 +2,22 @@
   <h1>Plannen voor de leefomgeving</h1>
   <p>
     Op deze website vindt u de plannen, visies en regelingen van alle overheden in Nederland. Zo kunt u zien welke regels
-    ergens gelden voor het bouwen van een huis of bedrijfspand, of het plaatsen van windmolens.
+    ergens gelden. Bijvoorbeeld voor het bouwen van een huis, of voor het plaatsen van windmolens.
   </p>
+  <div class="mb-3">
+    <a routerLink="/viewer" title="De plannenviewer openen" class="btn btn-primary">Naar de plannen <span class="ml-2 fa fa-caret-right"></span></a>
+  </div>
   <div>
-    <a routerLink="/viewer" class="btn btn-primary">Naar de plannen</a>
+    <label [title]="'De plannenviewer instellen op:\n - juridische weergave (aan) of\n - volledige serviceweergave (uit)\nvan plekinfo en annotaties'">
+      <input type="checkbox" [(ngModel)]="environment.legalAnnotations"/><span class="checkmark"></span>
+      Juridische weergave
+    </label>
   </div>
   <div class="text-muted">
     <small>
       De informatie op deze website is niet volledig en heeft géén juridische status. Raadpleeg
-      <a href="https://www.ruimtelijkeplannen.nl/">www.ruimtelijkeplannen.nl</a> voor de juiste informatie. Deze website en
-      de onderliggende database zijn nog in ontwikkeling, en maken deel uit van het digitaal stelsel voor de Omgevingswet. 
+      <a href="https://www.ruimtelijkeplannen.nl/">www.ruimtelijkeplannen.nl</a> voor de juiste informatie. Deze website is
+      nog in ontwikkeling, als onderdeel van het digitaal stelsel voor de Omgevingswet. 
     </small>
   </div>
 </div>

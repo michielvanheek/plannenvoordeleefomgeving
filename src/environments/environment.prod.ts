@@ -35,5 +35,6 @@ export const environment = {
   },
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-acc/wmts/v1_0/locaties/EPSG:28992/",
   locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-pre/wmts/v1_0/locaties/EPSG:28992/",
+  legalAnnotations: true,
   hybridAnnotations: false
 };

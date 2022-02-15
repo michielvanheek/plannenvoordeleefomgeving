@@ -338,6 +338,17 @@ svg:not(:root) {
   overflow: auto;
 }
 
+.btn-container {
+  position: sticky;
+  top: 1px;
+  z-index: 4;
+  .btn-link {
+    position: absolute;
+    right: 0;
+    color: #8b4a6a;
+  }
+}
+
 .list-group-item {
   color: inherit;
   cursor: pointer;

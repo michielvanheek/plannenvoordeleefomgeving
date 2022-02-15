@@ -4,13 +4,3 @@
   margin-top: 8px;
   flex-direction: column;
 }
-.btn-container {
-  position: sticky;
-  top: 1px;
-  z-index: 4;
-  .btn-link {
-    position: absolute;
-    right: 0;
-    color: #8b4a6a;
-  }
-}

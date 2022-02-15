@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from "@angular/core";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "dso-plan-accordion",
@@ -16,7 +17,8 @@ export class PlanAccordionComponent {
     AFDELING: 2,
     PARAGRAAF: 3,
     SUBPARAGRAAF: 4,
-    SUBSUBPARAGRAAF: 5
+    SUBSUBPARAGRAAF: 4,
+    ARTIKEL: 5
   };
   private preselectedComponent = null;
 
@@ -90,7 +92,7 @@ export class PlanAccordionComponent {
   }
 
   setAnnotationsVisible() {
-    setTimeout(() => this.display.emit("annotationsVisible", true));
+    setTimeout(() => this.display.emit("annotationsVisible", !environment.legalAnnotations? true: "legal"));
   }
 }
 

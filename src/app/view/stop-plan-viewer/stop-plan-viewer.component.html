@@ -23,8 +23,8 @@
       <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 1">
         <span>H</span>
       </button>
-      <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 9px" [class.selected]="display.tocLevel == 2">
-        <span>A</span>
+      <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 6.5px" [class.selected]="display.tocLevel == 2">
+        <span>Aᶠ</span>
       </button>
       <button (click)="display.emit('tocLevel', 3)" title="Tot op paragraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 11px" [class.selected]="display.tocLevel == 3">
         <span>§</span>
@@ -32,8 +32,8 @@
       <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 4">
         <span>§²</span>
       </button>
-      <button (click)="display.emit('tocLevel', 5)" title="Tot op sub-subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 5">
-        <span>§³</span>
+      <button (click)="display.emit('tocLevel', 5)" title="Tot op artikel-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 5">
+        <span>Aʳ</span>
       </button>
     </div>
     <div *ngIf="(tab.id == 1) && !isStructured()" class="box-sm">

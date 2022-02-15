@@ -160,7 +160,7 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     this.gebiedsaanwijzingen = Object.values(this.hash.gebiedsaanwijzingen);
     this.activiteitlocatieaanduidingen = Object.values(this.hash.activiteitlocatieaanduidingen);
     this.omgevingsnormen = Object.values(this.hash.omgevingsnormen);
-    this.hoofdlijnen = Object.values(this.hash.hoofdlijnen).map((soort: any) => {return {soort: soort.soort, hoofdlijnen: Object.values(soort.hoofdlijnen)}});
+    this.hoofdlijnen = Object.values(this.hash.hoofdlijnen).map((soort: any) => {return {soort: soort.soort, hoofdlijnen: Object.values(soort.hoofdlijnen)}}).sort((a, b) => (a.soort > b.soort)? 1: (a.soort < b.soort)? -1: 0);
 
     if (this.legal) {
       this.setLegal();

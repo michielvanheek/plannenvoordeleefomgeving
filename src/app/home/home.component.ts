@@ -1,5 +1,6 @@
 import { Component } from "@angular/core";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "dso-home",
@@ -10,5 +11,9 @@ export class HomeComponent {
 
   constructor(private nineyDefault: NineyDefaultService) {
     this.nineyDefault.defaultFocusModel.centerScale = null;
+  }
+
+  get environment() {
+    return environment;
   }
 }

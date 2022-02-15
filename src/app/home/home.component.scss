@@ -15,14 +15,15 @@
   background-color: #fff;
 }
 .btn-primary {
-  margin: 0 0 16px;
   border-color: #39870c;
-  padding: 11px 15px;
-  font-weight: 500;
+  padding: 11px 25px;
   background-color: #39870c;
 }
+.btn-primary:focus, .btn-primary:hover {
+  background-color: #275937;
+}
 .text-muted {
-  max-width: 440px;
+  max-width: 460px;
 }
 
 @media screen and (max-width: 767px) {

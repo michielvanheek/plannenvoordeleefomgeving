@@ -44,7 +44,7 @@ export class AnnotationLayer {
       const locatie = annotation;
       this.setUniformCssFunction(
         this.getFilter(locatie),
-        this.imowValueModel.symboolcodes["vah400"]
+        Object.assign({}, this.imowValueModel.symboolcodes["vag500"], {"border-color": "#f40", "border-width": "2px", stroke: "#f40", "stroke-width": "3px"})
       );
     } else if (type == "G") {
       const locaties = annotation.locaties;
