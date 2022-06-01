@@ -17,7 +17,7 @@ export class PlanInfoComponent {
   }
 
   get statusText() {
-    return this.plan.viewStatus + " (" + (
+    return ((this.plan.viewStatus == "ontwerp")? ("<span class=\"redalert\">" + this.plan.viewStatus + "</span>"): this.plan.viewStatus) + " (" + (
       (this.plan.viewStatus == this.plan.planStatus)? "": this.plan.planStatus + " "
     ) + this.plan.viewDate + ")";
   }

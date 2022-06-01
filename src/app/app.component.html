@@ -13,7 +13,7 @@
     <as-split-area minSize="10" *ngIf="planModel.plan">
       <dso-plan-info></dso-plan-info>
       <dso-imro-plan-viewer *ngIf="planModel.plan.versieImro"></dso-imro-plan-viewer>
-      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [planType]="planModel.plan.typePlan" [structuur]="planModel.plan.structuur"></dso-stop-plan-viewer>
+      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [structured]="planModel.plan.structured" [documentComponenten]="planModel.plan.documentComponenten"></dso-stop-plan-viewer>
     </as-split-area>
   </as-split>
 </div>

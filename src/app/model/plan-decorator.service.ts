@@ -113,7 +113,7 @@ export class PlanDecoratorService {
     plan.tabFilter = "DSO";
     plan.typePlan = (plan.type.waarde == "AMvB")? "AMvB": (plan.type.waarde == "Aanwijzingsbesluit N2000")? "aanwijzingsbesluit Natura 2000": plan.type.waarde.toLowerCase();
     plan.naam = plan.citeerTitel || plan.officieleTitel || plan.opschrift;
-    plan.datum = (plan.procedurestatus == "ontwerp")? plan.procedureverloop.bekendOp: plan.inwerkingVanaf;
+    plan.datum = plan.geregistreerdMet? plan.geregistreerdMet.beginGeldigheid: plan.procedureverloop.bekendOp;
     plan.naamOverheid = plan.aangeleverdDoorEen.naam;
     plan.overheidsCode =
       (plan.aangeleverdDoorEen.bestuurslaag == "ministerie")? "0000": (
@@ -121,14 +121,15 @@ export class PlanDecoratorService {
       ) + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
         (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? 1: 0
       );
-    plan.planStatus = (plan.procedurestatus == "ontwerp")? "ontwerp": (plan.datum <= (new Date()).toISOString().split("T")[0])? "vastgesteld": "toekomstig";
+    plan.planStatus = plan.geregistreerdMet? (plan.datum <= (new Date()).toISOString().split("T")[0])? "geldend": "toekomstig": "ontwerp";
     plan.dossierId = plan.identificatie;
-    plan.dossierStatus = (plan.procedurestatus == "ontwerp")? "in voorbereiding": (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig";
+    plan.dossierStatus = plan.geregistreerdMet? (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig": "in voorbereiding";
     plan.sourcetable = "dso";
     plan.vormvrijType = false;
     plan.kaarten = [];
 
-    plan.locatieIdentificatie = (plan._links.heeftRegelingsgebied || plan._links.heeftOntwerpRegelingsgebied).href.match(/\/([^\/]+)$/)[1];
+    plan.structured = !["projectbesluit", "omgevingsvisie", "instructie", "programma"].includes(plan.typePlan);
+    plan.locatieIdentificatie = (plan._links.heeftRegelingsgebied || plan._links.heeftOntwerpRegelingsgebied).href.match(/locaties\/([^\?]+)/)[1];
   }
 
   decoratePlan(plan, includeStatus) {

@@ -1,5 +1,7 @@
 import { Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
+import { DisplayModelService } from "src/app/model/display-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
+import { PlanModelService } from "src/app/model/plan-model.service";
 
 @Component({
   selector: "dso-stop-plan-viewer",
@@ -7,74 +9,107 @@ import { ImowModelService } from "src/app/model/imow-model.service";
   styleUrls: ["./stop-plan-viewer.component.scss"]
 })
 export class StopPlanViewerComponent implements OnInit, OnChanges {
+  private tab = {status: "complete", components: null};
+  private timeoutId = null;
 
-  @Input() planType;
-  @Input() structuur;
+  @Input() structured;
+  @Input() documentComponenten;
   @ViewChild("tabContent", {static: true}) private tabContentRef: ElementRef;
 
-  tabs = [
-    { id: 0, label: () => "Plekinfo", type: null, scrollTop: 0 },
-    { id: 1, label: () => "Inhoud", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 2, label: () => (this.planType != "omgevingsvisie")? "Regels": "Beleid", type: "LICHAAM", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 3, label: () => "Toelichting", type: "TOELICHTING", subtypes: true, documentComponenten: null, scrollTop: 0 },
-    { id: 4, label: () => "Bijlagen", type: "BIJLAGE", subtypes: false, documentComponenten: null, scrollTop: 0 }
-  ];
-  tab = this.tabs[0];
   display = {
     tocLevel: 3,
-    allOpen: true,
+    allOpen: "doc",
     allVisible: false,
+    allDiffVisible: true,
     annotationsVisible: false,
     emit: (key, val) => {
       if (this.display[key] != val) {
-        this.display = Object.assign({}, this.display, {[key]: val});
+        if ((key == "tocLevel") && (val > 4) && this.allVisible) {
+          this.buildDisplay({[key]: val});
+        } else if ((key == "allOpen") && (val == "doc") && (this.display.allOpen != "diff") && this.allVisible) {
+          this.buildDisplay({[key]: val});
+        } else if ((key == "allVisible") && val && ((this.display.tocLevel > 4) || !(this.displayModel.tab.id == 1)) && ((this.display.allOpen == "doc") || (this.displayModel.tab.id == 1))) {
+          this.buildDisplay({[key]: val});
+        } else if (key == "allDiffVisible") {
+          this.buildDisplay({[key]: val});
+        } else {
+          this.display = Object.assign({}, this.display, {[key]: val});
+        }
+      }
+    },
+    unsetDiff: () => {
+      if (this.display.allOpen == "diff") {
+        this.display = Object.assign({}, this.display, {allOpen: "doc"});
       }
     },
     setTab: componentIdentificatie => {
-      this.setTab(this.tabs[2], componentIdentificatie);
+      this.setTab(this.displayModel.getTab(componentIdentificatie), componentIdentificatie);
     }
   };
+
+  get allVisible() {
+    return this.display.allVisible || (!this.imowModel.componentIdentificaties.specific && !this.imowModel.componentIdentificaties.filtered);
+  }
+
+  get tabStatusEmpty() {
+    return this.tab.status == "empty";
+  }
+
+  get tabStatusBuilding() {
+    return (this.tab.status == "buildingTab") || (this.tab.status == "buildingDisplay");
+  }
+
+  get tabStatusComplete() {
+    return this.tab.status == "complete";
+  }
+
+  get tabStatusAlmostComplete() {
+    return (this.tab.status == "buildingTabComplete") || (this.tab.status == "buildingDisplay");
+  }
+
+  get tabComponents() {
+    return this.tab.components;
+  }
 
   constructor(
     private zone: NgZone,
     private hostRef: ElementRef,
-    public imowModel: ImowModelService
+    public imowModel: ImowModelService,
+    public planModel: PlanModelService,
+    public displayModel: DisplayModelService
   ) {
     window["stopPlanViewerComponent"] = {displayEmit: (key, val) => setTimeout(() => this.zone.run(() => this.display.emit(key, val)))};
   }
 
   ngOnInit(): void {
-    this.initTabs();
+    this.initShader();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.structuur) {
-      this.initTabs();
+    if (changes.documentComponenten) {
+      this.display.unsetDiff();
     }
+  }
+
+  setTabComponents() {
+    const components = (this.displayModel.tab.id == 0)? null: ((this.displayModel.tab.id == 1) || (this.display.allOpen != "diff"))? this.displayModel.tab.documentComponenten: this.displayModel.tab.diffComponents;
+    if (this.tab.components != components) {
+      this.tab.components = components;
+      if (!components?._embedded?.documentComponenten.length && !components?.length) {
+        this.tab.status = "empty";
+      } else if ((((this.displayModel.tab.id == 1) && (this.display.tocLevel > 4)) || ((this.displayModel.tab.id > 1) && (this.display.allOpen == "doc"))) && this.allVisible) {
+        this.buildTab();
+      } else if ((this.displayModel.tab.id > 1) && (this.display.allOpen == "diff")) {
+        this.buildTab();
+      } else {
+        this.tab.status = "complete";
+      }
+    }
+    return true;
   }
 
   setTab(tab, scrollTo) {
-    if (this.tab != null) {
-      this.tab.scrollTop = this.tabContentRef.nativeElement.scrollTop;
-    }
-
-    this.tab = tab;
-
-    if (typeof scrollTo == "string") {
-      this.scrollToComponent(scrollTo);
-    } else if (scrollTo) {
-      this.scrollToSelected();
-    } else {
-      this.scrollToPrevious(tab);
-    }
-  }
-
-  isStructured() {
-    if (this.tab.documentComponenten._embedded.documentComponenten.length == 0) {
-      return false;
-    }
-
-    return !["DIVISIE", "DIVISIETEKST", "BIJLAGE"].includes(this.tab.documentComponenten._embedded.documentComponenten[0].type);
+    this.displayModel.setTab(tab, this.tabContentRef.nativeElement.scrollTop, scrollTo);
   }
 
   selectNextComponentIdentificatie(type) {
@@ -82,21 +117,35 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
     this.scrollToSelected();
   }
 
-  private initTabs() {
-    for (const tab of this.tabs) {
-      if (this.structuur == null) {
-        tab.documentComponenten = {_embedded: {documentComponenten: []}};
-      } else if (!tab.subtypes) {
-        tab.documentComponenten = {_embedded: {documentComponenten:
-          (this.structuur._embedded.documentComponenten || this.structuur._embedded.ontwerpDocumentComponenten).filter(d => d.type == tab.type)
-        }};
-      } else {
-        tab.documentComponenten = {_embedded: {documentComponenten:
-          (this.structuur._embedded.documentComponenten || this.structuur._embedded.ontwerpDocumentComponenten).filter(d => d.type == tab.type).reduce((dc, d) => dc.concat(d._embedded.documentComponenten || d._embedded.ontwerpDocumentComponenten), [])
-        }};
-      }
-      tab.scrollTop = 0;
+  private buildDisplay(display) {
+    if (this.timeoutId != null) {
+      clearTimeout(this.timeoutId);
     }
+    this.tab.status = "buildingDisplay";
+    this.timeoutId = setTimeout(() => {
+      this.display = Object.assign({}, this.display, display);
+
+      this.tab.status = "complete";
+    }, 350);
+  }
+
+  private buildTab() {
+    if (this.timeoutId != null) {
+      clearTimeout(this.timeoutId);
+    }
+    this.tab.status = "buildingTab";
+    this.timeoutId = setTimeout(() => {
+      this.tab.status = "buildingTabComplete";
+
+      const scrollTo = this.displayModel.tab.scrollTop;
+      if (typeof scrollTo == "number") {
+        this.scrollToPrevious();
+      } else if (scrollTo == "selected") {
+        this.scrollToSelected();
+      } else {
+        this.scrollToComponent(scrollTo);
+      }
+    }, 350);
   }
 
   private scrollToSelected() {
@@ -108,8 +157,8 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
   }
 
   private scrollToComponent(componentIdentificatie) {
-    setTimeout(() => {
-      if (this.tab.id != 2) {
+    this.timeoutId = setTimeout(() => {
+      if (this.displayModel.tab != this.displayModel.getTab(componentIdentificatie)) {
         return;
       }
       let element = document.getElementById(componentIdentificatie);
@@ -125,18 +174,35 @@ export class StopPlanViewerComponent implements OnInit, OnChanges {
 
       this.tabContentRef.nativeElement.scrollTo({
         left: 0,
-        top: offsetTop - 150,
+        top: offsetTop - this.tabContentRef.nativeElement.offsetTop - 12,
         behavior: "smooth",
       });
+
+      this.tab.status = "complete";
     });
   }
 
-  private scrollToPrevious(tab) {
-    setTimeout(() => {
+  private scrollToPrevious() {
+    this.timeoutId = setTimeout(() => {
       this.tabContentRef.nativeElement.scrollTo({
         left: 0,
-        top: tab.scrollTop
+        top: this.displayModel.tab.scrollTop
       });
+
+      this.tab.status = "complete";
+
+      this.resetShader();
     });
+  }
+
+  private initShader() {
+    this.tabContentRef.nativeElement.addEventListener("scroll", event => this.resetShader());
+  }
+
+  private resetShader() {
+    const shaders = this.tabContentRef.nativeElement.getElementsByClassName("shader");
+    if (shaders.length == 1) {
+      shaders[0].style.visibility = (this.tabContentRef.nativeElement.scrollTop < 6)? "hidden": "visible";
+    }
   }
 }

@@ -40,6 +40,7 @@
     <label (mouseover)="highlightModel.setHighlight(o.gebiedsaanwijzing, false)" (mouseout)="highlightModel.setHighlight(null, false)">
       <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.gebiedsaanwijzing, 'G')" [disabled]="isGebiedsaanwijzingDisabled(o.gebiedsaanwijzing)" [checked]="isChecked(o.gebiedsaanwijzing)"/><span class="checkmark"></span>
       {{!legal? o.gebiedsaanwijzing.viewName: (o.gebiedsaanwijzing.locaties[0].noemer || "naamloze begrenzing")}}
+      <span *ngIf="o.gebiedsaanwijzing.technischId" class="redalert">ontwerp</span>
       <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
     </label>
   </div>
@@ -48,6 +49,7 @@
     <label (mouseover)="highlightModel.setHighlight(o.activiteitlocatieaanduiding, false)" (mouseout)="highlightModel.setHighlight(null, false)">
       <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.activiteitlocatieaanduiding, 'A')" [disabled]="isActiviteitlocatieaanduidingDisabled(o.activiteitlocatieaanduiding)" [checked]="isChecked(o.activiteitlocatieaanduiding)"/><span class="checkmark"></span>
       {{!legal? o.activiteitlocatieaanduiding.viewName: (o.activiteitlocatieaanduiding.locaties[0].noemer || "naamloze begrenzing")}}
+      <span *ngIf="o.activiteitlocatieaanduiding.technischId" class="redalert">ontwerp</span>
       <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
     </label>
   </div>
@@ -56,6 +58,7 @@
     <label (mouseover)="highlightModel.setHighlight(o.omgevingsnorm, false)" (mouseout)="highlightModel.setHighlight(null, false)">
       <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.omgevingsnorm, 'N')" [disabled]="isOmgevingsnormDisabled(o.omgevingsnorm)" [checked]="isChecked(o.omgevingsnorm)"/><span class="checkmark"></span>
       {{o.omgevingsnorm.viewName}}
+      <span *ngIf="o.omgevingsnorm.technischId" class="redalert">ontwerp</span>
       <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
     </label>
   </div>

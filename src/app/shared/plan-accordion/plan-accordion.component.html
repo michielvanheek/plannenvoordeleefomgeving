@@ -1,16 +1,12 @@
-<ng-template ngFor let-element [ngForOf]="component._embedded.documentComponenten || component._embedded.ontwerpDocumentComponenten">
+<ng-template ngFor let-element [ngForOf]="component._embedded?.documentComponenten || component._embedded?.ontwerpDocumentComponenten || component">
+  <ng-template [ngIf]="element._embedded" [ngIfElse]="diff">
   <div *ngIf="isVisible(element)" [id]="element.identificatie" (mouseover)="preselect(element); $event.stopPropagation()" (mouseout)="preselect(null); $event.stopPropagation()" (click)="select(element); $event.stopPropagation()" [class]="{supermarker: !toc && hasChildren(element) && isSelected(element)}">
     <ng-template [ngIf]="hasNoOpschrift(element)" [ngIfElse]="mayHaveOpschrift">
-      <div *ngIf="!toc" class="marker-container" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)">
-        <div *ngIf="isPreOrSelected(element)" class="marker" [class.trans]="!isSelected(element)"></div>
-        <div *ngIf="element.nummer" class="nummer">{{element.nummer}}</div>
-        <div class="inhoud" [innerHTML]="element.inhoud"></div>
-        <ng-container *ngTemplateOutlet="label"></ng-container>
-      </div>
+      <ng-container *ngTemplateOutlet="content"></ng-container>
     </ng-template>
     <ng-template #mayHaveOpschrift>
-      <button (click)="open(element); isOpenable(element)? $event.stopPropagation(): null" class="btn btn-title" [class.btn-link]="toc" [class.filtered]="isFiltered(element)" [ngStyle]="!isOpenable(element)? {cursor: 'default'}: null">
-        <dso-document-element-title [element]="element" [level]="level" [toc]="toc" [display]="display" [inactive]="isNotSpecific(element)"></dso-document-element-title>
+      <button (click)="open(element); isOpenable(element)? $event.stopPropagation(): null" class="btn btn-title" [class.btn-link]="toc" [ngStyle]="!isOpenable(element)? {cursor: 'default'}: null">
+        <dso-document-element-title [element]="element" [level]="level" [toc]="toc" [display]="display" [inactive]="isNotSpecific(element)" [class.filtered]="isFiltered(element)"></dso-document-element-title>
         <ng-template [ngIf]="toc && !element.gereserveerd && !element.vervallen">
           <ng-container *ngTemplateOutlet="label"></ng-container>
         </ng-template>
@@ -18,17 +14,45 @@
       <ng-template [ngIf]="toc || element.isOpen || display.allOpen">
         <dso-plan-accordion *ngIf="hasChildren(element); else hasNoChildren" [component]="element" [structured]="structured" [level]="level + 1" [toc]="toc" [display]="display" [componentIdentificaties]="componentIdentificaties" style="display: block"></dso-plan-accordion>
         <ng-template #hasNoChildren>
-          <div *ngIf="!toc && element.inhoud" class="marker-container" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)">
-            <div *ngIf="isPreOrSelected(element)" class="marker" [class.trans]="!isSelected(element)"></div>
-            <div class="inhoud" [innerHTML]="element.inhoud"></div>
-            <ng-container *ngTemplateOutlet="label"></ng-container>
-          </div>
+          <ng-container *ngTemplateOutlet="content"></ng-container>
         </ng-template>
       </ng-template>
     </ng-template>
   </div>
+  </ng-template>
+  <ng-template #diff>
+    <div *ngIf="display.allDiffVisible || element.action || element.left.bevatOntwerpInformatie || element.right.bevatOntwerpInformatie" [id]="element.right? element.right.identificatie: 'noId'" class="diff" [ngClass]="element.action || ''">
+      <div class="side">
+        <dso-document-element-title *ngIf="element.left && !hasNoOpschrift(element.left)" [element]="element.left" [level]="1" [toc]="false" [display]="display" [inactive]="element.right? isNotSpecific(element.right): false" [leftRightHeader]="element.leftHeader"></dso-document-element-title>
+        <div *ngIf="element.left && element.left.inhoud" class="marker-container" [class.inactive]="element.right? isNotSpecific(element.right): false">
+          <div class="marker" [class.hidden]="true"></div>
+          <div *ngIf="hasNoOpschrift(element.left) && element.left.nummer" class="nummer" [innerHTML]="element.leftHeader || element.left.nummer"></div>
+          <div class="inhoud" [innerHTML]="element.leftText || element.left.inhoud"></div>
+        </div>
+      </div>
+      <div class="side">
+        <dso-document-element-title *ngIf="element.right && !hasNoOpschrift(element.right)" [element]="element.right" [level]="1" [toc]="false" [display]="display" [inactive]="isNotSpecific(element.right)" [leftRightHeader]="element.rightHeader" [class.filtered]="isFiltered(element.right)"></dso-document-element-title>
+        <div *ngIf="element.right && element.right.inhoud" (mouseover)="preselect(element.right); $event.stopPropagation()" (mouseout)="preselect(null); $event.stopPropagation()" (click)="select(element.right); $event.stopPropagation()" class="marker-container" [class.inactive]="isNotSpecific(element.right)" [class.highlight]="isFiltered(element.right)">
+          <div class="marker" [class.hidden]="!isPreOrSelected(element.right)" [class.trans]="!isSelected(element.right)"></div>
+          <div *ngIf="hasNoOpschrift(element.right) && element.right.nummer" class="nummer" [innerHTML]="element.rightHeader || element.right.nummer"></div>
+          <div class="inhoud" [innerHTML]="element.rightText || element.right.inhoud"></div>
+          <div *ngIf="element.right.bevatOntwerpInformatie" class="redalert"></div>
+          <ng-container *ngTemplateOutlet="label"></ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+  <ng-template #content>
+    <div *ngIf="!toc && element.inhoud" class="marker-container" [class.inactive]="isNotSpecific(element)" [class.highlight]="isFiltered(element)">
+      <div class="marker" [class.hidden]="!isPreOrSelected(element)" [class.trans]="!isSelected(element)"></div>
+      <div *ngIf="hasNoOpschrift(element) && element.nummer" class="nummer">{{element.nummer}}</div>
+      <div class="inhoud" [innerHTML]="element.inhoud"></div>
+      <div *ngIf="element.bevatOntwerpInformatie" class="redalert"></div>
+      <ng-container *ngTemplateOutlet="label"></ng-container>
+    </div>
+  </ng-template>
   <ng-template #label>
-    <button (click)="setAnnotationsVisible()" [title]="toc? 'Van alle onderliggende regels de annotaties tonen': 'Van deze regel de annotaties tonen'" class="btn btn-link" [class.trans]="!isPreOrSelected(element)">
+    <button (click)="setAnnotationsVisible()" [title]="toc? 'Van alle onderliggende regels de annotaties tonen': ('Van deze regel de annotaties tonen' + (element.bevatOntwerpInformatie? '; bevat ontwerpannotaties': ''))" class="btn btn-link" [class.trans]="!isPreOrSelected(element.right || element)">
       <svg class="di di-sm">
         <use href="../assets/dso-icons.svg#label"></use>
       </svg>

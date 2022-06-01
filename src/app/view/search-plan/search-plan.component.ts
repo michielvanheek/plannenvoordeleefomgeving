@@ -16,6 +16,7 @@ export class SearchPlanComponent {
   warning = null;
   idns = [];
   plannen = [];
+  showIdentificatie = false;
 
   constructor(
     private http: HttpClient,
@@ -53,23 +54,26 @@ export class SearchPlanComponent {
     } else {
       const match = this.s.match(/^(\/akn(\/(n(l(\/(a(c(t)?)?)?)?)?)?)?)(.*)/i);
       if (match != null) {  // Search by AKN.
-        this.plannen = [];
+        this.idns = [];
   
         this.s = match[1].toLowerCase() + match[9];
         if ((this.s.match(/^\/akn(\/(n(l(\/(a(c(t(\/.*)?)?)?)?)?)?)?)?$/) == null)) {
           this.warning = "WRONG_LEAD";
-          this.idns = [];
+          this.plannen = [];
           return;
         }
         if (this.s.length < 16) {
           this.warning = "TOO_SHORT_FOR_AKN";
-          this.idns = [];
+          this.plannen = [];
           return;
         }
 
-        this.warning = null;
-        this.idns = this.omgevingsdocumentModel.identificaties.filter(identificatie => !identificatie.toLowerCase().indexOf(this.s.toLowerCase())).sort();
-        if (this.idns.length == 0) {
+        this.plannen = this.omgevingsdocumentModel.regelingen.filter(regeling => !regeling.identificatie.toLowerCase().indexOf(this.s.toLowerCase()));
+        if (this.plannen.length > 0) {
+          this.warning = null;
+          this.plannen.sort((a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1);
+          this.showIdentificatie = true;
+        } else {
           this.warning = "NO_PLANS_FOUND_BY_IDN_AKN";
         }
       } else {  // Search by name.
@@ -130,14 +134,10 @@ export class SearchPlanComponent {
               return false;
             });
           });
-          this.plannen.sort((a, b) => {
-            if (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase()) {
-              return 1;
-            }
-            return -1;
-          });
           if (this.plannen.length > 0) {
             this.warning = null;
+            this.plannen.sort((a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1);
+            this.showIdentificatie = false;
           } else if (numPlannen[0] > 0) {
             this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
           }

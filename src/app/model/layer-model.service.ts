@@ -12,9 +12,9 @@ export class LayerModelService {
     null,                        // 2 WMTS: selected vormvrij-plan contents
     new Layer("bp_grenzen_all"), // 3 WMTS
     new Layer("SelectionLayer"), // 4 MF: selected bestemmingsplan or vormvrij-plan boundaries
-    new Layer("vlaklocaties"),   // 5 MVT: all omgevingsdocument contents & boundaries
+    new Layer(null),             // 5 MVT: all omgevingsdocument contents & boundaries
     new Layer("HighlightLayer"), // 6 MF: IMRO highlight
-    new Layer("vlaklocaties")    // 7 MVT: IMOW highlight
+    new Layer(null)              // 7 MVT: IMOW highlight
   ];
   planOpacity = 100;
   otherPlansOpacity = 60;
@@ -22,7 +22,7 @@ export class LayerModelService {
   backgroundLayer = null;
 
   constructor() {
-    this.layers[0].baseURL = "https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wms";
+    this.layers[0].baseURL = "https://geodata.nationaalgeoregister.nl/kadastralekaart/wms/v4_0";
     this.layers[3].baseURL = environment.geoWebCacheUrl;
     this.layers[3].visible = false;
     this.layers[5].baseURL = environment.locatiesUrl;

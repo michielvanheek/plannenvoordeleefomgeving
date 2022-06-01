@@ -6,48 +6,97 @@
   flex-grow: 1;
   margin-top: 8px;
 }
-.tekstenbar {
+.filter-toolbar {
   display: flex;
   align-items: flex-start;
   padding-top: 16px;
-}
-.filterbar {
-  .filter {
-    display: inline-block;
-    position: relative;
-    margin: 0 12px 12px 0;
-    border-radius: 4px;
-    padding: 4px 28px 4px 8px;  
-    background-color: #f9e11e;
-    a.hide {
-      position: absolute;
-      display: block;
-      right: 8px;
-      top: 4px;
-      color: inherit;    
+  .filterbar {
+    .filter {
+      display: inline-block;
+      position: relative;
+      margin: 0 12px 12px 0;
+      border-radius: 4px;
+      padding: 4px 28px 4px 8px;  
+      background-color: #f9e11e;
+      a.hide {
+        position: absolute;
+        display: block;
+        right: 8px;
+        top: 4px;
+        color: inherit;    
+      }
     }
   }
-}
-.toolbar {
-  display: flex;
-  flex-direction: row-reverse;
-  gap: 12px;
-  flex-grow: 1;
-  flex-shrink: 0;
-  padding-bottom: 12px;
-  .btn-letter {
-    span {
-      font-size: 18px;
-    }
-    &.selected {
+  .toolbar {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 12px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    padding-bottom: 12px;
+    .btn-letter {
       span {
-        color: #fff;
+        font-size: 18px;
+      }
+      &.selected {
+        span {
+          color: #fff;
+        }
       }
     }
   }
 }
+.diffbar {
+  display: flex;
+  margin: 0 -20px;
+  padding: 0 20px 0.75rem;
+  flex-shrink: 0;
+  overflow-y: scroll;
+  white-space: nowrap;
+  gap: 1rem;
+  .side {
+    width: 50%;
+    strong {
+      font-size: 18px;
+      color: #275937;
+    }
+  }
+  .scroll-cover {
+    position: absolute;
+    right: -25px;
+    width: 25px;
+    height: 63px;
+    background-color: #fff;
+  }
+}
 .tab-content {
   flex-grow: 1;
+  .alert {
+    margin-top: 1rem;
+  }
+  .builder {
+    position: sticky;
+    top: 0;
+    div {
+      position: absolute;
+      left: calc(50% - 91px);
+      top: 100px;
+      border: 1px solid lightgray;
+      border-radius: 24px;
+      padding: 12px 24px;
+      background-color: #fff;
+    }
+  }
+  .shader {
+    position: sticky;
+    visibility: hidden;
+    top: -6px;
+    height: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  }
+  .hidden {
+    visibility: hidden;
+  }
 }
 .anno {
   max-height: calc(100% - 220px);

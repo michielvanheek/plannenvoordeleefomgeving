@@ -3,6 +3,8 @@ import { DomSanitizer } from "@angular/platform-browser";
 import { HttpClient } from "@angular/common/http";
 import { Envelope, JsonConverter, Layer, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
+import { DiffBuilderService } from "./diff-builder.service";
+import { DisplayModelService } from "./display-model.service";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
 import { MarkerModelService } from "./marker-model.service";
@@ -20,10 +22,24 @@ import { environment } from "../../environments/environment"
 export class PlanModelService {
   private markerXY = null;
 
+  private titleSymbols = {
+    BOEK: "BOEK",
+    DEEL: "DEEL",
+    HOOFDSTUK: "HOOFDSTUK",
+    BIJLAGE: "BIJLAGE",
+    TITEL: "TITEL",
+    AFDELING: "AFDELING",
+    PARAGRAAF: "§",
+    SUBPARAGRAAF: "§",
+    SUBSUBPARAGRAAF: "§",
+    ARTIKEL: "ARTIKEL"
+  };
+
   numLoadingR = 0;
 
   planalysis = null;
   plan = null;
+  diffPlan = null;
   dossierSet = null;
   planInPlanalysis = false;
   kaart = null;
@@ -35,11 +51,13 @@ export class PlanModelService {
     private http: HttpClient,
     private nineyDefault: NineyDefaultService,
     private stateModel: StateModelService,
+    private displayModel: DisplayModelService,
     private parapluModel: ParapluModelService,
     private layerModel: LayerModelService,
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
     private planDecorator: PlanDecoratorService,
+    private diffBuilder: DiffBuilderService,
     private omgevingsdocumentModel: OmgevingsdocumentModelService,
     private imowModel: ImowModelService
   ) {
@@ -60,7 +78,6 @@ export class PlanModelService {
       this.stateModel.leaveSelectPlan();
 
       this.imowModel.setMarkerLocatieIdentificaties([]);
-      //this.imowModel.setMarkerOntwerpLocatieIds(locatieIdentificaties);
     } else {
       let plannen = [];
 
@@ -114,6 +131,8 @@ export class PlanModelService {
         }
       );
 
+      let locatieIdentificaties = [];
+
       const options = environment.dsoOptions;
       const post = {
         geo: {
@@ -123,55 +142,16 @@ export class PlanModelService {
       };
       [false, true].forEach(ontwerpLocaties => {
         const url = environment.dsoUrl + (!ontwerpLocaties? "locatieidentificaties/_zoek": "ontwerplocaties/technischids/_zoek");
-        this.numLoadingR++;
-        this.http.post(url, post, options).subscribe(
-          response => {
-            const locatieIdentificaties = response["_embedded"].locatieidentificaties || response["_embedded"].technischIds;
-            if (locatieIdentificaties.length > 0) {
-              const post = {
-                zoekParameters: [{
-                  parameter: !ontwerpLocaties? "locatie.identificatie": "ontwerplocatie.technischId",
-                  zoekWaarden: locatieIdentificaties
-                }]
-              };
-              [false, true].forEach(ontwerpRegelingen => {
-                if (!ontwerpRegelingen && ontwerpLocaties) {
-                  return;
-                }
-
-                ["regels", "tekstdelen"].forEach(type => {
-                  const url = environment.dsoUrl + (ontwerpRegelingen? "ontwerp": "") + "regelingen/" + type + "/_zoek?page=0&size=200";
-                  this.numLoadingR++;
-                  this.http.post(url, post, options).subscribe(
-                    response => {
-                      const regelingen = response["_embedded"].regelingen || response["_embedded"].ontwerpRegelingen;
-                      regelingen.forEach(regeling => {
-                        this.planDecorator.decorateOmgevingsdocument(regeling);
-                        this.planDecorator.decoratePlan(regeling, true);
-                      });
-                      plannen = plannen.concat(regelingen);
-                      this.setPlanalysis(plannen);
-
-                      this.numLoadingR--;
-                    },
-                    error => {
-                      this.numLoadingR--;
-                    }
-                  );
-                });
-              });
-            }
-            if (!ontwerpLocaties) {
-              this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
-            } else {
-              //this.imowModel.setMarkerOntwerpLocatieIds(locatieIdentificaties);
-            }
-            this.numLoadingR--;
-          },
-          error => {
-            this.numLoadingR--;
+        this.http.post(url, post, options).subscribe(response => {
+          const locatieIdentificaties1 = Object.values(response["_embedded"])[0] as any[];
+          if (locatieIdentificaties1.length > 0) {
+            const regelingen = this.omgevingsdocumentModel.regelingen.filter(regeling => locatieIdentificaties1.includes(regeling.locatieIdentificatie));
+            plannen = plannen.concat(regelingen);
+            this.setPlanalysis(plannen);
+            locatieIdentificaties = locatieIdentificaties.concat(locatieIdentificaties1);
           }
-        );
+          this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
+        });
       });
     }
   }
@@ -186,7 +166,10 @@ export class PlanModelService {
   }
 
   loadPlan(identificatie, dossierSet, zoomToPlan, local, postAction = null) {
-    if ((this.plan != null) && ((identificatie == this.plan.identificatie) || (identificatie == this.plan.technischId))) {
+    if (
+      ((this.plan != null) && (identificatie == (this.plan.technischId || this.plan.identificatie))) ||
+      ((this.diffPlan != null) && (identificatie == (this.diffPlan.technischId || this.diffPlan.identificatie)) && local)
+    ) {
       return;
     }
 
@@ -236,20 +219,55 @@ export class PlanModelService {
         });
       });
     } else {  // AKN.
-      const plan = this.omgevingsdocumentModel.regelingen.find(regeling => (regeling.identificatie == identificatie) || (regeling.technischId == identificatie));
-      this.setPlan(plan, dossierSet);
-      if (zoomToPlan) {
-        this.imowModel.loadLocatieForPlanPostActions["zoomToPlan"] = () => { if (this.plan == plan) { this.zoomToPlan(); }};
-      }
-      this.imowModel.loadLocatieForPlan(plan);
-      if (postAction != null) {
-        postAction();
+      const plan = this.omgevingsdocumentModel.regelingen.find(regeling => (regeling.technischId || regeling.identificatie) == identificatie);
+      if (!local) {
+        this.setPlan(plan, dossierSet);
+        if (zoomToPlan) {
+          this.imowModel.loadLocatieForPlanPostActions["zoomToPlan"] = () => { if (this.plan == plan) { this.zoomToPlan(); }};
+        }
+        this.imowModel.loadLocatieForPlan(plan);
+        if (postAction != null) {
+          postAction();
+        }
+      } else {
+        this.diffPlan = plan;
       }
 
       const underscoredDocumentId = identificatie.replace(/[^a-zA-Z0-9]/g, "_");
       const options = environment.dsoOptions;
       const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + (plan.technischId? "ontwerp": "") + "regelingen/" + underscoredDocumentId + "/" + (plan.technischId? "ontwerp": "") + "documentcomponenten";
-      this.http.get(url, options).subscribe(response => {
+      this.imowModel.numLoadingC++;
+      this.http.get(url, options).subscribe(
+        response => {
+          plan.documentComponenten = response;
+
+          if (!local) {
+            this.displayModel.initTabs(plan.documentComponenten, plan.typePlan);
+          }
+
+          this.displayModel.tabs.filter(tab => tab.algo).forEach((tab, i) => {
+            if (!local || (i == 0)) {
+              const components = this.getComponents(tab.algo(plan.documentComponenten));
+              if (!local) {
+                tab.components = components;
+                tab.diffComponents = [];
+              } else {  // i == 0
+                tab.diffComponents = this.diffBuilder.getDiffComponents(components, tab.components);
+              }
+            }
+          });
+          this.imowModel.numLoadingC--;
+        },
+        error => {
+          this.imowModel.numLoadingC--;
+        }
+      );
+    }
+
+//    oepModel.load(idn);
+  }
+
+  getComponents(documentComponenten) {
         let i = 0;
         const components = [];
         const doc = document.implementation.createHTMLDocument();
@@ -257,51 +275,40 @@ export class PlanModelService {
           if (component.identificatie != null) {
             components.push(component);
           }
+
           if ((parentComponent != null) && (parentComponent._links != null)) {
-            if (parentComponent._links.inheritedDivisies != null) {
-              component._links.inheritedDivisies = parentComponent._links.inheritedDivisies.concat();
+            if (parentComponent._links.inheritedDivisieannotaties != null) {
+              component._links.inheritedDivisieannotaties = parentComponent._links.inheritedDivisieannotaties.concat();
             }
-            if (parentComponent._links.divisie != null) {
-              component._links.inheritedDivisies = component._links.inheritedDivisies || [];
-              component._links.inheritedDivisies.push(parentComponent._links.divisie);
+            if (parentComponent._links.divisieannotatie != null) {
+              component._links.inheritedDivisieannotaties = component._links.inheritedDivisieannotaties || [];
+              component._links.inheritedDivisieannotaties.push(parentComponent._links.divisieannotatie);
             }
-            if (parentComponent._links.inheritedOntwerpDivisies != null) {
-              component._links.inheritedOntwerpDivisies = parentComponent._links.inheritedOntwerpDivisies.concat();
+            if (parentComponent._links.inheritedOntwerpdivisieannotaties != null) {
+              component._links.inheritedOntwerpdivisieannotaties = parentComponent._links.inheritedOntwerpdivisieannotaties.concat();
             }
-            if (parentComponent._links.ontwerpdivisie != null) {
-              component._links.inheritedOntwerpDivisies = component._links.inheritedOntwerpDivisies || [];
-              component._links.inheritedOntwerpDivisies.push(parentComponent._links.ontwerpdivisie);
+            if (parentComponent._links.ontwerpdivisieannotatie != null) {
+              component._links.inheritedOntwerpdivisieannotaties = component._links.inheritedOntwerpdivisieannotaties || [];
+              component._links.inheritedOntwerpdivisieannotaties.push(parentComponent._links.ontwerpdivisieannotatie);
             }
           }
-          for (const key in component) {
-            if (key == "type") {
-              if (component[key] == "LID") {
-                component.artikelNummer = parentComponent.nummer;
-              } else if ((component[key] == "DIVISIETEKST") && (component.nummer == null)) {
-                component.divisieNummer = parentComponent.nummer;
-              } else if ((component[key] == "ALGEMENE_TOELICHTING") || (component[key] == "ARTIKELGEWIJZE_TOELICHTING")) {
-                component.opschrift = component[key].replace("_", " ");
-                component[key] = "DIVISIE";
+
+          if (component.type == "LID") {
+            component.artikelNummer = parentComponent.nummer;
+          } else if ((component.type == "DIVISIETEKST") && (component.nummer == null)) {
+            component.divisieNummer = parentComponent.nummer;
+          } else if ((component.type == "ALGEMENE_TOELICHTING") || (component.type == "ARTIKELGEWIJZE_TOELICHTING")) {
+            component.opschrift = component.type.replace("_", " ");
+            component.type = "DIVISIE";
+          }
+
+          if (component.inhoud != null) {
+              if (component.inhoud.match(/ style="[^"]+"/)) {
+                component.inhoud = component.inhoud.replace(/ style="[^"]+"/g, "");
               }
-            } else if (key == "opschrift") {
-              if (component[key].includes("od-Noot")) {
+              if (component.inhoud.includes("od-Li")) {
                 const el = doc.createElement("div");
-                el.innerHTML = component[key];
-                const nootElements = el.getElementsByClassName("od-Noot");
-                for (let j = 0; j < nootElements.length; j++) {
-                  const nootElement = nootElements.item(j);
-                  const nootChildren = nootElement.children;
-                  const nootId = "noot_" + i++;
-                  const nootIndex = nootChildren.item(0).textContent;
-                  const nootText = nootChildren.item(1).innerHTML;
-                  nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
-                }
-                component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
-              }
-            } else if (key == "inhoud") {
-              if (component[key].includes("od-Li") || component[key].includes("class=\"noot\"") || component[key].includes("od-IntIoRef")) {
-                const el = doc.createElement("div");
-                el.innerHTML = component[key];
+                el.innerHTML = component.inhoud;
                 const liElements = el.getElementsByClassName("od-Li");
                 for (let j = 0; j < liElements.length; j++) {
                   const liElement = liElements.item(j);
@@ -318,6 +325,15 @@ export class PlanModelService {
                     liElement.before(liNummerElement);
                   }
                 }
+                component.inhoud = el.innerHTML;
+              }
+          }
+
+          ["inhoud", "opschrift"].forEach(inhoudOrOpschrift => {
+            if (component[inhoudOrOpschrift] != null) {
+              if (component[inhoudOrOpschrift].includes("class=\"noot\"") || component[inhoudOrOpschrift].includes("od-IntIoRef")) {
+                const el = doc.createElement("div");
+                el.innerHTML = component[inhoudOrOpschrift];
                 const nootElements = el.querySelectorAll("div.noot");
                 for (let j = 0; j < nootElements.length; j++) {
                   const nootElement = nootElements.item(j);
@@ -333,27 +349,50 @@ export class PlanModelService {
                   const content = intIoRefElement.innerHTML;
                   intIoRefElement.innerHTML = "<a href=\"javascript:void(0)\" onclick=\"window.stopPlanViewerComponent.displayEmit('annotationsVisible', '" + content + "')\" title=\"Geografische begrenzing tonen\">" + content + "</a>";
                 }
-                component[key] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
+                component[inhoudOrOpschrift] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
               }
-            } else if ((key == "_embedded") && (component[key].documentComponenten != null)) {
-              component[key].documentComponenten.forEach(childComponent => processComponent(childComponent, component));
-            } else if ((key == "_embedded") && (component[key].ontwerpDocumentComponenten != null)) {
-              component[key].ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent, component));
+            }
+          });
+
+          if (component.type == "LID") {
+            component.viewHeader = component.nummer;
+          } else if (((component.type != "DIVISIETEKST") || component.opschrift) && (component.type != "BEGRIP")) {
+            component.viewHeader = "";
+            if ((component.nummer != null) || (component.opschrift == null)) {
+              if (this.titleSymbols[component.type] != null) {
+                component.viewHeader += "<div>" + this.titleSymbols[component.type] + "</div>";
+              }
+              component.viewHeader += "<div>" + (component.nummer || "[ongenummerd]") + "</div>";
+            }
+            if (component.opschrift != null) {
+              component.viewHeader += component.opschrift.changingThisBreaksApplicationSecurity || component.opschrift;
+            }
+            if (component.gereserveerd) {
+              component.viewHeader += "<div>[gereserveerd]</div>";
+            }
+            if (component.vervallen) {
+              component.viewHeader += "<div>[vervallen]</div>";
+            }
+            if (component.opschrift?.changingThisBreaksApplicationSecurity != null) {
+              component.viewHeader = this.sanitizer.bypassSecurityTrustHtml(component.viewHeader);
+            }
+          }
+
+          if (component._embedded != null) {
+            if (component._embedded.documentComponenten != null) {
+              component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent, component));
+            } else if (component._embedded.ontwerpDocumentComponenten != null) {
+              component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent, component));
             }
           }
         }
-        processComponent(response, null);
-        this.imowModel.components = components;
-
-        plan.structuur = response;
-      });
-    }
-
-//    oepModel.load(idn);
+        processComponent(documentComponenten, null);
+        return components;
   }
 
   setPlan(plan, dossierSet) {
     this.plan = plan;
+    this.diffPlan = null;
     this.dossierSet = dossierSet;
 
     const layers = this.layerModel.layers;

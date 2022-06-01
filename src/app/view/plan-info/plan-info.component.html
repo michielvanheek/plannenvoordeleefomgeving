@@ -12,7 +12,7 @@
 </div>
 <div *ngIf="!expertInfoVisible">
   <div class="pr-sm">{{plan.viewOverheidName}}</div>
-  <div>{{plan.typePlan}}, {{statusText}}</div>
+  <div>{{plan.typePlan}}, <span [innerHTML]="statusText"></span></div>
 </div>
 <div *ngIf="expertInfoVisible">
   <div *ngIf="plan.opschrift && (plan.opschrift != plan.naam)" class="mb-2 pr-lg">
@@ -28,9 +28,9 @@
     <tr>
       <td class="font-weight-bold">Status</td>
       <td>
-        <div *ngIf="!planModel.dossierSet || !dossierPlannenVisible" [ngClass]="{'mb-2': planModel.dossierSet}">{{statusText}}</div>
+        <div *ngIf="!planModel.dossierSet || !dossierPlannenVisible" [class.mb-2]="planModel.dossierSet" [innerHTML]="statusText"></div>
         <table *ngIf="planModel.dossierSet && dossierPlannenVisible" class="innertable">
-          <tr *ngFor="let plan1 of planModel.dossierSet.plannen" (click)="planModel.loadPlan(plan1.identificatie, 'CURRENT', false, false)" [ngClass]="{active: (plan.identificatie == plan1.identificatie)}">
+          <tr *ngFor="let plan1 of planModel.dossierSet.plannen" (click)="planModel.loadPlan(plan1.identificatie, 'CURRENT', false, false)" [class.active]="plan.identificatie == plan1.identificatie">
             <td>{{(planModel.dossierSet.mainPlan.identificatie == plan1.identificatie)? plan1.viewStatus: plan1.planStatus}}</td><td>{{plan1.viewDate}}</td>
           </tr>
         </table>

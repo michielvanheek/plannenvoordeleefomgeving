@@ -108,7 +108,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     info.teksten.forEach(tekst => index[tekst.documentTechnischId || tekst.documentIdentificatie] = true);
     const planIdentificaties = Object.keys(index);
     if (planIdentificaties.includes(this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
-      this.imowModel.setComponentIdentificaties("filtered", info.teksten, false, info.label);
+      this.imowModel.setComponentIdentificaties("filtered", info.teksten, info.label);
       this.close.emit();
     } else if (planIdentificaties.length == 1) {
       this.planModel.loadPlan(planIdentificaties[0], null, false, false);
@@ -267,7 +267,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
       gebiedsaanwijzingen.forEach(gebiedsaanwijzing => {
         const inPlan = gebiedsaanwijzing.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-        const specific = gebiedsaanwijzing.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        const specific = gebiedsaanwijzing.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
         if (inPlan) {
           this.infos[specific? 0: 1].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
         } else {  // !inPlan
@@ -277,7 +277,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
       activiteitlocatieaanduidingen.forEach(activiteitlocatieaanduiding => {
         const inPlan = true;
-        const specific = activiteitlocatieaanduiding.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        const specific = activiteitlocatieaanduiding.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
         if (inPlan) {
           const twinfo = this.infos[specific? 0: 1].find(info =>
             info.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") == activiteitlocatieaanduiding.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") &&
@@ -295,7 +295,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
       normwaarden.forEach(normwaarde => {
         const inPlan = normwaarde.omgevingsnorm.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-        const specific = normwaarde.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+        const specific = normwaarde.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
         if (inPlan) {
           this.infos[specific? 0: 1].push(this.normwaardeToInfo(normwaarde));
         } else {  // !inPlan
@@ -316,7 +316,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
               otherPlansTeksten[tekst.technischId || tekst.identificatie] = tekst;
             }
           });
-          specific = specific || annotation.locaties.some(locatie => this.specificLocaties[locatie.identificatie]);
+          specific = specific || annotation.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
         });
 
         if (Object.values(teksten).length > 0) {
@@ -341,7 +341,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
         groep.normwaarden && !groep.normwaarden.length
       )) &&
       (!locatie.omvat || locatie.omvat.every(omvatLocatie => {
-        const sublocatie = this.imowModel.locaties[omvatLocatie.identificatie];
+        const sublocatie = this.imowModel.locaties[omvatLocatie.technischId || omvatLocatie.identificatie];
         return sublocatie.normwaarden && !sublocatie.normwaarden.length
       }))
     );
@@ -350,11 +350,11 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   private locatieToInfo(locatie, teksten) {
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + (locatie.noemer? (locatie.noemer[0].toUpperCase() + locatie.noemer.slice(1)): "Naamloze begrenzing") + "</strong><br/>" + locatie.locatieType.toLowerCase(),
+      text: "<strong>" + (locatie.noemer? (locatie.noemer[0].toUpperCase() + locatie.noemer.slice(1)): "Naamloze begrenzing") + "</strong><br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, ""),
       label: locatie.noemer || "naamloze begrenzing",
       locaties: [locatie],
       teksten: teksten,
-      annotation: null
+      annotation: locatie
     };
   }
 
@@ -362,7 +362,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: "<strong>" + gebiedsaanwijzing.viewName[0].toUpperCase() + gebiedsaanwijzing.viewName.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
-      label: ((gebiedsaanwijzing.viewType == "functie")? gebiedsaanwijzing.viewType + " ": "") + gebiedsaanwijzing.viewName,
+      label: ((gebiedsaanwijzing.viewType == "functie")? "functie ": "") + gebiedsaanwijzing.viewName,
       locaties: gebiedsaanwijzing.locaties,
       teksten: gebiedsaanwijzing.teksten,
       annotation: gebiedsaanwijzing

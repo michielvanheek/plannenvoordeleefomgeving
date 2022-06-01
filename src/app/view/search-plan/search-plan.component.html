@@ -10,10 +10,15 @@
 </h4> -->
 <input type="text" placeholder="/akn/nl/act/... of NL.IMRO.... of naam..." [(ngModel)]="s" (input)="loadPlannen(null)" class="form-control"/>
 <ul *ngIf="idns.length" class="list-group overflow-auto">
-  <a *ngFor="let idn of idns" (click)="planModel.loadPlan(idn, null, true, false); s = idn; idns = []" class="list-group-item" [ngClass]="{active: (planModel.plan && (idn == planModel.plan.identificatie))}">{{idn}}</a>
+  <a *ngFor="let idn of idns" (click)="planModel.loadPlan(idn, null, true, false); s = idn; idns = []" class="list-group-item" [class.active]="planModel.plan && (idn == planModel.plan.identificatie)">{{idn}}</a>
 </ul>
 <ul *ngIf="plannen.length" class="list-group overflow-auto">
-  <a *ngFor="let plan of plannen" (click)="planModel.loadPlan(plan.technischId || plan.identificatie, null, true, false); plannen = []" class="list-group-item" [ngClass]="{active: (planModel.plan && (plan.identificatie == planModel.plan.identificatie))}"><strong>{{plan.naam}}</strong><br/>{{plan.viewOverheidName}}<br/>{{plan.typePlan}}, {{plan.planStatus}} ({{plan.viewDate}})</a>
+  <a *ngFor="let plan of plannen" (click)="planModel.loadPlan(plan.technischId || plan.identificatie, null, true, false); plannen = []" class="list-group-item" [class.active]="planModel.plan && ((plan.technischId || plan.identificatie) == (planModel.plan.technischId || planModel.plan.identificatie))">
+    <strong>{{plan.naam}}</strong><br/>
+    {{plan.viewOverheidName}}<br/>
+    {{plan.typePlan}}, <span [class.redalert]="plan.planStatus == 'ontwerp'">{{plan.planStatus}}</span> ({{plan.viewDate}})<br/>
+    <span *ngIf="showIdentificatie">{{plan.identificatie}}</span>
+  </a>
 </ul>
 <div *ngIf="!warning && !idns.length && !plannen.length" class="alert alert-info">
   <span *ngIf="!planModel.plan">Vul het identificatienummer van een plan in. Of de naam van een plan, eventueel aangevuld met extra zoekwoorden. Een deel van de naam mag ook.</span>

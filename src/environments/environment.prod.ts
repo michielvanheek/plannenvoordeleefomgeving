@@ -13,14 +13,14 @@ export const environment = {
   websiteProxyUrl: "https://www.ruimtelijkeplannen.nl/",
   geoUrl: "https://afnemers.ruimtelijkeplannen.nl/",
   geoWebCacheUrl: "https://www.ruimtelijkeplannen.nl/kaartservices/geowebcache/service/wms",
-//  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/",
-  dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/",
+//  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
+  dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
   dsoOptions: {
     headers: new HttpHeaders({
       "Accept" : "application/json, application/hal+json",
       "Accept-CRS": "EPSG:28992",
       "Content-CRS": "EPSG:28992",
-      "X-Api-Key": "f9303b04-8db4-4d34-b2a9-356ba490f977"
+      "X-Api-Key": "297a74b1-6941-4174-b058-94bfb72f9615"
     })
   },
   ihr: false,
@@ -30,7 +30,7 @@ export const environment = {
       "Accept" : "application/json, application/hal+json",
       "Accept-CRS": "epsg:28992",
       "Content-CRS": "epsg:28992",
-      "X-Api-Key": "l748f36af7648c43cd8b9a7183218f26e1"
+      "X-Api-Key": "462c15cf-1d76-4cf2-9456-8d926885a8c4"
     })
   },
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-acc/wmts/v1_0/locaties/EPSG:28992/",

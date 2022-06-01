@@ -50,7 +50,7 @@ export class AnnotationLayer {
       const locaties = annotation.locaties;
       this.setUniformCssFunction(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
-        this.imowValueModel.getSymboolcode(annotation.subType, annotation.groep)
+        this.imowValueModel.getSymboolcode(annotation.gebiedsaanwijzingType, annotation.groep)
       );
     } else if (type == "A") {
       const locaties = annotation.locaties;
@@ -68,7 +68,7 @@ export class AnnotationLayer {
         const color = this.getColor(normwaarde, omgevingsnorm);
         normwaarde.locaties.concat(normwaarde.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), [])).forEach(locatie => {
           locaties.push(locatie);
-          symbolizations[locatie.identificatie] = {color: color, text: (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) + ""};
+          symbolizations[locatie.technischId || locatie.identificatie] = {color: color, text: (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) + ""};
         });
       });
       this.setGradientCssFunction(this.getFilter(locaties), symbolizations);
@@ -154,7 +154,7 @@ export class AnnotationLayer {
   private getFilter(filter) {
     return new Filter(
       "properties.identificatie",
-      (Array.isArray(filter)? filter: [filter].concat(filter.omvat || [])).map(locatie => locatie.identificatie),
+      (Array.isArray(filter)? filter: [filter].concat(filter.omvat || [])).map(locatie => locatie.technischId || locatie.identificatie),
       "IN"
     );
   }

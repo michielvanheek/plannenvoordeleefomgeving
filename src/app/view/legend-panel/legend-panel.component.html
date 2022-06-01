@@ -1,4 +1,4 @@
-<div class="inner" [ngClass]="{wide: wide}">
+<div class="inner" [class.wide]="wide">
   <div class="header">
     <button (click)="close.emit()" title="Legenda sluiten" class="btn btn-link close">
       <svg class="di">
@@ -16,10 +16,10 @@
       </svg>
     </button>
     <ul class="dso-nav dso-nav-sub">
-      <li (click)="tab = 'legend'" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == 'legend'}">
+      <li (click)="tab = 'legend'" role="tab" class="dso-outline" [class.dso-active]="tab == 'legend'">
         <a href="javascript:void(0)">Legenda</a>
       </li>
-      <li (click)="tab = 'background'" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == 'background'}">
+      <li (click)="tab = 'background'" role="tab" class="dso-outline" [class.dso-active]="tab == 'background'">
         <a href="javascript:void(0)">Achtergrond</a>
       </li>
     </ul>
@@ -61,8 +61,8 @@
   <div *ngIf="tab == 'background'" class="content background">
     <div *ngFor="let backgroundLayer of layerModel.backgroundLayers">
       <div *ngIf="expertSettingsVisible || !backgroundLayer.expert">
-        <a href="javascript:void(0)" (click)="layerModel.setBackgroundLayer(backgroundLayer)" class="tilebox" [ngClass]="{disabled: (nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (backgroundLayer == layerModel.backgroundLayers[3])}">
-          <div [ngClass]="{selected: (backgroundLayer == layerModel.backgroundLayer)}">
+        <a href="javascript:void(0)" (click)="layerModel.setBackgroundLayer(backgroundLayer)" class="tilebox" [class.disabled]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (backgroundLayer == layerModel.backgroundLayers[3])">
+          <div [class.selected]="backgroundLayer == layerModel.backgroundLayer">
             <img [src]="backgroundLayer.titleURL"/>
           </div>
           {{backgroundLayer.title}}
@@ -70,6 +70,15 @@
         <div *ngIf="expertSettingsVisible && (nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (backgroundLayer == layerModel.backgroundLayers[3])" class="alert alert-info">
           <a href="javascript:void(0)" (click)="zoomInToDetailLevel()" class="alert-link">Zoom in</a> voor BGT.
         </div>
+      </div>
+    </div>
+    <div *ngIf="expertSettingsVisible" class="parcelbox">
+      <label [class.disabled]="nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299">
+        <input type="checkbox" [(ngModel)]="layerModel.layers[0].visible"/><span class="checkmark"></span>
+        kadastrale percelen
+      </label>
+      <div *ngIf="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299)" class="alert alert-info">
+        <a href="javascript:void(0)" (click)="zoomInToDetailLevel()" class="alert-link">Zoom in</a> voor percelen.
       </div>
     </div>
     <a href="javascript:void(0)" (click)="toggleExpertSettingsVisible()"><span class="fa fa-angle-right mr-2"></span>{{expertSettingsVisible? 'standaard kaartinstellingen': 'meer kaartinstellingen'}}</a>

@@ -1,37 +1,26 @@
 <ng-template [ngIf]="toc" [ngIfElse]="header">
-  <ng-container *ngTemplateOutlet="content"></ng-container>
+  <ng-container *ngTemplateOutlet="headercontent"></ng-container>
 </ng-template>
 
 <ng-template #header>
-  <h2 *ngIf="element.type === 'BOEK' || element.type === 'DEEL' || element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'" class="document-element__title">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+  <h2 *ngIf="element.type === 'BOEK' || element.type === 'DEEL' || element.type === 'HOOFDSTUK' || element.type === 'BIJLAGE'">
+    <ng-container *ngTemplateOutlet="headercontent"></ng-container>
   </h2>
-  <h3 *ngIf="element.type === 'DIVISIE' || element.type === 'DIVISIETEKST'" class="document-element__title" [ngClass]="'title-' + level">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+  <h3 *ngIf="element.type === 'DIVISIE' || element.type === 'DIVISIETEKST'" [ngClass]="'title-' + level">
+    <ng-container *ngTemplateOutlet="headercontent"></ng-container>
   </h3>
-  <h4 *ngIf="element.type === 'TITEL' || element.type === 'AFDELING'" class="document-element__title">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+  <h4 *ngIf="element.type === 'TITEL' || element.type === 'AFDELING'">
+    <ng-container *ngTemplateOutlet="headercontent"></ng-container>
   </h4>
-  <h5 *ngIf="element.type === 'PARAGRAAF' || element.type === 'SUBPARAGRAAF' || element.type === 'SUBSUBPARAGRAAF'" class="document-element__title">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+  <h5 *ngIf="element.type === 'PARAGRAAF' || element.type === 'SUBPARAGRAAF' || element.type === 'SUBSUBPARAGRAAF'">
+    <ng-container *ngTemplateOutlet="headercontent"></ng-container>
   </h5>
-  <h6 *ngIf="element.type === 'ARTIKEL'" class="document-element__title">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+  <h6 *ngIf="element.type === 'ARTIKEL'">
+    <ng-container *ngTemplateOutlet="headercontent"></ng-container>
   </h6>
 </ng-template>
 
-<ng-template #content>
-   <span *ngIf="!toc && !display.allOpen"
-         class="toggle__chevron"
-         [ngClass]="{'toggle__chevron-rotated' : element.isOpen, 'fa fa-angle-right': !element.gereserveerd && !element.vervallen}" [class.inactive]="inactive">
-   </span>
-  <div class="document-element__title-header" [class.inactive]="inactive" [ngStyle]="toc? {'padding-left': (level - 1) * 1.5 + 'rem', 'font-weight': (level - 1)? 'inherit': 'bold'}: null">
-    <div *ngIf="titleSymbols[element.type] && (element.nummer || !element.opschrift)" class="document-element__title-header-item">{{titleSymbols[element.type]}}</div>
-    <div *ngIf="element.nummer || !element.opschrift" class="document-element__title-header-item">{{element.nummer || "[ongenummerd]"}}</div>
-    <div class="document-element__title-header-item">
-      <span [innerHTML]="element.opschrift"></span>
-      <span *ngIf="element.gereserveerd" class="document-element__title-header-item"> [gereserveerd]</span>
-      <span *ngIf="element.vervallen" class="document-element__title-header-item"> [vervallen]</span>
-    </div>
-  </div>
+<ng-template #headercontent>
+  <div *ngIf="!toc && !display.allOpen" class="fa fa-angle-right chevron" [class.rotated]="element.isOpen" [class.hidden]="element.gereserveerd || element.vervallen" [class.inactive]="inactive"></div>
+  <div class="headercontent" [class.inactive]="inactive" [ngStyle]="toc? {'padding-left': (level - 1) * 1.5 + 'rem', 'font-weight': (level - 1)? 'inherit': 'bold'}: null" [innerHTML]="leftRightHeader || element.viewHeader"></div>
 </ng-template>

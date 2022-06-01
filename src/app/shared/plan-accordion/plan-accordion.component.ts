@@ -13,6 +13,7 @@ export class PlanAccordionComponent {
     BOEK: 1,
     DEEL: 1,
     HOOFDSTUK: 1,
+    BIJLAGE: 1,
     TITEL: 2,
     AFDELING: 2,
     PARAGRAAF: 3,

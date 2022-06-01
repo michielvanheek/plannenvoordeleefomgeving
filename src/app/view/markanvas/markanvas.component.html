@@ -28,7 +28,10 @@
     <li *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
       <div>
-        <div [innerHTML]="info.text"></div>
+        <div>
+          <span [innerHTML]="info.text"></span>
+          <span *ngIf="info.annotation?.technischId" class="ml-1 redalert">ontwerp</span>
+        </div>
         <div *ngIf="info.plannen" class="links">
           <button (click)="highlightModel.setHighlight(null, false); info.plannen = null" title="Sluiten" class="btn btn-link close">
             <svg class="di">

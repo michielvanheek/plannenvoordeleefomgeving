@@ -2,85 +2,68 @@
   display: block;
 }
 
-.document-element__title {
+.headercontent {
   display: flex;
-
-  &-header {
-    display: flex;
-    flex: 1;
-
-    &-item {
-      margin-right: 6px;
-    }
-  }
+  flex-grow: 1;
+  flex-basis: 0;
+  gap: 6px;
 }
 
-.toggle__chevron {
+.chevron {
   width: 25px;
   height: 1em;
   text-align: center;
   transition-duration: .2s;
   transition-property: transform;
-
-  &-rotated {
-    transform: rotate(90deg);
-  }
+}
+.chevron.rotated {
+  transform: rotate(90deg);
+}
+.chevron.hidden {
+  visibility: hidden;
 }
 
-h2 {
+h2, h3, h4, h5, h6,
+.title-1, .title-2, .title-3, .title-4 {
+  display: flex;
+  margin: 0.25rem 0 0.75rem;
+  line-height: 1;
   color: #275937;
+}
+h2 {
   font-size: 1.5rem;
   font-weight: 700;
 }
-
 h3 {
   font-size: 22px;
-  color: #275937;
   font-weight: 600;
 }
-
 h4 {
   font-size: 22px;
-  color: #275937;
   font-weight: 400;
 }
-
 h5 {
-  color: #191919;
   font-size: 1.15rem;
   font-style: italic;
   font-weight: 100;
+  color: #191919;
 }
-
 h6 {
   font-size: 1rem;
   font-weight: 600;
-  color: #275937;
 }
-
-.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-  line-height: 1;
-  margin-bottom: 0;
-}
-
 .title-1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #275937;
 }
-
 .title-2 {
   font-size: 22px;
   font-weight: 600;
-  color: #275937;
 }
-
 .title-3 {
   font-size: 22px;
   font-weight: 400;
-  color: #275937;
 }
-
 .title-4 {
   font-size: 1.15rem;
   font-style: italic;

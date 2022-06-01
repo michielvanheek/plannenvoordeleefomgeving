@@ -1,6 +1,6 @@
 <n-map [nTap]="pointOrLineString? measureModel.addXY.bind(measureModel): mark.bind(this)" [nMousemove]="pointOrLineString? measureModel.setXY.bind(measureModel): null" (dblclick)="pointOrLineString? measureModel.close(): null">
   <tileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299) && (layerModel.backgroundLayer == layerModel.backgroundLayers[3])? layerModel.backgroundLayers[2]: layerModel.backgroundLayer" [loader]="loader"></tileslayer>
-  <wmslayer [layer]="layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
+  <wmslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299)? null: layerModel.layers[0]" [loader]="loader" [ngStyle]="{filter: layerModel.backgroundLayer == layerModel.backgroundLayers[4]? 'invert(100%)': ''}"></wmslayer>
   <wmslayer [layer]="layerModel.layers[1]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></wmslayer>
   <tileslayer [layer]="layerModel.layers[2]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.planOpacity / 100}"></tileslayer>
   <tileslayer [layer]="layerModel.layers[3]" [loader]="loader" protocol="WMTS" tilewidth="512" tileheight="512" [ngStyle]="{opacity: layerModel.otherPlansOpacity / 100}"></tileslayer>
@@ -8,7 +8,7 @@
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [vectorCaching]="false" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [vectorCaching]="false" [ngStyle]="{opacity: layerModel.planOpacity / 300}">
     <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
   </vectortileslayer>
   <vectortileslayer *ngIf="annotationLayersVisible" [layer]="layerModel.layers[5]" [ngStyle]="{opacity: layerModel.planOpacity / 100}">

@@ -82,9 +82,8 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       }
       this.imowModel.loadTekstForComponent(this.component);
     } else if (
-      (this.component._links.divisietekst != null) || (this.component._links.ontwerpdivisietekst != null) ||
-      (this.component._links.divisie != null) || (this.component._links.ontwerpdivisie != null) ||
-      (this.component._links.inheritedDivisies != null)
+      (this.component._links.divisieannotatie != null) || (this.component._links.ontwerpdivisieannotatie != null) ||
+      (this.component._links.inheritedDivisieannotaties != null) || (this.component._links.inheritedOntwerpdivisieannotaties != null)
     ) {  // Divisietekst or divisie with annotations and/or with inherited annotations. Divisie may have child components, but will only come here if it has own and/or inherited annotations.
       if (this.component.nummer != null) {
         this.header = "van " + (!this.component.nummer.match(/\..+/)? "hoofdstuk ": "paragraaf ") + this.component.nummer.replace(/\.$/, "");
@@ -160,7 +159,12 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     this.gebiedsaanwijzingen = Object.values(this.hash.gebiedsaanwijzingen);
     this.activiteitlocatieaanduidingen = Object.values(this.hash.activiteitlocatieaanduidingen);
     this.omgevingsnormen = Object.values(this.hash.omgevingsnormen);
-    this.hoofdlijnen = Object.values(this.hash.hoofdlijnen).map((soort: any) => {return {soort: soort.soort, hoofdlijnen: Object.values(soort.hoofdlijnen)}}).sort((a, b) => (a.soort > b.soort)? 1: (a.soort < b.soort)? -1: 0);
+    this.hoofdlijnen = Object.values(this.hash.hoofdlijnen).map((soort: any) => {
+      return {
+        soort: soort.soort,
+        hoofdlijnen: (Object.values(soort.hoofdlijnen) as any[]).sort((a, b) => (a.hoofdlijn.naam > b.hoofdlijn.naam)? 1: (a.hoofdlijn.naam < b.hoofdlijn.naam)? -1: 0)
+      }
+    }).sort((a, b) => (a.soort > b.soort)? 1: (a.soort < b.soort)? -1: 0);
 
     if (this.legal) {
       this.setLegal();

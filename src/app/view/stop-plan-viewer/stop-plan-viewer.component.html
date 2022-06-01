@@ -1,9 +1,9 @@
 <ul class="dso-nav dso-nav-sub">
-  <li *ngFor="let tab1 of tabs" (click)="setTab(tab1, false)" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab1 == tab}">
-    <a href="javascript:void(0)">{{tab1.label()}}</a>
+  <li *ngFor="let tab of displayModel.tabs" (click)="setTab(tab, 'previous')" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == displayModel.tab}">
+    <a href="javascript:void(0)">{{tab.label}}</a>
   </li>
 </ul>
-<div *ngIf="tab.id >= 1" class="tekstenbar">
+<div *ngIf="(displayModel.tab.id == 1) || ((displayModel.tab.id > 1) && (displayModel.tab.components.length))" class="filter-toolbar">
   <div class="filterbar">
     <div *ngIf="imowModel.componentIdentificaties.filtered" class="filter">
       {{imowModel.componentIdentificaties.filtered.label}}
@@ -11,7 +11,54 @@
     </div>
   </div>
   <div class="toolbar">
-    <div *ngIf="imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered" class="box-sm">
+    <ng-template [ngIf]="displayModel.tab.id == 1">
+      <div *ngIf="structured" class="box-sm">
+        <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 1">
+          <span>H</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 6.5px" [class.selected]="display.tocLevel == 2">
+          <span>Aᶠ</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 3)" title="Tot op paragraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 11px" [class.selected]="display.tocLevel == 3">
+          <span>§</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 4">
+          <span>§²</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 5)" title="Tot op artikel-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 5">
+          <span>Aʳ</span>
+        </button>
+      </div>
+      <div *ngIf="!structured" class="box-sm">
+        <button (click)="display.emit('tocLevel', 1)" title="Alleen het hoogste niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 1">
+          <span>=¹</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 2)" title="Tot op het tweede niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 2">
+          <span>≡²</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 3)" title="Tot op het derde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 3">
+          <span>≡³</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 4)" title="Tot op het vierde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 4">
+          <span>≣⁴</span>
+        </button>
+        <button (click)="display.emit('tocLevel', 999)" title="Alle niveaus tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 3.3px" [class.selected]="display.tocLevel == 999">
+          <span>≣ˣ</span>
+        </button>
+      </div>
+    </ng-template>
+    <div *ngIf="displayModel.tab.id > 1" class="box-sm">
+      <button *ngIf="planModel.plan.predecessor && !imowModel.numLoadingC" (click)="display.emit('allOpen', 'diff'); (!displayModel.tabs[2].diffComponents.length? planModel.loadPlan(planModel.plan.predecessor.identificatie, null, false, true): null)" title="Met voorgaande versie vergelijken" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'diff'">
+        <span class="fa fa-copy"></span>
+      </button>
+      <button (click)="display.emit('allOpen', 'doc')" title="Als document weergeven" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'doc'">
+        <span class="fa fa-file"></span>
+      </button>
+      <button (click)="display.emit('allOpen', false)" title="Als boomstructuur weergeven" class="btn btn-default btn-sm" [class.selected]="!display.allOpen">
+        <span class="fa fa-tree"></span>
+      </button>
+    </div>
+    <div *ngIf="((displayModel.tab.id == 1) || (display.allOpen != 'diff')) && (imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered)" class="box-sm">
       <button (click)="display.emit('allVisible', true)" [title]="imowModel.componentIdentificaties.filtered? 'Alle teksten tonen, niet alleen de gefilterde teksten (geel gemarkeerd)': 'Alle teksten tonen, ook de teksten die niet op de gemarkeerde plek gelden (in grijs)'" class="btn btn-default btn-sm" [class.selected]="display.allVisible">
         <span class="fa fa-eye"></span>
       </button>
@@ -19,74 +66,61 @@
         <span class="fa fa-eye-slash"></span>
       </button>
     </div>
-    <div *ngIf="(tab.id == 1) && isStructured()" class="box-sm">
-      <button (click)="display.emit('tocLevel', 1)" title="Alleen de hoofdstukken tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 1">
-        <span>H</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 2)" title="Tot op afdeling-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 6.5px" [class.selected]="display.tocLevel == 2">
-        <span>Aᶠ</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 3)" title="Tot op paragraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 11px" [class.selected]="display.tocLevel == 3">
-        <span>§</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 4)" title="Tot op subparagraaf-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 8px" [class.selected]="display.tocLevel == 4">
-        <span>§²</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 5)" title="Tot op artikel-niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 5">
-        <span>Aʳ</span>
-      </button>
-    </div>
-    <div *ngIf="(tab.id == 1) && !isStructured()" class="box-sm">
-      <button (click)="display.emit('tocLevel', 1)" title="Alleen het hoogste niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 7px" [class.selected]="display.tocLevel == 1">
-        <span>=¹</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 2)" title="Tot op het tweede niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 2">
-        <span>≡²</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 3)" title="Tot op het derde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 3">
-        <span>≡³</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 4)" title="Tot op het vierde niveau tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 4.5px" [class.selected]="display.tocLevel == 4">
-        <span>≣⁴</span>
-      </button>
-      <button (click)="display.emit('tocLevel', 999)" title="Alle niveaus tonen" class="btn btn-default btn-sm btn-letter" style="padding: 1px 3.3px" [class.selected]="display.tocLevel == 999">
-        <span>≣ˣ</span>
-      </button>
-    </div>
-    <div *ngIf="tab.id > 1" class="box-sm">
-      <button (click)="display.emit('allOpen', true)" title="Als document weergeven" class="btn btn-default btn-sm" [class.selected]="display.allOpen">
-        <span class="fa fa-file"></span>
-      </button>
-      <button (click)="display.emit('allOpen', false)" title="Als boomstructuur weergeven" class="btn btn-default btn-sm" [class.selected]="!display.allOpen">
-        <span class="fa fa-tree"></span>
-      </button>
-    </div>
-    <div *ngIf="(tab.id > 1) && (imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered) && display.allOpen && display.allVisible" class="box-sm">
-      <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
-        <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
-      </button>
-      <button *ngIf="imowModel.componentIdentificaties.specific" (click)="selectNextComponentIdentificatie('specific')" title="Naar volgende regel op de gemarkeerde plek" class="btn btn-default btn-sm">
-        <span class="fa fa-caret-square-down"></span>
-      </button>
-    </div>
+    <ng-template [ngIf]="displayModel.tab.id > 1">
+      <div *ngIf="displayModel.tab.diffComponents.length && (display.allOpen == 'diff')" class="box-sm">
+        <button (click)="display.emit('allDiffVisible', true)" title="Alle teksten tonen, ook de teksten die niet gewijzigd zijn" class="btn btn-default btn-sm" [class.selected]="display.allDiffVisible">
+          <span class="fa fa-eye"></span>
+        </button>
+        <button (click)="display.emit('allDiffVisible', false)" title="Alleen de teksten tonen die gewijzigd zijn" class="btn btn-default btn-sm" [class.selected]="!display.allDiffVisible">
+          <span class="fa fa-eye-slash"></span>
+        </button>
+      </div>
+      <div *ngIf="(imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered) && ((displayModel.tab.diffComponents.length && (display.allOpen == 'diff') && display.allDiffVisible) || ((display.allOpen != 'diff') && display.allOpen && display.allVisible))" class="box-sm">
+        <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
+          <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
+        </button>
+        <button *ngIf="imowModel.componentIdentificaties.specific" (click)="selectNextComponentIdentificatie('specific')" title="Naar volgende regel op de gemarkeerde plek" class="btn btn-default btn-sm">
+          <span class="fa fa-caret-square-down"></span>
+        </button>
+      </div>
+    </ng-template>
   </div>
 </div>
-<div #tabContent class="tab-content">
-  <dso-markanvas *ngIf="tab.id == 0" (close)="setTab(this.tabs[2], true)"></dso-markanvas>
-  <dso-plan-accordion *ngIf="tab.id > 0" [component]="tab.documentComponenten" [structured]="isStructured()" [level]="1" [toc]="tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties"></dso-plan-accordion>
+<div *ngIf="(displayModel.tab.id > 1) && displayModel.tab.diffComponents.length && (display.allOpen == 'diff')" class="diffbar">
+  <div class="side">
+    <strong>{{planModel.diffPlan.naam}}</strong><br/>
+    <span [class.redalert]="planModel.diffPlan.planStatus == 'ontwerp' || planModel.diffPlan.successor">{{!planModel.diffPlan.successor? planModel.diffPlan.planStatus: "historisch"}}</span>
+    <a href="javascript:void(0)" *ngIf="planModel.diffPlan.predecessor" (click)="planModel.loadPlan(planModel.diffPlan.predecessor.identificatie, null, false, true)" class="fa fa-caret-square-left ml-2"></a>
+    ({{planModel.diffPlan.viewDate + (!planModel.diffPlan.successor? "": (" tot " + planModel.diffPlan.successor.viewDate))}})
+    <a href="javascript:void(0)" *ngIf="planModel.diffPlan.successor && planModel.diffPlan.successor != planModel.plan" (click)="planModel.loadPlan(planModel.diffPlan.successor.identificatie, null, false, true)" class="fa fa-caret-square-right"></a>
+  </div>
+  <div class="side">
+    <strong>{{planModel.plan.naam}}</strong><br/>
+    <span [class.redalert]="planModel.plan.planStatus == 'ontwerp'">{{planModel.plan.planStatus}}</span> ({{planModel.plan.viewDate}})
+  </div>
+  <div class="scroll-cover"></div>
 </div>
-<div *ngIf="(tab.id == 2) && display.annotationsVisible" class="anno">
+<div #tabContent class="tab-content">
+  <dso-markanvas *ngIf="(displayModel.tab.id == 0) && setTabComponents()" (close)="setTab(displayModel.tabs[2], 'selected')"></dso-markanvas>
+  <ng-template [ngIf]="(displayModel.tab.id > 0) && !imowModel.numLoadingC && setTabComponents()">
+    <div *ngIf="tabStatusEmpty" class="alert alert-info">Dit plan heeft geen {{displayModel.tab.label.toLowerCase()}}<span *ngIf="displayModel.tab.components.length && (display.allOpen == 'diff')"> om te vergelijken</span>.</div>
+    <div *ngIf="tabStatusBuilding" class="builder"><div>Tekst aan het opbouwen...</div></div>
+    <div *ngIf="tabStatusComplete" class="shader"></div>
+    <dso-plan-accordion *ngIf="tabStatusComplete || tabStatusAlmostComplete" [component]="tabComponents" [structured]="structured" [level]="1" [toc]="displayModel.tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties" [class.hidden]="tabStatusAlmostComplete"></dso-plan-accordion>
+  </ng-template>
+</div>
+<div *ngIf="(displayModel.tab.id == 2) && display.annotationsVisible" class="anno">
   <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>
 </div>
-<div *ngIf="(tab.id == 0) && (imowModel.numLoadingL + imowModel.numLoading)" class="dso-progress-indicator">
+<div *ngIf="(displayModel.tab.id == 0) && (imowModel.numLoadingL + imowModel.numLoading)" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>
   <div class="dso-progress-indicator-spinner">
     <span class="num">{{imowModel.numLoadingL + imowModel.numLoading}}</span>
   </div>
 </div>
-<div *ngIf="(tab.id > 0) && (imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies)" class="dso-progress-indicator" style="top: 44px">
+<div *ngIf="(displayModel.tab.id > 0) && imowModel.numLoadingC" class="dso-progress-indicator" style="top: 44px">
   <div class="dso-progress-indicator-bg"></div>
   <div class="dso-progress-indicator-spinner">
-    <span class="num">{{imowModel.numPagesToGo.regelteksten || imowModel.numPagesToGo.divisies}}</span>
+    <span class="num">{{imowModel.numLoadingC}}</span>
   </div>
 </div>

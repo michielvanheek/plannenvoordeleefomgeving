@@ -1,53 +1,57 @@
-.document-element {
-
-  &__title {
-    display: flex;
-
-    &-header {
-      display: flex;
-      flex: 1;
-
-      &-item {
-        margin-right: 6px;
-      }
-    }
-  }
-}
-
 .supermarker {
   border-left: 2px solid #8b4a6a;
   border-radius: 4px;
   padding-left: 2px;
 }
+.diff {
+  display: flex;
+  gap: 1rem;
+  .side {
+    width: 50%;
+  }
+}
 .marker-container {
   display: flex;
   position: relative;
   align-items: flex-start;
-}
-.marker {
-  position: absolute;
-  width: 10px;
-  height: calc(100% - 0.75rem);
-  border-left: 2px solid #8b4a6a;
-  border-radius: 4px;
-  &.trans {
-    opacity: 0.5;
+  .marker {
+    position: absolute;
+    width: 10px;
+    height: calc(100% - 0.75rem);
+    border-left: 2px solid #8b4a6a;
+    border-radius: 4px;
+    &.hidden {
+      visibility: hidden;
+    }
+    &.trans {
+      opacity: 0.5;
+    }
   }
-}
-.nummer {
-  margin-left: 1.25rem
-}
-.inhoud {
-  flex-grow: 1;
-  padding-left: 1rem;
-  padding-right: 20px;
+  .nummer {
+    margin-left: 1.25rem
+  }
+  .inhoud {
+    flex-grow: 1;
+    padding-left: 1rem;
+    padding-right: 20px;
+  }
+  .redalert {
+    position: absolute;
+    right: -1px;
+    top: -5px;
+    width: 21px;
+    height: 29px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    rotate: 45deg;
+    pointer-events: none;
+  }
 }
 
 .btn-title {
   display: flex;
   width: 100%;
   min-height: 24px;
-  margin: 0.25rem 0 0.75rem;
   border: 0;
   padding: 0;
   justify-content: space-between;
@@ -58,12 +62,35 @@
   &.btn-link {
     margin: 0;
   }
-  &.filtered {
-    text-decoration: underline #f9e11e;
-  }
 }
 .btn-link.trans {
   opacity: 0.2;
+}
+
+dso-document-element-title.filtered {
+  text-decoration: underline #f9e11e;
+}
+
+.insert {
+  background-color: rgba(57, 135, 12, 0.1);
+  .emphasize {
+    background-color: rgba(57, 135, 12, 0.5);
+  }
+}
+.update {
+  background-color: rgba(255, 153, 0, 0.1);
+  .emphasize {
+    background: rgba(255, 153, 0, 0.6);
+  }
+}
+.delete {
+  background-color: rgba(206, 63, 81, 0.1);
+  .emphasize {
+    background-color: rgba(206, 63, 81, 0.4);
+  }
+}
+.trail {
+  text-decoration: underline rgb(255, 153, 0);
 }
 
 .di.di-sm {

@@ -35,6 +35,9 @@ strong {
   div:first-child label {
     margin: 4px 0 0 0;
   }
+  div:last-child label {
+    min-height: 25px;
+  }
 }
 .dso-progress-indicator {
   top: 5px;
