@@ -1,8 +1,11 @@
-import { Injectable, NgZone } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
 import { HttpClient } from "@angular/common/http";
 import { Envelope, JsonConverter, Layer, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
+import { AppEvent } from "../event/AppEvent";
+import { AppEventDispatcher } from "../event/AppEventDispatcher";
+import { AppEventListener } from "../event/AppEventListener";
 import { DiffBuilderService } from "./diff-builder.service";
 import { DisplayModelService } from "./display-model.service";
 import { ImowModelService } from "./imow-model.service";
@@ -13,15 +16,13 @@ import { ParapluModelService } from "./paraplu-model.service";
 import { Planalysis } from "../domain/planalysis"
 import { PlanDecoratorService } from "./plan-decorator.service";
 import { PlanLevelModelService } from "./plan-level-model.service";
-import { StateModelService } from "./state-model.service";
+import { TimeModelService } from "./time-model.service";
 import { environment } from "../../environments/environment"
 
 @Injectable({
   providedIn: "root"
 })
-export class PlanModelService {
-  private markerXY = null;
-
+export class PlanModelService extends AppEventDispatcher implements AppEventListener {
   private titleSymbols = {
     BOEK: "BOEK",
     DEEL: "DEEL",
@@ -34,8 +35,10 @@ export class PlanModelService {
     SUBSUBPARAGRAAF: "§",
     ARTIKEL: "ARTIKEL"
   };
+  private plannen = [];  // IMRO plannen only.
 
   numLoadingR = 0;
+  numLoadingC = 0;
 
   planalysis = null;
   plan = null;
@@ -46,52 +49,54 @@ export class PlanModelService {
   documents = [];
 
   constructor(
-    private zone: NgZone,
     private sanitizer: DomSanitizer,
     private http: HttpClient,
     private nineyDefault: NineyDefaultService,
-    private stateModel: StateModelService,
     private displayModel: DisplayModelService,
     private parapluModel: ParapluModelService,
     private layerModel: LayerModelService,
+    private timeModel: TimeModelService,
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
     private planDecorator: PlanDecoratorService,
     private diffBuilder: DiffBuilderService,
-    private omgevingsdocumentModel: OmgevingsdocumentModelService,
+    public regelingModel: OmgevingsdocumentModelService,
     private imowModel: ImowModelService
   ) {
-    this.zone.onMicrotaskEmpty.subscribe({
-      next: () => {
-        if (this.markerXY != this.markerModel.xy) {
-          this.markerXY = this.markerModel.xy;
-          this.loadPlanalysis();
-        }
-      }
-    });
+    super();
+
+    this.markerModel.addEventListener(this);
+    this.regelingModel.addEventListener(this);
+    this.imowModel.addEventListener(this);
   }
 
-  loadPlanalysis() {
+  appEventHandler(event: AppEvent): void {
+    if (event.type == "markerModel.xy") {
+      this.loadPlanalysis();
+    } else if (event.type == "regelingModel.regelingen") {
+      this.setPlanalysis();
+
+      if ((this.plan != null) && !this.plan.identificatie.match(/^NL\.IMRO/)) {
+        this.loadPlan(this.plan.viewId, null, false, false);
+      }
+    } else if (event.type == "imowModel.markerLocatieIdentificaties") {
+      this.setPlanalysis();
+    }
+  }
+
+  private loadPlanalysis() {
     if (this.markerModel.xy == null) {
-      this.setPlanalysis(null);
-
-      this.stateModel.leaveSelectPlan();
-
-      this.imowModel.setMarkerLocatieIdentificaties([]);
+      this.plannen = [];
+      this.setPlanalysis();
     } else {
-      let plannen = [];
-
       const point = this.markerModel.xy;
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/xy/" + point.x + "/" + point.y;
       this.numLoadingR++;
       this.http.get(url).subscribe(
         response => {
-          const plannen1 = response["plannen"] || [];
-          plannen1.forEach(plan => this.planDecorator.decoratePlan(plan, true));
-          plannen = plannen.concat(plannen1);
-          this.setPlanalysis(plannen);
-
-          this.stateModel.enterSelectPlan();
+          this.plannen = response["plannen"] || [];
+          this.plannen.forEach(plan => this.planDecorator.decoratePlan(plan, true));
+          this.setPlanalysis();
 
           if (environment.ihr) {
             const options = environment.ihrOptions;
@@ -105,7 +110,7 @@ export class PlanModelService {
             this.http.post(url, post, options).subscribe(
               response => {
                 const rp = [window.location.pathname];
-                const rpPlannen = plannen1.filter(plan => plan.viewPlanLevel.name == "Gemeente").sort((a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: 0);
+                const rpPlannen = this.plannen.filter(plan => plan.viewPlanLevel.name == "Gemeente").sort((a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: 0);
                 rpPlannen.filter(plan => plan.typePlan != "structuurvisie").forEach(plan => rp.push([plan.naam, plan.typePlan, plan.planStatus, plan.dossierStatus, plan.datum, plan.identificatie].join(" - ")));
                 rpPlannen.filter(plan => plan.typePlan == "structuurvisie").forEach(plan => rp.push([plan.naam, plan.typePlan, plan.planStatus, plan.dossierStatus, plan.datum, plan.identificatie].join(" - ")));
 
@@ -130,34 +135,14 @@ export class PlanModelService {
           this.numLoadingR--;
         }
       );
-
-      let locatieIdentificaties = [];
-
-      const options = environment.dsoOptions;
-      const post = {
-        geo: {
-          geometrie: (new JsonConverter()).geometryToJson(this.markerModel.polygon || this.markerModel.xy, false),
-          spatialOperator:"intersects"
-        }
-      };
-      [false, true].forEach(ontwerpLocaties => {
-        const url = environment.dsoUrl + (!ontwerpLocaties? "locatieidentificaties/_zoek": "ontwerplocaties/technischids/_zoek");
-        this.http.post(url, post, options).subscribe(response => {
-          const locatieIdentificaties1 = Object.values(response["_embedded"])[0] as any[];
-          if (locatieIdentificaties1.length > 0) {
-            const regelingen = this.omgevingsdocumentModel.regelingen.filter(regeling => locatieIdentificaties1.includes(regeling.locatieIdentificatie));
-            plannen = plannen.concat(regelingen);
-            this.setPlanalysis(plannen);
-            locatieIdentificaties = locatieIdentificaties.concat(locatieIdentificaties1);
-          }
-          this.imowModel.setMarkerLocatieIdentificaties(locatieIdentificaties);
-        });
-      });
     }
   }
 
-  setPlanalysis(plannen) {
-    if (plannen == null) {
+  private setPlanalysis() {
+    const regelingen = this.regelingModel.regelingen.filter(regeling => this.imowModel.markerLocatieIdentificaties.includes(regeling.locatieIdentificatie));
+    const plannen = this.plannen.concat(regelingen);
+
+    if (plannen.length == 0) {
       this.planalysis = null;
     } else {
       this.planalysis = new Planalysis(plannen, this.planLevelModel.planLevels, this.parapluModel.parapluItems);
@@ -165,22 +150,25 @@ export class PlanModelService {
     this.setPlanInPlanalysis();
   }
 
-  loadPlan(identificatie, dossierSet, zoomToPlan, local, postAction = null) {
-    if (
-      ((this.plan != null) && (identificatie == (this.plan.technischId || this.plan.identificatie))) ||
-      ((this.diffPlan != null) && (identificatie == (this.diffPlan.technischId || this.diffPlan.identificatie)) && local)
-    ) {
+  loadPlan(viewId, dossierSet, zoomToPlan, local) {
+    if ((this.plan != null) && !this.plan.identificatie.match(/^NL\.IMRO/) && (this.plan.viewId == viewId) && !this.isPlanInvalid(this.plan)) {
+      this.planDecorator.decorateRegelingStatus(this.plan);  // If after a time change, the plan is still valid, its status may need a reset.
+      this.regelingModel.resetVersions(this.plan);           // And its version info.
+      this.resetComponents(this.plan);                       // And the annotations of its components.
+      return;
+    }
+    if ((this.diffPlan != null) && (this.diffPlan.viewId == viewId) && local) {
       return;
     }
 
     if (dossierSet == "CURRENT") {
       dossierSet = this.dossierSet;
     } else if (dossierSet == "PLANALYSIS") {
-      dossierSet = this.planalysis.dossierSets[identificatie];
+      dossierSet = this.planalysis.dossierSets[viewId];
     }
 
-    if (identificatie.indexOf("NL.IMRO") == 0) {
-      const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + identificatie;
+    if (viewId.indexOf("NL.IMRO") == 0) {
+      const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + viewId;
       this.http.get(url).subscribe(response => {
         const plan: any = response;
 
@@ -207,187 +195,288 @@ export class PlanModelService {
 
         this.setPlan(plan, dossierSet);
         if (zoomToPlan) {
-          this.zoomToPlan();
-        }
-        if (postAction != null) {
-          postAction();
+          this.zoomTo(plan);
         }
 
-        const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + identificatie + "/geometrie";
+        const url = environment.websiteProxyUrl + "web-roo/rest/search/plan/id/" + viewId + "/geometrie";
         this.http.get(url).subscribe(response => {
           plan.geometrie = (new WKTConverter()).wktToCoordPath(response["geometrie"]);
         });
       });
     } else {  // AKN.
-      const plan = this.omgevingsdocumentModel.regelingen.find(regeling => (regeling.technischId || regeling.identificatie) == identificatie);
+      if (this.regelingModel.regelingen.length == 0) {
+        const plan: any = (viewId[0] != "_")?
+          {identificatie: viewId.replace(/\|.+$/, "")}:
+          {identificatie: viewId.split("_akn_nl_bill")[0].replace(/_/g, "/"), technischId: viewId};
+        plan.geregistreerdMet = {tijdstipRegistratie: "9999T"};
+        plan.viewId = viewId;
+        this.plan = plan;
+        return;
+      }
+
+      let plan = this.regelingModel.regelingen.find(regeling => regeling.viewId == viewId);
+      if ((plan == null) && (this.plan != null)) {
+        const regelingen = this.regelingModel.regelingen.filter(regeling => !regeling.technischId && (regeling.identificatie == this.plan.identificatie));
+        if (regelingen.length > 0) {
+          const versie = this.plan.predecessor?.geregistreerdMet.versie || this.plan.geregistreerdMet.versie || Number.MAX_SAFE_INTEGER;
+          regelingen.sort((a, b) => (Math.abs(a.geregistreerdMet.versie - versie) < Math.abs(b.geregistreerdMet.versie - versie))? 1: (Math.abs(a.geregistreerdMet.versie - versie) > Math.abs(b.geregistreerdMet.versie - versie))? -1: 0);
+          plan = regelingen[0];
+        }
+      }
+
+      this.loadDocumentComponenten(plan, local);
+
       if (!local) {
-        this.setPlan(plan, dossierSet);
-        if (zoomToPlan) {
-          this.imowModel.loadLocatieForPlanPostActions["zoomToPlan"] = () => { if (this.plan == plan) { this.zoomToPlan(); }};
+        if (plan == null) {
+          this.setPlan(null, null);
+          return;
         }
+
+        this.displayModel.setLabel(plan.typePlan);
+        this.regelingModel.loadVersions(plan);
+
+        this.imowModel.loadLocatieForPlanPostActions["setPlan"] = () => {
+          if (zoomToPlan) {
+            this.zoomTo(plan);
+
+            setTimeout(() => {
+              this.setPlan(plan, dossierSet);
+            }, 2000);
+          } else {
+            this.setPlan(plan, dossierSet);
+          }
+        };
         this.imowModel.loadLocatieForPlan(plan);
-        if (postAction != null) {
-          postAction();
-        }
       } else {
         this.diffPlan = plan;
       }
-
-      const underscoredDocumentId = identificatie.replace(/[^a-zA-Z0-9]/g, "_");
-      const options = environment.dsoOptions;
-      const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + (plan.technischId? "ontwerp": "") + "regelingen/" + underscoredDocumentId + "/" + (plan.technischId? "ontwerp": "") + "documentcomponenten";
-      this.imowModel.numLoadingC++;
-      this.http.get(url, options).subscribe(
-        response => {
-          plan.documentComponenten = response;
-
-          if (!local) {
-            this.displayModel.initTabs(plan.documentComponenten, plan.typePlan);
-          }
-
-          this.displayModel.tabs.filter(tab => tab.algo).forEach((tab, i) => {
-            if (!local || (i == 0)) {
-              const components = this.getComponents(tab.algo(plan.documentComponenten));
-              if (!local) {
-                tab.components = components;
-                tab.diffComponents = [];
-              } else {  // i == 0
-                tab.diffComponents = this.diffBuilder.getDiffComponents(components, tab.components);
-              }
-            }
-          });
-          this.imowModel.numLoadingC--;
-        },
-        error => {
-          this.imowModel.numLoadingC--;
-        }
-      );
     }
 
 //    oepModel.load(idn);
   }
 
-  getComponents(documentComponenten) {
-        let i = 0;
-        const components = [];
-        const doc = document.implementation.createHTMLDocument();
-        const processComponent = (component, parentComponent) => {
-          if (component.identificatie != null) {
-            components.push(component);
-          }
+  private loadDocumentComponenten(plan, local) {
+    if (plan == null) {
+      return;
+    }
+    if (plan.documentComponenten != null) {
+      this.setDocumentComponenten(plan, local);
+      return;
+    }
 
-          if ((parentComponent != null) && (parentComponent._links != null)) {
-            if (parentComponent._links.inheritedDivisieannotaties != null) {
-              component._links.inheritedDivisieannotaties = parentComponent._links.inheritedDivisieannotaties.concat();
-            }
-            if (parentComponent._links.divisieannotatie != null) {
-              component._links.inheritedDivisieannotaties = component._links.inheritedDivisieannotaties || [];
-              component._links.inheritedDivisieannotaties.push(parentComponent._links.divisieannotatie);
-            }
-            if (parentComponent._links.inheritedOntwerpdivisieannotaties != null) {
-              component._links.inheritedOntwerpdivisieannotaties = parentComponent._links.inheritedOntwerpdivisieannotaties.concat();
-            }
-            if (parentComponent._links.ontwerpdivisieannotatie != null) {
-              component._links.inheritedOntwerpdivisieannotaties = component._links.inheritedOntwerpdivisieannotaties || [];
-              component._links.inheritedOntwerpdivisieannotaties.push(parentComponent._links.ontwerpdivisieannotatie);
-            }
-          }
+    const underscoredDocumentId = plan.viewId.replace(/\|.+$/, "").replace(/[^a-zA-Z0-9]/g, "_");
+    const options = environment.dsoOptions;
+    const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + (!plan.technischId? "regelingen/": "ontwerpregelingen/") + underscoredDocumentId + "/" + (!plan.technischId? ("documentcomponenten?" + plan._links.documentstructuur.href.replace(/^.+\?/, "")): "ontwerpdocumentcomponenten");
+    this.numLoadingC++;
+    this.http.get(url, options).subscribe(
+      response => {
+        plan.documentComponenten = response;
+        const eid2wid = this.getEid2wid(plan.documentComponenten);
+        this.convertToHtml(plan.documentComponenten, eid2wid);
 
-          if (component.type == "LID") {
-            component.artikelNummer = parentComponent.nummer;
-          } else if ((component.type == "DIVISIETEKST") && (component.nummer == null)) {
-            component.divisieNummer = parentComponent.nummer;
-          } else if ((component.type == "ALGEMENE_TOELICHTING") || (component.type == "ARTIKELGEWIJZE_TOELICHTING")) {
-            component.opschrift = component.type.replace("_", " ");
-            component.type = "DIVISIE";
-          }
+        this.setDocumentComponenten(plan, local);
 
-          if (component.inhoud != null) {
-              if (component.inhoud.match(/ style="[^"]+"/)) {
-                component.inhoud = component.inhoud.replace(/ style="[^"]+"/g, "");
+        this.numLoadingC--;
+      },
+      error => {
+        this.numLoadingC--;
+      }
+    );
+  }
+
+  private setDocumentComponenten(plan, local) {
+    if (!local) {
+      this.displayModel.setDocumentComponenten(plan.documentComponenten);
+    }
+
+    this.displayModel.tabs.filter(tab => tab.algo).forEach((tab, i) => {
+      if (!local || (i == 0)) {
+        const components = this.getComponents(tab.algo(plan.documentComponenten));
+        if (!local) {
+          tab.components = components;
+          tab.diffComponents = [];
+        } else {  // i == 0
+          tab.diffComponents = this.diffBuilder.getDiffComponents(components, tab.components);
+        }
+      }
+    });
+
+    if (plan == this.plan) {
+      this.dispatchEvent("planModel.plan.documentComponenten");
+    }
+  }
+
+  private resetComponents(plan) {
+    this.displayModel.tabs[2].components.forEach(component => {
+      if (component.tekst != null) {
+        if (this.imowModel.isTekstInvalidForPlan(component.tekst, plan)) {
+          delete component.tekst;
+        } else {
+          // TODO re-register
+        }
+      }
+      delete component.inheritedTeksten;  // TODO only if invalid
+    });
+  }
+
+  private getEid2wid(documentComponenten) {
+    const eid2wid = {};
+    const processComponent = component => {
+      if (component.expressie != null) {
+        eid2wid[component.expressie] = component.identificatie;
+      }
+
+      if (component._embedded != null) {
+        if (component._embedded.documentComponenten != null) {
+          component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent));
+        } else if (component._embedded.ontwerpDocumentComponenten != null) {
+          component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent));
+        }
+      }
+    }
+    processComponent(documentComponenten);
+    return eid2wid;
+  }
+
+  private convertToHtml(documentComponenten, eid2wid) {
+    let i = 0;
+    const doc = document.implementation.createHTMLDocument();
+    const processComponent = (component, parentComponent) => {
+      if ((parentComponent != null) && (parentComponent._links != null)) {
+        if (parentComponent._links.inheritedDivisieannotaties != null) {
+          component._links.inheritedDivisieannotaties = parentComponent._links.inheritedDivisieannotaties.concat();
+        }
+        if (parentComponent._links.divisieannotatie != null) {
+          component._links.inheritedDivisieannotaties = component._links.inheritedDivisieannotaties || [];
+          component._links.inheritedDivisieannotaties.push(parentComponent._links.divisieannotatie);
+        }
+        if (parentComponent._links.inheritedOntwerpdivisieannotaties != null) {
+          component._links.inheritedOntwerpdivisieannotaties = parentComponent._links.inheritedOntwerpdivisieannotaties.concat();
+        }
+        if (parentComponent._links.ontwerpdivisieannotatie != null) {
+          component._links.inheritedOntwerpdivisieannotaties = component._links.inheritedOntwerpdivisieannotaties || [];
+          component._links.inheritedOntwerpdivisieannotaties.push(parentComponent._links.ontwerpdivisieannotatie);
+        }
+      }
+
+      if (component.type == "LID") {
+        component.artikelNummer = parentComponent.nummer;
+      } else if ((component.type == "DIVISIETEKST") && (component.nummer == null)) {
+        component.divisieNummer = parentComponent.nummer;
+      } else if ((component.type == "ALGEMENE_TOELICHTING") || (component.type == "ARTIKELGEWIJZE_TOELICHTING")) {
+        component.opschrift = component.type.replace("_", " ");
+        component.type = "DIVISIE";
+      }
+
+      ["inhoud", "opschrift"].forEach(inhoudOrOpschrift => {
+        if (component[inhoudOrOpschrift] != null) {
+          let needsTrust = false;
+          if (component[inhoudOrOpschrift].match(/ style="[^"]+"/)) {
+            needsTrust = true;
+          }
+          if (component[inhoudOrOpschrift].includes("data-verwijst-naar-documentcomponent")) {
+            component[inhoudOrOpschrift] = component[inhoudOrOpschrift].replace(
+              /<span data-verwijst-naar-documentcomponent="([^"]+)" data-scope="">([^<]+)<\/span>/g,
+              (match, eid, content) => "<a href=\"javascript:void(0)\" onclick=\"window.stopPlanViewerComponent.displaySetTab('lookup', '" + eid2wid[eid] + "')\" title=\"Naar deze tekst gaan\">" + content + "</a>"
+            );
+            needsTrust = true;
+          }
+          if (component[inhoudOrOpschrift].includes("od-Li") || component[inhoudOrOpschrift].includes("class=\"noot\"") || component[inhoudOrOpschrift].includes("od-IntIoRef")) {
+            const el = doc.createElement("div");
+            el.innerHTML = component[inhoudOrOpschrift];
+            const liElements = el.getElementsByClassName("od-Li");
+            for (let j = 0; j < liElements.length; j++) {
+              const liElement = liElements.item(j);
+              const liContainer = doc.createElement("div");
+              liContainer.className = "od-LiContainer";
+              liElement.before(liContainer);
+              liContainer.appendChild(liElement);
+              if (liElement.firstElementChild.className.includes("od-LiNummer")) {
+                liElement.before(liElement.firstElementChild);
+              } else {
+                const liNummerElement = doc.createElement("div");
+                liNummerElement.className = "od-LiNummer";
+                liNummerElement.innerHTML = "&bull;";
+                liElement.before(liNummerElement);
               }
-              if (component.inhoud.includes("od-Li")) {
-                const el = doc.createElement("div");
-                el.innerHTML = component.inhoud;
-                const liElements = el.getElementsByClassName("od-Li");
-                for (let j = 0; j < liElements.length; j++) {
-                  const liElement = liElements.item(j);
-                  const liContainer = doc.createElement("div");
-                  liContainer.className = "od-LiContainer";
-                  liElement.before(liContainer);
-                  liContainer.appendChild(liElement);
-                  if (liElement.firstElementChild.className.includes("od-LiNummer")) {
-                    liElement.before(liElement.firstElementChild);
-                  } else {
-                    const liNummerElement = doc.createElement("div");
-                    liNummerElement.className = "od-LiNummer";
-                    liNummerElement.innerHTML = "&bull;";
-                    liElement.before(liNummerElement);
-                  }
-                }
-                component.inhoud = el.innerHTML;
-              }
+            }
+            const nootElements = el.querySelectorAll("div.noot");
+            for (let j = 0; j < nootElements.length; j++) {
+              const nootElement = nootElements.item(j);
+              const nootId = "noot_" + i++;
+              const nootIndex = nootElement.firstElementChild.textContent;
+              const nootText = nootElement.nextElementSibling.firstElementChild.innerHTML;
+              nootElement.nextSibling.remove();
+              nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
+              needsTrust = true;
+            }
+            const intIoRefElements = el.getElementsByClassName("od-IntIoRef");
+            for (let j = 0; j < intIoRefElements.length; j++) {
+              const intIoRefElement = intIoRefElements.item(j);
+              const content = intIoRefElement.innerHTML;
+              intIoRefElement.innerHTML = "<a href=\"javascript:void(0)\" onclick=\"window.stopPlanViewerComponent.displayEmit('annotationsVisible', '" + content.replace(/'/g, "") + "')\" title=\"Locatie tonen\">" + content + "</a>";
+              needsTrust = true;
+            }
+            component[inhoudOrOpschrift] = el.innerHTML;
           }
-
-          ["inhoud", "opschrift"].forEach(inhoudOrOpschrift => {
-            if (component[inhoudOrOpschrift] != null) {
-              if (component[inhoudOrOpschrift].includes("class=\"noot\"") || component[inhoudOrOpschrift].includes("od-IntIoRef")) {
-                const el = doc.createElement("div");
-                el.innerHTML = component[inhoudOrOpschrift];
-                const nootElements = el.querySelectorAll("div.noot");
-                for (let j = 0; j < nootElements.length; j++) {
-                  const nootElement = nootElements.item(j);
-                  const nootId = "noot_" + i++;
-                  const nootIndex = nootElement.firstElementChild.textContent;
-                  const nootText = nootElement.nextElementSibling.firstElementChild.innerHTML;
-                  nootElement.nextSibling.remove();
-                  nootElement.outerHTML = "<div onclick=\"event.stopPropagation()\" class=\"od-Noot\"><sup><a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='block'\">[" + nootIndex + "]</a></sup><div id=\"" + nootId + "\" class=\"od-Al\" style=\"display: none\"><sup>[" + nootIndex + "]</sup> " + nootText + "<a href=\"javascript:void(0)\" onclick=\"document.getElementById('" + nootId + "').style['display']='none'\" class=\"hide\"><span class=\"fa fa-times\"></span></a></div></div>";
-                }
-                const intIoRefElements = el.getElementsByClassName("od-IntIoRef");
-                for (let j = 0; j < intIoRefElements.length; j++) {
-                  const intIoRefElement = intIoRefElements.item(j);
-                  const content = intIoRefElement.innerHTML;
-                  intIoRefElement.innerHTML = "<a href=\"javascript:void(0)\" onclick=\"window.stopPlanViewerComponent.displayEmit('annotationsVisible', '" + content + "')\" title=\"Geografische begrenzing tonen\">" + content + "</a>";
-                }
-                component[inhoudOrOpschrift] = this.sanitizer.bypassSecurityTrustHtml(el.innerHTML);
-              }
-            }
-          });
-
-          if (component.type == "LID") {
-            component.viewHeader = component.nummer;
-          } else if (((component.type != "DIVISIETEKST") || component.opschrift) && (component.type != "BEGRIP")) {
-            component.viewHeader = "";
-            if ((component.nummer != null) || (component.opschrift == null)) {
-              if (this.titleSymbols[component.type] != null) {
-                component.viewHeader += "<div>" + this.titleSymbols[component.type] + "</div>";
-              }
-              component.viewHeader += "<div>" + (component.nummer || "[ongenummerd]") + "</div>";
-            }
-            if (component.opschrift != null) {
-              component.viewHeader += component.opschrift.changingThisBreaksApplicationSecurity || component.opschrift;
-            }
-            if (component.gereserveerd) {
-              component.viewHeader += "<div>[gereserveerd]</div>";
-            }
-            if (component.vervallen) {
-              component.viewHeader += "<div>[vervallen]</div>";
-            }
-            if (component.opschrift?.changingThisBreaksApplicationSecurity != null) {
-              component.viewHeader = this.sanitizer.bypassSecurityTrustHtml(component.viewHeader);
-            }
-          }
-
-          if (component._embedded != null) {
-            if (component._embedded.documentComponenten != null) {
-              component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent, component));
-            } else if (component._embedded.ontwerpDocumentComponenten != null) {
-              component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent, component));
-            }
+          if (needsTrust) {
+            component[inhoudOrOpschrift] = this.sanitizer.bypassSecurityTrustHtml(component[inhoudOrOpschrift]);
           }
         }
-        processComponent(documentComponenten, null);
-        return components;
+      });
+
+      if (component.type == "LID") {
+        component.viewHeader = component.nummer;
+      } else if (((component.type != "DIVISIETEKST") || component.opschrift) && (component.type != "BEGRIP")) {
+        component.viewHeader = "";
+        if ((component.nummer != null) || (component.opschrift == null)) {
+          if (this.titleSymbols[component.type] != null) {
+            component.viewHeader += "<div>" + this.titleSymbols[component.type] + "</div>";
+          }
+          component.viewHeader += "<div>" + (component.nummer || "[ongenummerd]") + "</div>";
+        }
+        if (component.opschrift != null) {
+          component.viewHeader += component.opschrift.changingThisBreaksApplicationSecurity || component.opschrift;
+        }
+        if (component.gereserveerd) {
+          component.viewHeader += "<div>[gereserveerd]</div>";
+        }
+        if (component.vervallen) {
+          component.viewHeader += "<div>[vervallen]</div>";
+        }
+        if (component.opschrift?.changingThisBreaksApplicationSecurity != null) {
+          component.viewHeader = this.sanitizer.bypassSecurityTrustHtml(component.viewHeader);
+        }
+      }
+
+      if (component._embedded != null) {
+        if (component._embedded.documentComponenten != null) {
+          component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent, component));
+        } else if (component._embedded.ontwerpDocumentComponenten != null) {
+          component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent, component));
+        }
+      }
+    }
+    processComponent(documentComponenten, null);
+  }
+
+  private getComponents(documentComponenten) {
+    const components = [];
+    const processComponent = component => {
+      if (component.identificatie != null) {
+        components.push(component);
+      }
+
+      if (component._embedded != null) {
+        if (component._embedded.documentComponenten != null) {
+          component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent));
+        } else if (component._embedded.ontwerpDocumentComponenten != null) {
+          component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent));
+        }
+      }
+    }
+    processComponent(documentComponenten);
+    return components;
   }
 
   setPlan(plan, dossierSet) {
@@ -433,10 +522,13 @@ export class PlanModelService {
       layers[3].visible = false;
       layers[5].visible = true;
     }
+
     this.setPlanInPlanalysis();
     this.setDocuments();
     this.setImowPlan();
 //    this.setOutOfBounds();
+
+    this.dispatchEvent("planModel.plan");
   }
 
   setPlanInPlanalysis() {
@@ -507,8 +599,24 @@ export class PlanModelService {
     }
   }
 
-  zoomToPlan() {
-    this.nineyDefault.defaultEnvelopeModel.setEnvelope(this.plan.viewEnvelope);
+  zoomTo(plan) {
+    this.nineyDefault.defaultEnvelopeModel.setEnvelope(plan.viewEnvelope);
+  }
+
+  private isPlanInvalid(plan) {
+    if (this.timeModel.time < plan.geregistreerdMet.tijdstipRegistratie.split("T")[0]) {
+      return true;
+    }
+    if (plan.technischId != null) {
+      return false;
+    }
+    if (this.timeModel.time > plan.timeRequested) {
+      return true;
+    }
+    if (this.timeModel.time >= plan.geregistreerdMet.eindGeldigheid) {
+      return true;
+    }
+    return false;
   }
 
   private setImowPlan() {

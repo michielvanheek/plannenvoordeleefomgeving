@@ -1,39 +1,31 @@
-<div class="back">
-  <button (click)="stateModel.toggleState()" title="Terug naar: Een plek zoeken" class="btn btn-link">
-    <span class="fa fa-angle-left mr-2"></span>terug
-  </button>
-</div>
-<h3>Een plan kiezen</h3>
-<p>
-  Op de gemarkeerde plek bevinden zich {{planModel.planalysis.planItems.reduce(count, 0)}} plannen:
-  <!--<span ng-if="planModel.planalysis.planItems[0][0].length > 0">Een <a href="" ng-click="windowModel.toggleVisible(0)">keuzehulp voor bestemmingsplannen</a> is beschikbaar.</span>-->
-</p>
-<div class="selector">
-  <ul class="dso-nav dso-nav-sub">
-    <li *ngFor="let planLevel of planLevelModel.planLevels" (click)="planLevelModel.setPlanLevel(planLevel)" class="dso-outline" [ngClass]="{'dso-active': (planLevel == planLevelModel.planLevel)}">
-      <a href="javascript:void(0)">{{planLevel.name}} <span class="small light">({{planModel.planalysis.planItems[planLevel.id].reduce(countPerLevel, 0)}})</span></a>
-    </li>
-  </ul>
-  <div class="tab-content">
-    <ul class="list-group list-group-flush">
-      <ng-template ngFor let-planLevelType [ngForOf]="planLevelModel.planLevel.types" let-i="index">
-        <ng-template [ngIf]="planModel.planalysis.planItems[planLevelModel.planLevel.id][i].length">
-          <li class="list-group-item header" [ngStyle]="{top: (i * 31 - 1) + 'px', bottom: 0}">{{planLevelType.name}} <span class="small light">({{planModel.planalysis.planItems[planLevelModel.planLevel.id][i].length}})</span></li>
-          <div *ngIf="planModel.numLoadingR && !i" class="empty"></div>
-          <li *ngFor="let planItem of planModel.planalysis.planItems[planLevelModel.planLevel.id][i]" title="Dit plan kiezen" class="list-group-item" [ngClass]="{active: (planModel.plan && (planItem.plan.identificatie == planModel.plan.identificatie))}">
-            <strong *ngIf="planItem.plan.viewPlanLevel == planLevelModel.planLevel">{{planItem.plan.naam}}</strong>
-            <div *ngIf="planItem.plan.viewPlanLevel != planLevelModel.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
-            <div [ngClass]="{small: planItem.plan.viewPlanLevel != planLevelModel.planLevel}">{{planItem.plan.typePlan}}, <span [ngClass]="{'red': ['ontwerp', 'toekomstig'].includes(planItem.plan.viewStatus)}">{{planItem.plan.viewStatus}}</span> ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
-            <div (click)="planModel.loadPlan(planItem.plan.technischId || planItem.plan.identificatie, 'PLANALYSIS', false, false)" (mouseover)="highlightModel.setHighlight(planItem.plan, !!planItem.plan.versieImro)" (mouseout)="highlightModel.setHighlight(null, !!planItem.plan.versieImro)" class="overlay"></div>
-          </li>
-        </ng-template>
+<ul class="dso-nav">
+  <li *ngFor="let tab1 of tabs" class="dso-outline" [ngClass]="{'dso-active': (tab1 == tab)}">
+    <a *ngIf="tab1.numPlans" [routerLink]="" (click)="planLevelModel.setPlanLevel(tab1.planLevel)">{{tab1.planLevel.name}} <span class="small">({{tab1.numPlans}})</span></a>
+    <div *ngIf="!tab1.numPlans" class="disabled">{{tab1.planLevel.name}} <span class="small">({{tab1.numPlans}})</span></div>
+  </li>
+</ul>
+<div class="tab-content">
+  <ul *ngIf="tab" class="list-group list-group-flush">
+    <ng-template ngFor let-planLevelType [ngForOf]="tab.planLevel.types" let-i="index">
+      <ng-template [ngIf]="planModel.planalysis.planItems[tab.planLevel.id][i].length">
+        <li class="list-group-item header" [ngStyle]="{top: (i * 31 - 1) + 'px', bottom: 0}">{{planLevelType.name}} <span class="small">({{planModel.planalysis.planItems[tab.planLevel.id][i].length}})</span></li>
+        <div *ngIf="(regelingModel.numLoading + planModel.numLoadingR) && !i" class="empty"></div>
+        <a [routerLink]="" *ngFor="let planItem of planModel.planalysis.planItems[tab.planLevel.id][i]" title="Dit plan kiezen" class="list-group-item" [ngClass]="(planModel.plan && (planItem.plan.viewId == planModel.plan.viewId))? 'selected': 'selectable'">
+          <strong *ngIf="planItem.plan.viewPlanLevel == tab.planLevel">{{planItem.plan.naam}}</strong>
+          <div *ngIf="planItem.plan.viewPlanLevel != tab.planLevel">{{planItem.plan.viewPlanLevel.adjective}}: {{planItem.plan.naam}}</div>
+          <div [ngClass]="{small: planItem.plan.viewPlanLevel != tab.planLevel}">{{planItem.plan.typePlan}}, <span [ngClass]="{'red': ['ontwerp', 'toekomstig'].includes(planItem.plan.viewStatus)}">{{planItem.plan.viewStatus}}</span> ({{(planItem.plan.viewStatus == planItem.plan.planStatus)? planItem.plan.viewDate: planItem.plan.planStatus + " " + planItem.plan.viewDate}}) <span *ngIf="planModel.planalysis.dossierSets[planItem.plan.identificatie]">&#9674;</span></div>
+          <div (click)="planModel.loadPlan(planItem.plan.viewId, 'PLANALYSIS', false, false)" (mouseover)="highlightModel.setHighlight(planItem.plan, !!planItem.plan.versieImro)" (mouseout)="highlightModel.setHighlight(null, !!planItem.plan.versieImro)" class="overlay"></div>
+        </a>
       </ng-template>
-    </ul>
+    </ng-template>
+  </ul>
+  <div *ngIf="!tab && !(regelingModel.numLoading + planModel.numLoadingR)" class="alert alert-info">
+    Op deze plek liggen geen plannen. Zoek een <a [routerLink]="" (click)="stateModel.enterSearchPlace()" class="alert-link">andere plek</a>.
   </div>
-  <div *ngIf="planModel.numLoadingR" class="dso-progress-indicator">
-    <div class="dso-progress-indicator-bg"></div>
-    <div class="dso-progress-indicator-spinner">
-      <span class="num">{{planModel.numLoadingR}}</span>
-    </div>
+</div>
+<div *ngIf="regelingModel.numLoading + planModel.numLoadingR" class="dso-progress-indicator">
+  <div class="dso-progress-indicator-bg"></div>
+  <div class="dso-progress-indicator-spinner">
+    <span class="num">{{regelingModel.numLoading + planModel.numLoadingR}}</span>
   </div>
 </div>

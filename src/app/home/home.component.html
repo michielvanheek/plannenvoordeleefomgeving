@@ -5,10 +5,10 @@
     ergens gelden. Bijvoorbeeld voor het bouwen van een huis, of voor het plaatsen van windmolens.
   </p>
   <div class="mb-3">
-    <a routerLink="/viewer" title="De plannenviewer openen" class="btn btn-primary">Naar de plannen <span class="ml-2 fa fa-caret-right"></span></a>
+    <a routerLink="" (click)="go()" title="De plannenviewer openen" class="btn btn-primary">Naar de plannen <span class="ml-2 fa fa-caret-right"></span></a>
   </div>
   <div>
-    <label [title]="'De plannenviewer instellen op:\n - juridische weergave (aan) of\n - volledige serviceweergave (uit)\nvan plekinfo en annotaties'">
+    <label [title]="'De plannenviewer instellen op:\n - juridische weergave (aan) of\n - volledige serviceweergave (uit)\nvan plekinfo en annotaties'" class="checkbox">
       <input type="checkbox" [(ngModel)]="environment.legalAnnotations"/><span class="checkmark"></span>
       Juridische weergave
     </label>

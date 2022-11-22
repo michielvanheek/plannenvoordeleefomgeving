@@ -1,5 +1,5 @@
-import { Component } from "@angular/core";
-import { CenterScale, FocusModel, Loader, Polygon } from "ng-niney";
+import { Component, DoCheck } from "@angular/core";
+import { CenterScale, FocusModel, Loader, Point, Polygon } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
@@ -14,8 +14,9 @@ import { PlanModelService } from "src/app/model/plan-model.service";
   templateUrl: "./map-panel.component.html",
   styleUrls: ["./map-panel.component.scss"]
 })
-export class MapPanelComponent {
+export class MapPanelComponent implements DoCheck {
   loader = new Loader();
+  numLoading = 0;
   legendPanelVisible = false;
 
   private baselines = [
@@ -57,6 +58,12 @@ export class MapPanelComponent {
     public highlightModel: HighlightModelService,
     public planModel: PlanModelService
   ) { }
+
+  ngDoCheck(): void {
+    if (this.numLoading != this.loader.numLoading) {
+      this.numLoading = this.loader.numLoading;
+    }
+  }
 
   get baseline() {
     const focusModel = this.nineyDefaultService.defaultFocusModel;
@@ -160,7 +167,7 @@ export class MapPanelComponent {
 
   mark(x, y) {
     this.measureModel.reset();
-    this.markerModel.setXY(x, y, null);
+    this.markerModel.setXY(new Point(x, y), null);
   }
 
   zoomIn() {

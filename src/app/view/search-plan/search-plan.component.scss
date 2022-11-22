@@ -1,23 +1,8 @@
 :host {
   display: flex;
+  min-height: 100px;
+  margin-top: 16px;
   flex-direction: column;
-  padding-top: 40px;
-}
-.btn-rnd {
-  width: 30px;
-  height: 30px;
-  border-radius: 15px;
-  padding: 0;
-  color: #275937;
-  background-color: rgb(243, 243, 243);
-}
-.btn-rnd:hover {
-  border: 4px solid #8b4a6a;
-}
-.form-control {
-  margin-top: 12px;
-  border: 1px solid #275937;
-  border-radius: 0;
 }
 .alert {
   margin-top: 1rem;

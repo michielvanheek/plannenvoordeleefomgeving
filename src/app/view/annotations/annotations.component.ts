@@ -2,7 +2,6 @@ import { Component, DoCheck, Input, OnChanges, OnDestroy, SimpleChanges } from "
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
-import { environment } from "../../../environments/environment";
 
 @Component({
   selector: "dso-annotations",
@@ -10,6 +9,8 @@ import { environment } from "../../../environments/environment";
   styleUrls: ["./annotations.component.scss"]
 })
 export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
+  private tekst = null;
+  private inheritedTeksten = null;
   private numLoadingD = this.imowModel.numLoadingD;
 
   private titleSymbols = {
@@ -20,23 +21,21 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     AFDELING: {article: "de", noun: "afdeling"},
     PARAGRAAF: {article: "de", noun: "paragraaf"},
     SUBPARAGRAAF: {article: "de", noun: "paragraaf"},
-    SUBSUBPARAGRAAF: {article: "de", noun: "paragraaf"}
+    SUBSUBPARAGRAAF: {article: "de", noun: "paragraaf"},
+    ARTIKEL: {article: "het", noun: "artikel"}
   };
   private childComponents = null;
-  private hash = null;
+  private hoofdlijnenHash = {};
+  private annotationsHash = {};
 
   @Input() component;
   @Input() display;
 
   header = null;
   subheader = null;
-  legalWarning = false;
 
-  locaties = [];
-  gebiedsaanwijzingen = [];
-  activiteitlocatieaanduidingen = [];
-  omgevingsnormen = [];
   hoofdlijnen = [];
+  annotations = [];
 
   constructor(
     public highlightModel: HighlightModelService,
@@ -45,7 +44,11 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
   ) { }
 
   get legal() {
-    return typeof this.display.annotationsVisible == "string";
+    return (typeof this.display.annotationsVisible == "string") && (this.display.annotationsVisible != "compact");
+  }
+
+  get compact() {
+    return this.display.annotationsVisible == "compact";
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -57,9 +60,21 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
   }
 
   ngDoCheck() {
+    if (this.component == null) {
+      return;
+    }
+
+    if ((this.tekst != this.component.tekst) || (this.inheritedTeksten != this.component.inheritedTeksten)) {
+      this.tekst = this.component.tekst;
+      this.inheritedTeksten = this.component.inheritedTeksten;
+      if (this.tekst == null) {
+        this.setComponents();
+      } else if (this.inheritedTeksten == null) {
+        this.setComponents();
+      }
+    }
     if (this.numLoadingD != this.imowModel.numLoadingD) {
       this.numLoadingD = this.imowModel.numLoadingD;
-
       this.applyComponents();
     }
   }
@@ -126,6 +141,9 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       this.childComponents = null;
     }
 
+    this.tekst = this.component.tekst;
+    this.inheritedTeksten = this.component.inheritedTeksten;
+
     this.applyComponents();
   }
 
@@ -135,31 +153,23 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     }
     if (this.legal && (this.imowModel.numLoadingD > 0)) {
       this.subheader = "...";
-      this.legalWarning = false;
 
-      this.locaties = [];
-      this.gebiedsaanwijzingen = [];
-      this.activiteitlocatieaanduidingen = [];
-      this.omgevingsnormen = [];
       this.hoofdlijnen = [];
+      this.annotations = [];
 
       return;
     }
 
     this.subheader = null;
-    this.legalWarning = false;
 
-    this.hash = {locaties: {}, gebiedsaanwijzingen: {}, activiteitlocatieaanduidingen: {}, omgevingsnormen: {}, hoofdlijnen: {}};
+    this.hoofdlijnenHash = {};
+    this.annotationsHash = {}; 
 
     this.setOwn();
     this.setInherited();
     this.setOffspring();
 
-    this.locaties = (Object.values(this.hash.locaties) as any[]).sort((a, b) => (!a.locatie.noemer || (a.locatie.noemer > b.locatie.noemer))? 1: (a.locatie.noemer && (a.locatie.noemer < b.locatie.noemer))? -1: 0);
-    this.gebiedsaanwijzingen = Object.values(this.hash.gebiedsaanwijzingen);
-    this.activiteitlocatieaanduidingen = Object.values(this.hash.activiteitlocatieaanduidingen);
-    this.omgevingsnormen = Object.values(this.hash.omgevingsnormen);
-    this.hoofdlijnen = Object.values(this.hash.hoofdlijnen).map((soort: any) => {
+    this.hoofdlijnen = (Object.values(this.hoofdlijnenHash) as any[]).map(soort => {
       return {
         soort: soort.soort,
         hoofdlijnen: (Object.values(soort.hoofdlijnen) as any[]).sort((a, b) => (a.hoofdlijn.naam > b.hoofdlijn.naam)? 1: (a.hoofdlijn.naam < b.hoofdlijn.naam)? -1: 0)
@@ -168,7 +178,35 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
 
     if (this.legal) {
       this.setLegal();
+    } else if (this.compact) {
+      this.setCompact();
+    } else {
+      this.setDefault();
     }
+
+    const planLocatie = this.planModel.plan.locatie;
+    const onPlanLocatieAndViewName = (a, b) =>
+      ((a.annotation != planLocatie) && (b.annotation == planLocatie))? 1:
+      ((a.annotation == planLocatie) && (b.annotation != planLocatie))? -1:
+      ((a.annotation.viewName == "naamloze locatie") && (b.annotation.viewName != "naamloze locatie"))? 1:
+      ((a.annotation.viewName != "naamloze locatie") && (b.annotation.viewName == "naamloze locatie"))? -1:
+      (a.annotation.viewName.toLowerCase() > b.annotation.viewName.toLowerCase())? 1: 
+      (a.annotation.viewName.toLowerCase() < b.annotation.viewName.toLowerCase())? -1: 0;
+    const onViewName = (a, b) => (a.annotation.viewName.toLowerCase() > b.annotation.viewName.toLowerCase())? 1: (a.annotation.viewName.toLowerCase() < b.annotation.viewName.toLowerCase())? -1: 0;
+    const onViewActNameOrViewName = (a, b) => ((a.viewActName || a.viewName).toLowerCase() > (b.viewActName || b.viewName).toLowerCase())? 1: ((a.viewActName || a.viewName).toLowerCase() < (b.viewActName || b.viewName).toLowerCase())? -1: 0;
+    this.annotations.forEach(c => {
+      if (c.leaders.length > 1) {
+        if ((c.viewType == null) || (c.viewType == "Werkingsgebieden")) {
+          c.leaders.sort(onPlanLocatieAndViewName);
+        } else {
+          c.leaders.sort(onViewName);
+        }
+      }
+      c.leaders.forEach(o => {
+        o.locaties.sort(onViewActNameOrViewName);  // For now don't sort on plan locatie.
+        o.activiteitlocatieaanduidingen.sort(onViewActNameOrViewName);
+      });
+    });
   }
 
   private setOwn() {
@@ -178,10 +216,10 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
 
     this.subheader = !this.component.type.match(/^DIVISIE/)? this.component.tekst.typeJuridischeRegels: this.component.type.toLowerCase();
 
-    (this.component.tekst.locaties || []).forEach(locatie => this.addLocatie(locatie, "own"));
-    (this.component.tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addGebiedsaanwijzing(gebiedsaanwijzing, "own"));
-    (this.component.tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addActiviteitlocatieaanduiding(activiteitlocatieaanduiding, "own"));
-    (this.component.tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addOmgevingsnorm(omgevingsnorm, "own"));
+    (this.component.tekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "own"));
+    (this.component.tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "own"));
+    (this.component.tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addAnnotation(activiteitlocatieaanduiding, "own"));
+    (this.component.tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addAnnotation(omgevingsnorm, "own"));
     (this.component.tekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "own"));
   }
 
@@ -195,8 +233,8 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     }
 
     this.component.inheritedTeksten.forEach(inheritedTekst => {
-      (inheritedTekst.locaties || []).forEach(locatie => this.addLocatie(locatie, "inherited"));
-      (inheritedTekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addGebiedsaanwijzing(gebiedsaanwijzing, "inherited"));
+      (inheritedTekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "inherited"));
+      (inheritedTekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "inherited"));
       (inheritedTekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "inherited"));
     });
   }
@@ -233,124 +271,192 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     }
 
     childComponents.map(component => component.tekst).forEach(tekst => {
-      (tekst.locaties || []).forEach(locatie => this.addLocatie(locatie, "offspring"));
-      (tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addGebiedsaanwijzing(gebiedsaanwijzing, "offspring"));
-      (tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addActiviteitlocatieaanduiding(activiteitlocatieaanduiding, "offspring"));
-      (tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addOmgevingsnorm(omgevingsnorm, "offspring"));
+      (tekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "offspring"));
+      (tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "offspring"));
+      (tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addAnnotation(activiteitlocatieaanduiding, "offspring"));
+      (tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addAnnotation(omgevingsnorm, "offspring"));
       (tekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "offspring"));
     });
   }
 
-  private addLocatie(locatie, prop) {
-    const identificatie = locatie.technischId || locatie.identificatie;
-    this.hash.locaties[identificatie] = this.hash.locaties[identificatie] || {locatie: locatie, own: false, inherited: false, offspring: false};
-    this.hash.locaties[identificatie][prop] = true;
-  }
-
-  private addGebiedsaanwijzing(gebiedsaanwijzing, prop) {
-    this.hash.gebiedsaanwijzingen[gebiedsaanwijzing.identificatie] = this.hash.gebiedsaanwijzingen[gebiedsaanwijzing.identificatie] || {gebiedsaanwijzing: gebiedsaanwijzing, own: false, inherited: false, offspring: false};
-    this.hash.gebiedsaanwijzingen[gebiedsaanwijzing.identificatie][prop] = true;
-  }
-
-  private addActiviteitlocatieaanduiding(activiteitlocatieaanduiding, prop) {
-    this.hash.activiteitlocatieaanduidingen[activiteitlocatieaanduiding.identificatie] = this.hash.activiteitlocatieaanduidingen[activiteitlocatieaanduiding.identificatie] || {activiteitlocatieaanduiding: activiteitlocatieaanduiding, own: false, inherited: false, offspring: false};
-    this.hash.activiteitlocatieaanduidingen[activiteitlocatieaanduiding.identificatie][prop] = true;
-  }
-
-  private addOmgevingsnorm(omgevingsnorm, prop) {
-    this.hash.omgevingsnormen[omgevingsnorm.identificatie] = this.hash.omgevingsnormen[omgevingsnorm.identificatie] || {omgevingsnorm: omgevingsnorm, own: false, inherited: false, offspring: false};
-    this.hash.omgevingsnormen[omgevingsnorm.identificatie][prop] = true;
+  private addAnnotation(annotation, prop) {
+    const identificatie = (
+      annotation.locatieType? (annotation.technischId || annotation.identificatie):
+      annotation.betreftEenActiviteit? annotation.super.superId:
+        (annotation.technischId || (annotation.identificatie + "|" + annotation.geregistreerdMet.versie))
+    );
+    this.annotationsHash[identificatie] = this.annotationsHash[identificatie] || {annotation: annotation.super || annotation, own: false, inherited: false, offspring: false, locaties: [], activiteitlocatieaanduidingen: []};
+    this.annotationsHash[identificatie][prop] = true;
   }
 
   private addHoofdlijn(hoofdlijn, prop) {
-    this.hash.hoofdlijnen[hoofdlijn.soort] = this.hash.hoofdlijnen[hoofdlijn.soort] || {soort: hoofdlijn.soort, hoofdlijnen: {}};
-    this.hash.hoofdlijnen[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie] = this.hash.hoofdlijnen[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie] || {hoofdlijn: hoofdlijn, own: false, inherited: false, offspring: false};
-    this.hash.hoofdlijnen[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie][prop] = true;
+    this.hoofdlijnenHash[hoofdlijn.soort] = this.hoofdlijnenHash[hoofdlijn.soort] || {soort: hoofdlijn.soort, hoofdlijnen: {}};
+    this.hoofdlijnenHash[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie] = this.hoofdlijnenHash[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie] || {hoofdlijn: hoofdlijn, own: false, inherited: false, offspring: false};
+    this.hoofdlijnenHash[hoofdlijn.soort].hoofdlijnen[hoofdlijn.identificatie][prop] = true;
   }
 
   private setLegal() {
+    const locatieHash = {};
+    Object.values(this.annotationsHash).forEach((o: any) => {
+      if (o.annotation.locatieType != null) {
+        locatieHash[o.annotation.technischId || o.annotation.identificatie] = o.annotation;
+      } else if (o.annotation.gebiedsaanwijzingType != null) {
+        o.annotation.locaties.forEach(locatie => locatieHash[locatie.technischId || locatie.identificatie] = locatie);
+      } else if (o.annotation.betreftEenActiviteit != null) {
+        o.annotation.locaties.forEach(locatie => locatieHash[locatie.technischId || locatie.identificatie] = locatie);
+      }
+    });
+
     const planLocatie = this.planModel.plan.locatie;
-    const includesPlanLocatie = this.locaties.some(o => o.locatie == planLocatie);
-    const gebiedsaanwijzingenNonLegal = this.gebiedsaanwijzingen.filter(o => (o.gebiedsaanwijzing.locaties.length > 1) || ((o.gebiedsaanwijzing.locaties[0] == planLocatie) && !includesPlanLocatie));
-    const activiteitlocatieaanduidingenNonLegal = this.activiteitlocatieaanduidingen.filter(o => (o.activiteitlocatieaanduiding.locaties.length > 1) || ((o.activiteitlocatieaanduiding.locaties[0] == planLocatie) && !includesPlanLocatie));
-
-    this.gebiedsaanwijzingen = this.gebiedsaanwijzingen.filter(o => (o.gebiedsaanwijzing.locaties.length == 1) && ((o.gebiedsaanwijzing.locaties[0] != planLocatie) || includesPlanLocatie));
-    this.activiteitlocatieaanduidingen = this.activiteitlocatieaanduidingen.filter(o => (o.activiteitlocatieaanduiding.locaties.length == 1) && ((o.activiteitlocatieaanduiding.locaties[0] != planLocatie) || includesPlanLocatie));
-
-    this.activiteitlocatieaanduidingen.forEach(oa => {
-      const i = this.locaties.findIndex(ol => ol.locatie == oa.activiteitlocatieaanduiding.locaties[0]);
-      if (i > -1) {
-        this.locaties.splice(i, 1);
-      }
+    const includesPlanLocatie = (locatieHash[planLocatie.technischId || planLocatie.identificatie] != null);
+    let locaties = (Object.values(locatieHash) as any[]).map(locatie => {
+      return {annotation: locatie, own: true, inherited: false, offspring: false, locaties: [], activiteitlocatieaanduidingen: []};
     });
-    this.gebiedsaanwijzingen.forEach(og => {
-      const i = this.locaties.findIndex(ol => ol.locatie == og.gebiedsaanwijzing.locaties[0]);
-      if (i > -1) {
-        this.locaties.splice(i, 1);
-      }
-      const j = this.activiteitlocatieaanduidingen.findIndex(oc => oc.activiteitlocatieaanduiding.locaties[0] == og.gebiedsaanwijzing.locaties[0]);
-      if (j > -1) {
-        this.activiteitlocatieaanduidingen.splice(j, 1);
-      }
-    });
-    if (!environment.hybridAnnotations) {
-      this.locaties.push(
-        ...this.gebiedsaanwijzingen.map(o => { return {locatie: o.gebiedsaanwijzing.locaties[0], own: o.own, inherited: o.inherited, offspring: o.offspring} }),
-        ...this.activiteitlocatieaanduidingen.map(o => { return {locatie: o.activiteitlocatieaanduiding.locaties[0], own: o.own, inherited: o.inherited, offspring: o.offspring} })
-      );
-      this.gebiedsaanwijzingen = [];
-      this.activiteitlocatieaanduidingen = [];
+
+    const numLocaties = locaties.length;
+    if ((numLocaties == 0) || (includesPlanLocatie && numLocaties == 1)) {
+      this.subheader = "ambtsgebied, geen specifieke locatie";
+      locaties = [{annotation: planLocatie, own: true, inherited: false, offspring: false, locaties: [], activiteitlocatieaanduidingen: []}];
+    } else if (includesPlanLocatie && numLocaties == 2) {
+      this.subheader = "ambtsgebied + specifieke locatie";
+    } else if (includesPlanLocatie && numLocaties > 2) {
+      this.subheader = "ambtsgebied + " + numLocaties + " specifieke locaties";
+    } else if (!includesPlanLocatie && numLocaties == 1) {
+      this.subheader = "specifieke locatie";
+    } else if (!includesPlanLocatie && numLocaties > 1) {
+      this.subheader = numLocaties + " specifieke locaties";
     }
 
-    const numLegal = this.locaties.length + this.gebiedsaanwijzingen.length + this.activiteitlocatieaanduidingen.length;
-    if (numLegal == 0) {
-      this.subheader = "ambtsgebied, geen specifieke begrenzing";
-      this.locaties = [{locatie: planLocatie, own: true, inherited: false, offspring: false}];
-    } else if (includesPlanLocatie && numLegal == 1) {
-      this.subheader = "ambtsgebied, geen specifieke begrenzing";
-    } else if (includesPlanLocatie && numLegal == 2) {
-      this.subheader = "ambtsgebied + specifieke begrenzing";
-    } else if (includesPlanLocatie && numLegal > 2) {
-      this.subheader = "ambtsgebied + " + (numLegal - 1) + " specifieke begrenzingen";
-    } else if (!includesPlanLocatie && numLegal == 1) {
-      this.subheader = "specifieke begrenzing";
-    } else if (!includesPlanLocatie && numLegal > 1) {
-      this.subheader = numLegal + " specifieke begrenzingen";
-    }
-
-    if (this.omgevingsnormen.length == 1) {
+    const omgevingsnormen = Object.values(this.annotationsHash).filter((o: any) => o.annotation.normwaarde);
+    if (omgevingsnormen.length == 1) {
       this.subheader += " + omgevingsnorm";
-    } else if (this.omgevingsnormen.length > 1) {
-      this.subheader += " + " + this.omgevingsnormen.length + " omgevingsnormen";
-    }
-
-    if (gebiedsaanwijzingenNonLegal.length + activiteitlocatieaanduidingenNonLegal.length > 0) {
-      this.legalWarning = true;
+    } else if (omgevingsnormen.length > 1) {
+      this.subheader += " + " + omgevingsnormen.length + " omgevingsnormen";
     }
 
     if (this.display.annotationsVisible != "legal") {  // Specific search name.
       const s = this.display.annotationsVisible.replace(/<[!>]*>/g, "").replace(/\W/g, "").toLowerCase();
-      const locatie = this.locaties.find(o => (o.locatie.noemer || "").replace(/\W/g, "").toLowerCase() == s)?.locatie;
-      if ((locatie != null) && !this.imowModel.annotationLayers.some(annotationLayer => annotationLayer.annotation == locatie)) {
-        this.imowModel.toggleAnnotationLayer(locatie, "L");
+      const locatie = (locaties.length == 1)? locaties[0].annotation:
+                       locaties.find(o => (o.annotation.noemer || "").replace(/\W/g, "").toLowerCase() == s)?.annotation;
+      if ((locatie != null) && !this.isChecked(locatie)) {
+        this.imowModel.toggleAnnotationLayer(locatie);
       }
       setTimeout(() => this.display.annotationsVisible = "legal");
     }
+
+    this.annotations = [{viewType: null, leaders: locaties}, {viewType: "Omgevingsnorm", leaders: omgevingsnormen}].filter(c => c.leaders.length);
+    if ((this.annotations.length == 2) && (this.annotations[1].leaders.length > 1)) {
+      this.annotations[1].viewType = "Omgevingsnormen";
+    }
+  }
+
+  private setCompact() {
+    const combinationHash = {};
+    const locaties = (Object.values(this.annotationsHash) as any[]).filter(o => o.annotation.locatieType);
+    const gebiedsaanwijzingen = (Object.values(this.annotationsHash) as any[]).filter(o => o.annotation.gebiedsaanwijzingType);
+    const activiteitlocatieaanduidingen = (Object.values(this.annotationsHash) as any[]).filter(o => o.annotation.betreftEenActiviteit);
+    const omgevingsnormen = (Object.values(this.annotationsHash) as any[]).filter(o => o.annotation.normwaarde);
+    gebiedsaanwijzingen.concat(activiteitlocatieaanduidingen).concat(omgevingsnormen).forEach(o => {
+      const annotation = o.annotation;
+      const llocaties = annotation.normwaarde? annotation.normwaarde.reduce((locaties, normwaarde) => locaties.concat(normwaarde.locaties), []): annotation.locaties;
+      //const locatieIdentificaties = llocaties.filter(locatie => !locatie.omvat).concat(llocaties.filter(locatie => locatie.omvat).reduce((locaties, locatie) => locaties.concat(locatie.omvat), [])).map(locatie => locatie.technischId || locatie.identificatie);
+      const locatieIdentificaties = llocaties.map(locatie => locatie.technischId || locatie.identificatie);
+      const join = locatieIdentificaties.sort().join("|");
+      combinationHash[join] = combinationHash[join] || [];
+      combinationHash[join].push(o);
+    });
+    locaties.forEach(o => {
+      const locatie = o.annotation;
+      //const locatieIdentificaties = (!locatie.omvat? [locatie]: locatie.omvat).map(locatie => locatie.technischId || locatie.identificatie);
+      const locatieIdentificaties = [locatie.technischId || locatie.identificatie];
+      Object.keys(combinationHash).filter(key => locatieIdentificaties.every(identificatie => key.includes(identificatie))).forEach(key => combinationHash[key].push(o));
+    });
+    Object.keys(combinationHash).forEach(key => {
+      const llocaties = combinationHash[key].filter(o => o.annotation.locatieType).map(o => o.annotation);
+      //const locatieIdentificaties = llocaties.filter(locatie => !locatie.omvat).concat(llocaties.filter(locatie => locatie.omvat).reduce((locaties, locatie) => locaties.concat(locatie.omvat), [])).map(locatie => locatie.technischId || locatie.identificatie);
+      const locatieIdentificaties = llocaties.map(locatie => locatie.technischId || locatie.identificatie);
+      const join = locatieIdentificaties.sort().join("|");
+      if (key == join) {
+        llocaties.forEach(locatie => locaties.find(o => o.annotation == locatie).consumed = true);
+      } else {
+        combinationHash[key] = combinationHash[key].filter(o => !o.annotation.locatieType);
+      }
+    });
+
+    const typeHash = {};
+    Object.keys(combinationHash).forEach(key => {
+      const c = combinationHash[key];
+      let leaders = c.filter(o => o.annotation.gebiedsaanwijzingType || o.annotation.normwaarde);
+      leaders.forEach(o => {
+        o.locaties = c.filter(o => o.annotation.locatieType).map(o => o.annotation);
+        o.activiteitlocatieaanduidingen = c.filter(o => o.annotation.betreftEenActiviteit).map(o => o.annotation);
+      });
+      if ((leaders.length == 0) && c.filter(o => o.annotation.locatieType).length == 1) {
+        leaders = c.filter(o => o.annotation.locatieType);
+        leaders.forEach(o => {
+          o.activiteitlocatieaanduidingen = c.filter(o => o.annotation.betreftEenActiviteit).map(o => o.annotation);
+        });
+        leaders.forEach(o => {
+          const i = locaties.findIndex(o1 => o1.annotation == o.annotation);
+          if (i > -1) {
+            delete o.consumed;
+            locaties.splice(i, 1);
+          }
+        });
+      }
+      if (leaders.length == 0) {
+        leaders = c.filter(o => o.annotation.betreftEenActiviteit);
+        leaders.forEach(o => {
+          o.locaties = c.filter(o => o.annotation.locatieType).map(o => o.annotation);
+        });
+      }
+      leaders.forEach(o => {
+        //const type = o.annotation.viewType || "werkingsgebied";
+        const type = o.annotation.locatieType? "werkingsgebied": o.annotation.gebiedsaanwijzingType? "gebiedsaanwijzing": o.annotation.betreftEenActiviteit? "activiteitaanduiding": "omgevingsnorm";
+        typeHash[type] = typeHash[type] || [];
+        typeHash[type].push(o);
+      });
+    });
+
+    const unconsumedLocaties = locaties.filter(o => !o.consumed);
+    this.annotations = ["werkingsgebied", "gebiedsaanwijzing", "activiteitaanduiding", "omgevingsnorm"].filter(type => typeHash[type] || ((type == "werkingsgebied") && unconsumedLocaties.length)).map(type => {
+      if (type == "werkingsgebied") {
+        typeHash[type] = (typeHash[type] || []).concat(unconsumedLocaties);
+      }
+      let viewType = type[0].toUpperCase() + type.substring(1);
+      if (typeHash[type].length > 1) {
+        viewType += "en";
+      }
+      return {viewType: viewType, leaders: typeHash[type]};
+    });
+  }
+
+  private setDefault() {
+    this.annotations = [
+      {viewType: "Werkingsgebied",       leaders: Object.values(this.annotationsHash).filter((o: any) => o.annotation.locatieType)},
+      {viewType: "Gebiedsaanwijzing",    leaders: Object.values(this.annotationsHash).filter((o: any) => o.annotation.gebiedsaanwijzingType)},
+      {viewType: "Activiteitaanduiding", leaders: Object.values(this.annotationsHash).filter((o: any) => o.annotation.betreftEenActiviteit)},
+      {viewType: "Omgevingsnorm",        leaders: Object.values(this.annotationsHash).filter((o: any) => o.annotation.normwaarde)}
+    ].filter(c => c.leaders.length);
+    this.annotations.forEach(c => {
+      if (c.leaders.length > 1) {
+        c.viewType += "en";
+      }
+      c.leaders.forEach(o => o.locaties = (o.annotation.locaties || []).concat());
+    });
   }
 
   isChecked(annotation) {
     return this.imowModel.annotationLayers.some(annotationLayer => annotationLayer.annotation == annotation);
   }
 
-  isGebiedsaanwijzingDisabled(gebiedsaanwijzing) {
-    return !gebiedsaanwijzing.locaties || !gebiedsaanwijzing.locaties.length || !gebiedsaanwijzing.teksten || !gebiedsaanwijzing.teksten.length;
-  }
-
-  isActiviteitlocatieaanduidingDisabled(activiteitlocatieaanduiding) {
-    return !activiteitlocatieaanduiding.locaties || !activiteitlocatieaanduiding.locaties.length || !activiteitlocatieaanduiding.teksten || !activiteitlocatieaanduiding.teksten.length;
-  }
-
-  isOmgevingsnormDisabled(omgevingsnorm) {
-    return omgevingsnorm.normwaarde.some(normwaarde => !normwaarde.locaties || !normwaarde.locaties.length) || !omgevingsnorm.teksten || !omgevingsnorm.teksten.length;
+  isDisabled(annotation) {
+    if (annotation.locatieType != null) {
+      return false;
+    }
+    if (annotation.normwaarde == null) {
+      return !annotation.locaties || !annotation.locaties.length || !annotation.teksten || !annotation.teksten.length;
+    }
+    return annotation.normwaarde.some(normwaarde => !normwaarde.locaties || !normwaarde.locaties.length) || !annotation.teksten || !annotation.teksten.length;
   }
 }

@@ -14,7 +14,6 @@ export class AnnotationLayer {
   ];
 
   annotation = null;
-  type = null;
   filter = null;
   cssFunction = null;
   labelCssFunction = null;
@@ -24,10 +23,9 @@ export class AnnotationLayer {
 
   normwaardeObjects = [];
 
-  constructor(imowValueModel, annotation, type) {
+  constructor(imowValueModel, annotation) {
     this.imowValueModel = imowValueModel;
     this.annotation = annotation;
-    this.type = type;
 
     this.setVisible(true);
   }
@@ -39,26 +37,25 @@ export class AnnotationLayer {
     }
 
     const annotation = this.annotation;
-    const type = this.type;
-    if (type == "L") {
+    if (annotation.locatieType != null) {
       const locatie = annotation;
       this.setUniformCssFunction(
         this.getFilter(locatie),
         Object.assign({}, this.imowValueModel.symboolcodes["vag500"], {"border-color": "#f40", "border-width": "2px", stroke: "#f40", "stroke-width": "3px"})
       );
-    } else if (type == "G") {
+    } else if (annotation.gebiedsaanwijzingType != null) {
       const locaties = annotation.locaties;
       this.setUniformCssFunction(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
         this.imowValueModel.getSymboolcode(annotation.gebiedsaanwijzingType, annotation.groep)
       );
-    } else if (type == "A") {
+    } else if (annotation.betreftEenActiviteit != null) {
       const locaties = annotation.locaties;
       this.setUniformCssFunction(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
         this.imowValueModel.getSymboolcode("Activiteit", annotation.betreftEenActiviteit.groep)
       );
-    } else {  // type == "N"
+    } else {  // normwaarde
       const omgevingsnorm = annotation;
       const normwaarden = omgevingsnorm.normwaarde;
 

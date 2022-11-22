@@ -1,16 +1,8 @@
 :host {
   display: flex;
-  height: 100%;
-  flex-direction: column;
-}
-.back {
-  margin: 8px 0;
-  line-height: 1;
-}
-.selector {
-  display: flex;
   position: relative;
   min-height: 50px;
+  margin-top: 8px;
   flex-direction: column;
 }
 .empty {
@@ -23,4 +15,7 @@
   padding: 2px 5px 3px;
   font-weight: bolder;
   color: #ce3f51;
+}
+.alert {
+  margin-top: 1rem;
 }

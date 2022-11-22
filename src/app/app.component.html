@@ -1,9 +1,12 @@
-<div *ngIf="nineyDefault.defaultFocusModel.centerScale" class="main-container">
+<ng-template [ngIf]="nineyDefault.defaultFocusModel.centerScale">
+<div class="main-container">
   <as-split direction="horizontal">
     <as-split-area size="33.3333" minSize="10">
-      <dso-search-place *ngIf="stateModel.state == 'SEARCH_PLACE'"></dso-search-place>
-      <dso-select-plan *ngIf="stateModel.state == 'SELECT_PLAN'"></dso-select-plan>
-      <dso-search-plan *ngIf="stateModel.state == 'SEARCH_PLAN'"></dso-search-plan>
+      <dso-search-place *ngIf="(stateModel.state == 'SEARCH_PLACE') || (stateModel.state == 'SEARCH_PLACE_INIT')" [init]="stateModel.state == 'SEARCH_PLACE_INIT'"></dso-search-place>
+      <dso-travel-time *ngIf="stateModel.state == 'TRAVEL_TIME'"></dso-travel-time>
+      <dso-marker-time-info *ngIf="!stateModel.state"></dso-marker-time-info>
+      <dso-search-plan *ngIf="!stateModel.state && !markerModel.xy"></dso-search-plan>
+      <dso-select-plan *ngIf="!stateModel.state && markerModel.xy"></dso-select-plan>
     </as-split-area>
     <as-split-area size="66.6667"  minSize="10">
       <dso-map-panel></dso-map-panel>
@@ -11,13 +14,15 @@
     <as-split-area size="0" minSize="0" *ngIf="!planModel.plan">
     </as-split-area>
     <as-split-area minSize="10" *ngIf="planModel.plan">
-      <dso-plan-info></dso-plan-info>
-      <dso-imro-plan-viewer *ngIf="planModel.plan.versieImro"></dso-imro-plan-viewer>
-      <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [structured]="planModel.plan.structured" [documentComponenten]="planModel.plan.documentComponenten"></dso-stop-plan-viewer>
+      <ng-template [ngIf]="planModel.plan.naam">
+        <dso-plan-info></dso-plan-info>
+        <dso-imro-plan-viewer *ngIf="planModel.plan.versieImro"></dso-imro-plan-viewer>
+        <dso-stop-plan-viewer *ngIf="!planModel.plan.versieImro" [structured]="planModel.plan.structured" [documentComponenten]="planModel.plan.documentComponenten"></dso-stop-plan-viewer>
+      </ng-template>
     </as-split-area>
   </as-split>
 </div>
-<div *ngIf="nineyDefault.defaultFocusModel.centerScale" class="disclaimer">
+<div class="disclaimer">
   De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl/" target="_blank" class="extern">www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
   Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de Omgevingswet.
   <div (click)="settingsVisible = !settingsVisible" class="setting-btn">Instellingen</div>
@@ -25,34 +30,35 @@
 <div *ngIf="settingsVisible" class="setting-ct">
   <h4>Instellingen</h4>
   <div>
-    <label>
+    <label class="checkbox">
       <input type="checkbox" [(ngModel)]="environment.ihr"/><span class="checkmark"></span>
       Informatiehuis Ruimte
     </label>
   </div>
   <div>
-    <label>
-      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"/><span class="checkmark"></span>
-      Plekinfo weeslocaties
-    </label>
-  </div>
-  <div>
-    <label>
-      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"/><span class="checkmark"></span>
-      Plekinfo debug
-    </label>
-  </div>
-  <div>
-    <label>
+    <label class="checkbox">
       <input type="checkbox" [(ngModel)]="environment.legalAnnotations"/><span class="checkmark"></span>
-      Annotaties juridisch
+      Juridische weergave
     </label>
   </div>
   <div>
-    <label>
-      <input type="checkbox" [(ngModel)]="environment.hybridAnnotations"/><span class="checkmark"></span>
-      Annotaties juridisch hybride
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="environment.stripQuotes"/><span class="checkmark"></span>
+      Strip aanduidingen
+    </label>
+  </div>
+  <div>
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoShowOrphans"/><span class="checkmark"></span>
+      Toon weeslocaties
+    </label>
+  </div>
+  <div>
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="appService.settings.placeInfoDebugMode"/><span class="checkmark"></span>
+      Toon debuginfo
     </label>
   </div>
 </div>
+</ng-template>
 <router-outlet></router-outlet>

@@ -1,51 +1,104 @@
 <div class="header">
   <h4>{{plan.naam}}</h4>
-  <button (click)="planModel.zoomToPlan()" title="Zoom naar plangeometrie" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn btn-link">
-    <dso-svg-icon icon="/assets/icons.svg#map-location"></dso-svg-icon>
+  <button *ngIf="plan.viewEnvelope" (click)="planModel.zoomTo(plan)" title="Op de kaart naar dit plan zoomen" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn btn-link">
+    <dso-svg-icon icon="/assets/dso-icons.svg#map-location"></dso-svg-icon>
+  </button>
+  <button (click)="planModel.setPlan(null, null)" title="Dit plan sluiten" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn btn-link">
+    <dso-svg-icon icon="/assets/dso-icons.svg#times" class="bor"></dso-svg-icon>
   </button>
 </div>
-<div class="expert">
-  <button (click)="toggleExpertInfoVisible()" class="btn btn-link">
-    <span *ngIf="!expertInfoVisible"><span class="fa fa-angle-right mr-2"></span>meer planinfo</span>
-    <span *ngIf="expertInfoVisible"><span class="fa fa-angle-down mr-2"></span>minder planinfo</span>
-  </button>
-</div>
-<div *ngIf="!expertInfoVisible">
-  <div class="pr-sm">{{plan.viewOverheidName}}</div>
-  <div>{{plan.typePlan}}, <span [innerHTML]="statusText"></span></div>
-</div>
-<div *ngIf="expertInfoVisible">
-  <div *ngIf="plan.opschrift && (plan.opschrift != plan.naam)" class="mb-2 pr-lg">
-    {{plan.opschrift}}
-  </div>
-  <table>
-    <tr>
-      <td class="font-weight-bold">Eigenaar</td><td>{{plan.viewOverheidName}}</td>
+<table class="maintable">
+  <ng-template #status>
+    <span [ngClass]="{redalert: ['ontwerp', 'toekomstig'].includes(plan.viewStatus)}">{{plan.viewStatus}}</span>
+    ({{((plan.viewStatus == plan.planStatus)? "": (plan.planStatus + " ")) + plan.viewDate}})
+  </ng-template>
+  <ng-template #expert>
+    <td class="expert anchor">
+      <button (click)="toggleExpertInfoVisible()" class="btn btn-link">
+        <span *ngIf="!expertInfoVisible"><span class="fa fa-angle-right mr-2"></span>meer planinfo</span>
+        <span *ngIf="expertInfoVisible"><span class="fa fa-angle-down mr-2"></span>minder planinfo</span>
+      </button>
+    </td>
+  </ng-template>
+  <tr *ngIf="!expertInfoVisible">
+    <td colspan="2">
+      <div>{{plan.viewOverheidName}}</div>
+      <div>{{plan.typePlan}}, <ng-container *ngTemplateOutlet="status"></ng-container></div>
+    </td>
+    <ng-container *ngTemplateOutlet="expert"></ng-container>
+  </tr>
+  <ng-template [ngIf]="expertInfoVisible">
+    <ng-template [ngIf]="plan.opschrift && (plan.opschrift != plan.naam)">
+      <tr>
+        <td colspan="2">{{plan.opschrift}}</td>
+        <ng-container *ngTemplateOutlet="expert"></ng-container>
+      </tr>
+      <tr>
+        <td class="font-weight-bold">Eigenaar</td>
+        <td colspan="2">{{plan.viewOverheidName}}</td>
+      </tr>
+    </ng-template>
+    <tr *ngIf="!plan.opschrift || (plan.opschrift == plan.naam)">
+      <td class="font-weight-bold">Eigenaar</td>
+      <td>{{plan.viewOverheidName}}</td>
+      <ng-container *ngTemplateOutlet="expert"></ng-container>
     </tr>
     <tr>
-      <td class="font-weight-bold">Type plan</td><td>{{plan.typePlan}}</td>
+      <td class="font-weight-bold anchor">Type plan</td>
+      <td colspan="2">{{plan.typePlan}}</td>
     </tr>
-    <tr>
+    <tr *ngIf="plan.versieImro">
       <td class="font-weight-bold">Status</td>
-      <td>
-        <div *ngIf="!planModel.dossierSet || !dossierPlannenVisible" [class.mb-2]="planModel.dossierSet" [innerHTML]="statusText"></div>
+      <td colspan="2">
+        <div *ngIf="!planModel.dossierSet || !dossierPlannenVisible" [class.mb-2]="planModel.dossierSet">
+          <ng-container *ngTemplateOutlet="status"></ng-container>
+        </div>
         <table *ngIf="planModel.dossierSet && dossierPlannenVisible" class="innertable">
           <tr *ngFor="let plan1 of planModel.dossierSet.plannen" (click)="planModel.loadPlan(plan1.identificatie, 'CURRENT', false, false)" [class.active]="plan.identificatie == plan1.identificatie">
             <td>{{(planModel.dossierSet.mainPlan.identificatie == plan1.identificatie)? plan1.viewStatus: plan1.planStatus}}</td><td>{{plan1.viewDate}}</td>
           </tr>
         </table>
-        <a *ngIf="planModel.dossierSet" href="javascript:void(0)" (click)="toggleDossierPlannenVisible()">
+        <a [routerLink]="" *ngIf="planModel.dossierSet" (click)="toggleDossierPlannenVisible()">
           <span *ngIf="!dossierPlannenVisible"><span class="fa fa-angle-right mr-2"></span>oudere versies van dit plan</span>
           <span *ngIf="dossierPlannenVisible"><span class="fa fa-angle-left mr-2"></span>alleen de nieuwste versie</span>
         </a>
       </td>
     </tr>
     <tr *ngIf="plan.versieImro">
-      <td class="font-weight-bold">Uitgebreide status</td><td>{{plan.planStatus}} (plan); {{plan.dossierStatus? plan.dossierStatus + " (dossier)": "geen dossier"}}</td>
+      <td class="font-weight-bold">Uitgebreide status</td>
+      <td colspan="2">{{plan.planStatus}} (plan); {{plan.dossierStatus? plan.dossierStatus + " (dossier)": "geen dossier"}}</td>
+    </tr>
+    <tr *ngIf="!plan.versieImro">
+      <td *ngIf="plan.versions.length == 1" class="font-weight-bold">Status</td>
+      <td *ngIf="plan.versions.length > 1" class="font-weight-bold versions">Versies</td>
+      <td colspan="2">
+        <div [ngClass]="{'list-group': plan.versions.length > 1}">
+          <ng-template ngFor let-version [ngForOf]="plan.versions">
+            <ng-template #versiion>
+              <div>{{version.beginInwerking? "geldend": "ter inzage"}} {{version.eindGeldigheid? "van": "vanaf"}} {{version.viewBeginDate}} {{version.eindGeldigheid? ("tot " + version.viewEndDate): ""}}
+                <span *ngIf="version.bekendOp" class="redalert">ontwerp</span>
+                <span *ngIf="version.beginInwerking > timeModel.time" class="redalert">toekomstig</span>
+                <span *ngIf="version.eindGeldigheid &lt;= timeModel.time" class="redalert">historisch</span>
+              </div>
+              <small>geregistreerd op {{version.viewRegistrationTimestamp}} <span class="text-muted">{{version.versie? ("| versie " + version.versie): ""}} <span *ngIf="version.identificatie != plan.identificatie">(i&v)</span></span></small>
+            </ng-template>
+            <ng-template [ngIf]="plan.versions.length > 1" [ngIfElse]="versiion">
+              <a [routerLink]="" (click)="loadPlanOrSetupVersion(version)" [title]="((version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop)) || version.confirmationTime)? '': 'Deze versie van het plan openen'" class="list-group-item" [ngClass]="(version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop))? 'selected': 'selectable'" [ngStyle]="((version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop)) || version.confirmationTime)? {cursor: 'default'}: null">
+                <ng-container *ngTemplateOutlet="versiion"></ng-container>
+                <div *ngIf="version.confirmationTime" class="alert alert-info alert-dismissible">
+                  Maak een <a [routerLink]="" (click)="setTimeAndLoadPlan(version)" class="alert-link">tijdreis naar {{version.viewConfirmationTime}}</a><br/>
+                  om deze versie te openen.
+                  <button (click)="cancel(version)" title="Annuleren" class="close"><span>&times;</span></button>
+                </div>
+              </a>
+            </ng-template>
+          </ng-template>
+        </div>
+      </td>
     </tr>
     <tr *ngIf="plan.procedureverloop">
-      <td class="font-weight-bold">Procedure</td>
-      <td>
+      <td class="font-weight-bold">Ontwerpstappen</td>
+      <td colspan="2">
         <table>
           <tr *ngFor="let stap of plan.procedureverloop.procedurestappen.concat().reverse()">
             <td>{{stap.soortStap.waarde.toLowerCase()}}</td><td>{{stap.voltooidOp.split("-").reverse().join("-")}}</td>
@@ -54,25 +107,31 @@
       </td>
     </tr>
     <tr *ngIf="plan.normAdressant">
-      <td class="font-weight-bold">Doelgroep</td><td>{{plan.normAdressant}}</td>
+      <td class="font-weight-bold">Doelgroep</td>
+      <td colspan="2">{{plan.normAdressant}}</td>
     </tr>
     <tr *ngIf="plan.versieImro">
-      <td class="font-weight-bold">IMRO-versie</td><td>{{plan.versieImro}}</td>
+      <td class="font-weight-bold">IMRO-versie</td>
+      <td colspan="2">{{plan.versieImro}}</td>
     </tr>
     <tr>
-      <td class="font-weight-bold">Plannummer</td><td style="word-break: break-all">{{plan.identificatie}}</td>
+      <td class="font-weight-bold">Plannummer</td>
+      <td colspan="2" style="word-break: break-all">{{plan.identificatie}}</td>
     </tr>
     <tr *ngIf="plan.besluitNummer">
-      <td class="font-weight-bold">Besluitnummer</td><td>{{plan.besluitNummer}}</td>
+      <td class="font-weight-bold">Besluitnummer</td>
+      <td colspan="2">{{plan.besluitNummer}}</td>
     </tr>
     <tr *ngIf="plan.ontwerpbesluitIdentificatie">
-      <td class="font-weight-bold">Besluitnummer</td><td>{{plan.ontwerpbesluitIdentificatie}}</td>
+      <td class="font-weight-bold">Besluitnummer</td>
+      <td colspan="2">{{plan.ontwerpbesluitIdentificatie}}</td>
     </tr>
     <tr *ngIf="plan.ondergrond">
-      <td class="font-weight-bold">Ondergrond</td><td style="word-break: break-all">{{plan.ondergrond}}</td>
+      <td class="font-weight-bold">Ondergrond</td>
+      <td colspan="2" style="word-break: break-all">{{plan.ondergrond}}</td>
     </tr>
-  </table>
-</div>
+  </ng-template>
+</table>
 <div *ngIf="planModel.dossierSet && (planModel.dossierSet.mainPlan.identificatie != plan.identificatie)" class="alert alert-warning">
-  Van dit plan is een <a href="javascript:void(0)" (click)="planModel.loadPlan(planModel.dossierSet.mainPlan.identificatie, 'CURRENT', false, false)" class="alert-link">nieuwere versie</a> beschikbaar.
+  Van dit plan is een <a [routerLink]="" (click)="planModel.loadPlan(planModel.dossierSet.mainPlan.identificatie, 'CURRENT', false, false)" class="alert-link">nieuwere versie</a> beschikbaar.
 </div>

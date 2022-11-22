@@ -3,7 +3,6 @@ import { HttpClient } from "@angular/common/http";
 import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
 import { PlanDecoratorService } from "src/app/model/plan-decorator.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
-import { StateModelService } from "src/app/model/state-model.service";
 import { environment } from "../../../environments/environment";
 
 @Component({
@@ -12,6 +11,9 @@ import { environment } from "../../../environments/environment";
   styleUrls: ["./search-plan.component.scss"]
 })
 export class SearchPlanComponent {
+  private httpSubscription = null;
+  private naamSort = (a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1;
+
   s = "";
   warning = null;
   idns = [];
@@ -20,13 +22,24 @@ export class SearchPlanComponent {
 
   constructor(
     private http: HttpClient,
-    public stateModel: StateModelService,
     private planDecorator: PlanDecoratorService,
     private omgevingsdocumentModel: OmgevingsdocumentModelService,
     public planModel: PlanModelService
   ) { }
 
-  loadPlannen(s) {
+  search(s = null) {
+    if (this.httpSubscription != null) {
+      this.httpSubscription.unsubscribe();
+      this.httpSubscription = null;
+    }
+
+    if (this.s.length == 0) {
+      this.warning = null;
+      this.idns = [];
+      this.plannen = [];
+      return;
+    }
+
     const match = this.s.match(/^(NL\.I(M(R(O)?)?)?)(.*)/i);
     if (match != null) {  // Search by IDN.
       this.plannen = [];
@@ -44,13 +57,21 @@ export class SearchPlanComponent {
       }
 
       const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/id/" + this.s;
-      this.http.get(url).subscribe(response => {
-        this.warning = null;
-        this.idns = response["idns"];
-        if (this.idns.length == 0) {
-          this.warning = "NO_PLANS_FOUND_BY_IDN_AKN";
+      this.httpSubscription = this.http.get(url).subscribe(
+        response => {
+          this.httpSubscription = null;
+
+          this.idns = response["idns"];
+          if (this.idns.length > 0) {
+            this.warning = null;
+          } else {
+            this.warning = "NO_PLANS_FOUND_BY_IDN_AKN";
+          }
+        },
+        error => {
+          this.httpSubscription = null;
         }
-      });
+      );
     } else {
       const match = this.s.match(/^(\/akn(\/(n(l(\/(a(c(t)?)?)?)?)?)?)?)(.*)/i);
       if (match != null) {  // Search by AKN.
@@ -68,11 +89,12 @@ export class SearchPlanComponent {
           return;
         }
 
-        this.plannen = this.omgevingsdocumentModel.regelingen.filter(regeling => !regeling.identificatie.toLowerCase().indexOf(this.s.toLowerCase()));
+        const identificatieFilter = regeling => !regeling.identificatie.toLowerCase().indexOf(this.s.toLowerCase());
+
+        this.plannen = this.omgevingsdocumentModel.regelingen.filter(identificatieFilter).sort(this.naamSort);
+        this.showIdentificatie = true;
         if (this.plannen.length > 0) {
           this.warning = null;
-          this.plannen.sort((a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1);
-          this.showIdentificatie = true;
         } else {
           this.warning = "NO_PLANS_FOUND_BY_IDN_AKN";
         }
@@ -93,55 +115,63 @@ export class SearchPlanComponent {
           return;
         }
 
+        const keywords = this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").split(/[^a-zA-Z0-9]+/);
+        const keywordFilter = regeling => {
+          return keywords.every((keyword, i) => {
+            if (Object.values(regeling).some(planValue => (planValue + "").toLowerCase().includes(keyword.toLowerCase()))) {
+              numPlannen[i]++;
+              return true;
+            }
+            return false;
+          });
+        };
+        const numPlannen = new Array(keywords.length).fill(0);
+
+        this.plannen = this.omgevingsdocumentModel.regelingen.filter(keywordFilter).sort(this.naamSort);
+        this.showIdentificatie = false;
+        this.warning = null;
+
         const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/naam/" + s;
-        this.http.get(url).subscribe(response => {
-          if (response["ErrorType"] == "NO_PLANS_FOUND") {
-            const split = s.split(/[^a-zA-Z0-9]+/);
-            if (split.length == 1) {
-              this.warning = "NO_PLANS_FOUND_BY_NAME";
-            } else {
-              split.pop();
-              const join = split.join(" ");
-              if (join.length < 4) {
+        this.httpSubscription = this.http.get(url).subscribe(
+          response => {
+            this.httpSubscription = null;
+
+            if (response["ErrorType"] == "NO_PLANS_FOUND") {
+              const split = s.split(/[^a-zA-Z0-9]+/);
+              if (split.length == 1) {
                 this.warning = "NO_PLANS_FOUND_BY_NAME";
               } else {
-                this.loadPlannen(join);
-                return;
+                split.pop();
+                const join = split.join(" ");
+                if (join.length < 4) {
+                  this.warning = "NO_PLANS_FOUND_BY_NAME";
+                } else {
+                  this.search(join);
+                  return;
+                }
               }
-            }
-            this.plannen = [];
-          } else if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
-            if (s != this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "")) {
-              this.warning = "NO_PLANS_FOUND_BY_NAME";
+            } else if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
+              if (s != this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "")) {
+                this.warning = "NO_PLANS_FOUND_BY_NAME";
+              } else {
+                this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
+              }
             } else {
-              this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
+              const plannen = response["plannen"];
+              plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
+              this.plannen = this.plannen.concat(plannen.filter(keywordFilter)).sort(this.naamSort);
             }
-            this.plannen = [];
-          } else {
-            this.warning = null;
-            this.plannen = response["plannen"];
-            this.plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
-          }
 
-          const keywords = this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").split(/[^a-zA-Z0-9]+/);
-          const numPlannen = new Array(keywords.length).fill(0);
-          this.plannen = this.plannen.concat(this.omgevingsdocumentModel.regelingen).filter(plan => {
-            return keywords.every((keyword, i) => {
-              if (Object.values(plan).some(planValue => (planValue + "").toLowerCase().includes(keyword.toLowerCase()))) {
-                numPlannen[i]++;
-                return true;
-              }
-              return false;
-            });
-          });
-          if (this.plannen.length > 0) {
-            this.warning = null;
-            this.plannen.sort((a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1);
-            this.showIdentificatie = false;
-          } else if (numPlannen[0] > 0) {
-            this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
+            if (this.plannen.length > 0) {
+              this.warning = null;
+            } else if (numPlannen[0] > 0) {
+              this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
+            }
+          },
+          error => {
+            this.httpSubscription = null;
           }
-        });
+        );
       }
     }
   }

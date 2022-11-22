@@ -13,6 +13,7 @@ export const environment = {
   websiteProxyUrl: "https://www.ruimtelijkeplannen.nl/",
   geoUrl: "https://afnemers.ruimtelijkeplannen.nl/",
   geoWebCacheUrl: "https://www.ruimtelijkeplannen.nl/kaartservices/geowebcache/service/wms",
+//  dsoUrl: "https://nep-knooppunt-ketenacceptatie.viewer.dso.kadaster.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
 //  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
   dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
   dsoOptions: {
@@ -33,8 +34,10 @@ export const environment = {
       "X-Api-Key": "462c15cf-1d76-4cf2-9456-8d926885a8c4"
     })
   },
-//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-acc/wmts/v1_0/locaties/EPSG:28992/",
-  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten-pre/wmts/v1_0/locaties/EPSG:28992/",
+//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-ketenacc/wmts/v1_0/locaties/EPSG:28992/",
+//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-acc/wmts/v1_0/locaties/EPSG:28992/",
+  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-pre/wmts/v1_0/locaties/EPSG:28992/",
+  revGeoUrl: "https://geodata.nationaalgeoregister.nl/locatieserver/revgeo?X=",
   legalAnnotations: true,
-  hybridAnnotations: false
+  stripQuotes: true
 };

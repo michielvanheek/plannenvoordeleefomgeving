@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  height: 100%;
+  padding-top: 25px;
+}
+h3 {
+  font-size: 1.55rem;
+}
+.btn-default {
+  height: 40px;
+  border: 1px solid #39870c;
+  padding: 0 16px;
+  color: #39870c;
+}
+.btn-default:focus, .btn-default:hover {
+  color: #fff;
+  background-color: #39870c;
+}

@@ -85,8 +85,7 @@ export class PlanAccordionComponent {
   open(element) {
     if (this.toc) {
       this.preselectedComponent = null;
-      this.componentIdentificaties.emit("selected", element.identificatie);
-      this.display.setTab(element.identificatie);
+      this.display.setTab("lookup", element.identificatie);
     } else if (!element.gereserveerd && !element.vervallen && !this.display.allOpen) {
       element.isOpen = !element.isOpen;
     }

@@ -1,4 +1,4 @@
-import { Component, DoCheck } from "@angular/core";
+import { Component, DoCheck, Input } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { CenterScale, FocusModel, Point, WKTConverter } from "ng-niney";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
@@ -18,9 +18,11 @@ export class SearchPlaceComponent implements DoCheck {
   locaties = [];
   locatie = null;
 
+  @Input() init;
+
   constructor(
-    private http:HttpClient,
-    private nineyDefault:NineyDefaultService,
+    private http: HttpClient,
+    private nineyDefault: NineyDefaultService,
     public stateModel: StateModelService,
     public markerModel: MarkerModelService,
     public measureModel: MeasureModelService
@@ -63,7 +65,7 @@ export class SearchPlaceComponent implements DoCheck {
       this.zoomToLocatie(locatie);
 
       if (locatie.geometry instanceof Point) {
-        this.markerModel.setXY(locatie.geometry.x, locatie.geometry.y, locatie.weergavenaam);
+        this.markerModel.setXY(locatie.geometry, locatie.weergavenaam);
       } else {
         this.locatie = locatie;
         this.markerModel.clear();

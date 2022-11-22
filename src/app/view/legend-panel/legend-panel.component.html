@@ -33,9 +33,9 @@
           <use href="../assets/dso-icons.svg#times"></use>
         </svg>
       </button>
-      <label>
+      <label class="checkbox">
         <input type="checkbox" (change)="annotationLayer.setVisible($event.target.checked)" [checked]="annotationLayer.visible"><span class="checkmark"></span>
-        {{annotationLayer.annotation.viewName || annotationLayer.annotation.noemer}}
+        {{annotationLayer.annotation.viewName}}
       </label>
       <div *ngIf="annotationLayer.visible" class="up-down-grid">
         <div class="up-down">
@@ -43,7 +43,7 @@
           <button *ngIf="i > 0" (click)="imowModel.moveAnnotationLayer(annotationLayer, -1)" title="Deze kaartlaag een positie laten zakken in de legenda" class="btn btn-link"><span class="fa fa-long-arrow-alt-down"></span></button>
         </div>
         <div class="grid">
-          <div *ngIf="annotationLayer.type != 'N'; else normGrid" class="cell">
+          <div *ngIf="!annotationLayer.annotation.normwaarde; else normGrid" class="cell">
             <span class="legend" [ngStyle]="annotationLayer.legendStyle"></span>
             <div (mouseover)="highlightModel.setHighlight(annotationLayer.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
           </div>
@@ -73,7 +73,7 @@
       </div>
     </div>
     <div *ngIf="expertSettingsVisible" class="parcelbox">
-      <label [class.disabled]="nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299">
+      <label [class.disabled]="nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 2381.100862299" class="checkbox">
         <input type="checkbox" [(ngModel)]="layerModel.layers[0].visible"/><span class="checkmark"></span>
         kadastrale percelen
       </label>

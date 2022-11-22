@@ -4,29 +4,29 @@ import { HomeComponent } from "./home/home.component";
 import { RoutingComponent } from "./view/routing/routing.component";
 
 const routes: Routes = [{
-  path: "viewer/:centerX/:centerY/:scale/:marker/:plan/local",
+  path: "viewer/:pt/:centerX/:centerY/:scale/:marker/:time/:tab/:plan/:component/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:plan/local",
+  path: "viewer/:pt/:centerX/:centerY/:scale/:marker/:time/:tab/:plan/local",
   component: RoutingComponent,
   data: {
     local: true
   }
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:marker/:plan",
+  path: "viewer/:pt/:centerX/:centerY/:scale/:marker/:time/:tab/:plan/:component",
   component: RoutingComponent
 }, {
-  path: "viewer/:centerX/:centerY/:scale/:markerOrPlan",
+  path: "viewer/:pt/:centerX/:centerY/:scale/:marker/:time/:tab/:plan",
   component: RoutingComponent
 }, {
-  path: "viewer/:centerX/:centerY/:scale",
+  path: "viewer/:pt/:centerX/:centerY/:scale/:marker/:time",
   component: RoutingComponent
 }, {
   path: "viewer",
-  redirectTo: "viewer/148000/465000/1219123.641496919"
+  redirectTo: "viewer/p/148000/465000/1219123.641496919/NL/" + (new Date()).toISOString().replace(/^([^T]+)T(\d\d\:\d\d)[^Z]*Z$/, "$1T$2Z")
 }, {
   path: "**",
   component: HomeComponent

@@ -1,36 +1,37 @@
-<div *ngIf="!infos[0].length && !infos[2].length && !markerModel.xy" class="alert alert-info">
-  U heeft nog geen <span *ngIf="stateModel.state == 'SEARCH_PLACE'">adres ingevuld of plek aangewezen</span><a href="javascript:void(0)" *ngIf="stateModel.state != 'SEARCH_PLACE'" (click)="stateModel.toggleState()" class="alert-link">adres ingevuld of plek aangewezen</a> op de kaart.
+<div *ngIf="!selfInfos.length && !otherVersionInfos.length && !otherPlanInfos.length && !markerModel.xy" class="alert alert-info">
+  U heeft nog geen <span *ngIf="stateModel.state == 'SEARCH_PLACE'">adres ingevuld of plek aangewezen</span><a href="javascript:void(0)" *ngIf="stateModel.state != 'SEARCH_PLACE'" (click)="stateModel.enterSearchPlace()" class="alert-link">adres ingevuld of plek aangewezen</a> op de kaart.
 </div>
-<div *ngIf="!infos[0].length && !infos[2].length && markerModel.xy" class="alert alert-info">
+<div *ngIf="!selfInfos.length && !otherVersionInfos.length && !otherPlanInfos.length && markerModel.xy" class="alert alert-info">
   Er is geen plekinformatie beschikbaar op de gemarkeerde plek.
 </div>
-<div *ngIf="infos[0].length || infos[2].length" class="btn-container">
-  <button *ngIf="!legal" (click)="setLegal(true)" title="Plekinfo juridisch weergeven" class="btn btn-link">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#cultural"></use>
-    </svg>
-  </button>
-  <button *ngIf="legal" (click)="setLegal(false)" title="Plekinfo volledig weergeven" class="btn btn-link">
+<div *ngIf="selfInfos.length || otherVersionInfos.length || otherPlanInfos.length" class="btn-container">
+  <button *ngIf="!legal" (click)="setLegal(true)" title="Alleen de juridisch relevante plekinfo weergeven&#013;Huidige weergave: volledig" class="btn btn-link">
     <svg class="di di-sm">
       <use href="../assets/dso-icons.svg#buildings"></use>
     </svg>
   </button>
+  <button *ngIf="legal" (click)="setLegal(false)" title="Plekinfo volledig weergeven&#013;Huidige weergave: juridisch" class="btn btn-link">
+    <svg class="di di-sm">
+      <use href="../assets/dso-icons.svg#cultural"></use>
+    </svg>
+  </button>
 </div>
 <ul class="list-group list-group-flush">
-  <ng-template ngFor let-infos1 [ngForOf]="infos" let-i="index">
-    <li *ngIf="((i == 0) && infos[0].length && !infos[1].length) || ((i == 1) && !infos[0].length && infos[1].length)" class="list-group-item header" style="top: -1px">op deze plek <span *ngIf="infos[0].length + infos[1].length" class="small light">({{infos[0].length + infos[1].length}})</span></li>
-    <div *ngIf="(((i == 0) && infos[0].length && !infos[1].length) || ((i == 1) && !infos[0].length && infos[1].length)) && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
-    <li *ngIf="(i == 0) && infos[0].length && infos[1].length" class="list-group-item header" style="top: -1px">specifiek op deze plek <span class="small light">({{infos[0].length}})</span></li>
-    <div *ngIf="(i == 0) && infos[0].length && infos[1].length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
-    <li *ngIf="(i == 1) && infos[0].length && infos[1].length" class="list-group-item header" [ngStyle]="{top: '30px', bottom: ((infos[2].length? 1: 0) + ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0)) * 31 + 'px'}">ook op deze plek <span class="small light">({{infos[1].length}})</span></li>
-    <li *ngIf="(i == 2) && infos[2].length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0)) * 31 - 1) + 'px', bottom: ((appService.settings.placeInfoShowOrphans && orphanLocaties.length)? 1: 0) * 31 + 'px'}">op deze plek in andere plannen <span class="small light">({{infos[2].length}})</span></li>
-    <div *ngIf="(i == 2) && !infos[0].length && !infos[1].length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
-    <li *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
+  <ng-template ngFor let-infos1 [ngForOf]="[selfInfos, otherVersionInfos, otherPlanInfos, orphanInfos]" let-i="index">
+    <li *ngIf="(i == 0) && selfInfos.length" class="list-group-item header" style="top: -1px">op deze plek <span class="small light">({{selfInfos.length}})</span></li>
+    <div *ngIf="(i == 0) && selfInfos.length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
+    <li *ngIf="(i == 1) && otherVersionInfos.length" class="list-group-item header" [ngStyle]="{top: ((selfInfos.length? 1: 0) * 31 - 1) + 'px', bottom: ((otherPlanInfos.length? 1: 0) + (orphanInfos.length? 1: 0)) * 31 + 'px'}">op deze plek in andere versies <span class="small light">({{otherVersionInfos.length}})</span></li>
+    <div *ngIf="(i == 1) && !selfInfos.length && otherVersionInfos.length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
+    <li *ngIf="(i == 2) && otherPlanInfos.length" class="list-group-item header" [ngStyle]="{top: (((selfInfos.length? 1: 0) + (otherVersionInfos.length? 1: 0)) * 31 - 1) + 'px', bottom: (orphanInfos.length? 1: 0) * 31 + 'px'}">op deze plek in andere plannen <span class="small light">({{otherPlanInfos.length}})</span></li>
+    <div *ngIf="(i == 2) && !selfInfos.length && !otherVersionInfos.length && otherPlanInfos.length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
+    <li *ngIf="(i == 3) && orphanInfos.length" class="list-group-item header" [ngStyle]="{top: (((selfInfos.length? 1: 0) + (otherVersionInfos.length? 1: 0) + (otherPlanInfos.length? 1: 0)) * 31 - 1) + 'px', bottom: 0}">zonder annotatie <span class="small light">({{orphanInfos.length}})</span></li>
+    <a [routerLink]="" *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
       <div>
         <div>
           <span [innerHTML]="info.text"></span>
-          <span *ngIf="info.annotation?.technischId" class="ml-1 redalert">ontwerp</span>
+          <span *ngIf="isOntwerp(info)" class="ml-1 redalert">ontwerp</span>
+          <span *ngIf="(i &lt; 3) && isFuture(info)" class="ml-1 redalert">toekomstig</span>
         </div>
         <div *ngIf="info.plannen" class="links">
           <button (click)="highlightModel.setHighlight(null, false); info.plannen = null" title="Sluiten" class="btn btn-link close">
@@ -42,18 +43,8 @@
           <div *ngFor="let plan of info.plannen">&#8226; <a href="javascript:void(0)" (click)="highlightModel.setHighlight(null, false); planModel.loadPlan(plan.technischId || plan.identificatie, null, false, false)" title="Dit plan openen">{{plan.naam}}</a></div>
         </div>
       </div>
-      <div *ngIf="!info.plannen" (click)="highlightModel.setHighlight(null, false); openInfo(info)" [title]="(i &lt; 2)? 'Bijbehorende regels tonen': 'Bijbehorend plan openen'" class="overlay"></div>
-    </li>
-  </ng-template>
-  <ng-template [ngIf]="appService.settings.placeInfoShowOrphans">
-    <li *ngIf="orphanLocaties.length" class="list-group-item header" [ngStyle]="{top: (((infos[0].length? 1: 0) + (infos[1].length? 1: 0) + (infos[2].length? 1: 0)) * 31 - 1) + 'px', bottom: 0}">zonder annotatie <span class="small light">({{orphanLocaties.length}})</span></li>
-    <li *ngFor="let locatie of orphanLocaties" (mouseover)="highlightModel.setHighlight(locatie, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
-      <div class="legend"><img src="assets/nosymbol.png"/></div>
-      <div>
-        <strong>{{locatie.noemer || "Geen naam"}}</strong><br/>
-        {{locatie.locatieType.toLowerCase()}}
-      </div>
-    </li>
+      <div *ngIf="(i &lt; 3) && !info.plannen" (click)="highlightModel.setHighlight(null, false); openInfo(info); $event.preventDefault()" [title]="(i &lt; 2)? 'Bijbehorende regels tonen': 'Bijbehorend plan openen'" class="overlay"></div>
+    </a>
   </ng-template>
 </ul>
 <canvas #canvas [ngStyle]="{display: appService.settings.placeInfoDebugMode? 'block': 'none'}" style="background-color: rgba(255, 0, 0, 0.2);"></canvas>

@@ -1,13 +1,13 @@
 <ul class="dso-nav dso-nav-sub">
-  <li *ngFor="let tab of displayModel.tabs" (click)="setTab(tab, 'previous')" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == displayModel.tab}">
+  <li *ngFor="let tab of displayModel.tabs" (click)="display.setTab(tab, 'previous')" role="tab" class="dso-outline" [ngClass]="{'dso-active': tab == displayModel.tab}">
     <a href="javascript:void(0)">{{tab.label}}</a>
   </li>
 </ul>
 <div *ngIf="(displayModel.tab.id == 1) || ((displayModel.tab.id > 1) && (displayModel.tab.components.length))" class="filter-toolbar">
   <div class="filterbar">
-    <div *ngIf="imowModel.componentIdentificaties.filtered" class="filter">
+    <div *ngIf="imowModel.componentIdentificaties.filtered?.label" class="filter">
       {{imowModel.componentIdentificaties.filtered.label}}
-      <a href="javascript:void(0)" (click)="imowModel.clearFilteredComponentIdentificaties()" title="Filter weghalen" class="hide"><span class="fa fa-times"></span></a>
+      <a href="javascript:void(0)" (click)="clearFilter()" title="Filter weghalen" class="hide"><span class="fa fa-times"></span></a>
     </div>
   </div>
   <div class="toolbar">
@@ -48,7 +48,7 @@
       </div>
     </ng-template>
     <div *ngIf="displayModel.tab.id > 1" class="box-sm">
-      <button *ngIf="planModel.plan.predecessor && !imowModel.numLoadingC" (click)="display.emit('allOpen', 'diff'); (!displayModel.tabs[2].diffComponents.length? planModel.loadPlan(planModel.plan.predecessor.identificatie, null, false, true): null)" title="Met voorgaande versie vergelijken" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'diff'">
+      <button *ngIf="planModel.plan.predecessor && !planModel.numLoadingC" (click)="display.emit('allOpen', 'diff'); (!displayModel.tabs[2].diffComponents.length? planModel.loadPlan(planModel.plan.predecessor.identificatie, null, false, true): null)" title="Met voorgaande versie vergelijken" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'diff'">
         <span class="fa fa-copy"></span>
       </button>
       <button (click)="display.emit('allOpen', 'doc')" title="Als document weergeven" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'doc'">
@@ -76,10 +76,10 @@
         </button>
       </div>
       <div *ngIf="(imowModel.componentIdentificaties.specific || imowModel.componentIdentificaties.filtered) && ((displayModel.tab.diffComponents.length && (display.allOpen == 'diff') && display.allDiffVisible) || ((display.allOpen != 'diff') && display.allOpen && display.allVisible))" class="box-sm">
-        <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponentIdentificatie('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
+        <button *ngIf="imowModel.componentIdentificaties.filtered" (click)="selectNextComponent('filtered')" title="Naar volgende regel die voldoet aan het filter" class="btn btn-default btn-sm">
           <span class="fa fa-caret-down" style="border-radius: 2px; background-color: #f9e11e"></span>
         </button>
-        <button *ngIf="imowModel.componentIdentificaties.specific" (click)="selectNextComponentIdentificatie('specific')" title="Naar volgende regel op de gemarkeerde plek" class="btn btn-default btn-sm">
+        <button *ngIf="imowModel.componentIdentificaties.specific" (click)="selectNextComponent('specific')" title="Naar volgende regel op de gemarkeerde plek" class="btn btn-default btn-sm">
           <span class="fa fa-caret-square-down"></span>
         </button>
       </div>
@@ -101,16 +101,19 @@
   <div class="scroll-cover"></div>
 </div>
 <div #tabContent class="tab-content">
-  <dso-markanvas *ngIf="(displayModel.tab.id == 0) && setTabComponents()" (close)="setTab(displayModel.tabs[2], 'selected')"></dso-markanvas>
-  <ng-template [ngIf]="(displayModel.tab.id > 0) && !imowModel.numLoadingC && setTabComponents()">
+  <ng-template [ngIf]="(displayModel.tab.id == 0)">
+    <div *ngIf="tabStatusBuilding" class="builder"><div>Tekst aan het zoeken...</div></div>
+    <dso-markanvas *ngIf="tabStatusComplete || tabStatusAlmostComplete" [display]="display" [class.hidden]="tabStatusAlmostComplete"></dso-markanvas>
+  </ng-template>
+  <ng-template [ngIf]="(displayModel.tab.id > 0) && !planModel.numLoadingC">
     <div *ngIf="tabStatusEmpty" class="alert alert-info">Dit plan heeft geen {{displayModel.tab.label.toLowerCase()}}<span *ngIf="displayModel.tab.components.length && (display.allOpen == 'diff')"> om te vergelijken</span>.</div>
     <div *ngIf="tabStatusBuilding" class="builder"><div>Tekst aan het opbouwen...</div></div>
-    <div *ngIf="tabStatusComplete" class="shader"></div>
+    <div id="shader" class="shader"></div>
     <dso-plan-accordion *ngIf="tabStatusComplete || tabStatusAlmostComplete" [component]="tabComponents" [structured]="structured" [level]="1" [toc]="displayModel.tab.id == 1" [display]="display" [componentIdentificaties]="imowModel.componentIdentificaties" [class.hidden]="tabStatusAlmostComplete"></dso-plan-accordion>
   </ng-template>
 </div>
 <div *ngIf="(displayModel.tab.id == 2) && display.annotationsVisible" class="anno">
-  <dso-annotations [component]="imowModel.component" [display]="display"></dso-annotations>
+  <dso-annotations [component]="displayModel.component" [display]="display"></dso-annotations>
 </div>
 <div *ngIf="(displayModel.tab.id == 0) && (imowModel.numLoadingL + imowModel.numLoading)" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>
@@ -118,9 +121,9 @@
     <span class="num">{{imowModel.numLoadingL + imowModel.numLoading}}</span>
   </div>
 </div>
-<div *ngIf="(displayModel.tab.id > 0) && imowModel.numLoadingC" class="dso-progress-indicator" style="top: 44px">
+<div *ngIf="(displayModel.tab.id > 0) && (imowModel.numLoadingC || planModel.numLoadingC)" class="dso-progress-indicator" style="top: 44px">
   <div class="dso-progress-indicator-bg"></div>
   <div class="dso-progress-indicator-spinner">
-    <span class="num">{{imowModel.numLoadingC}}</span>
+    <span class="num">{{imowModel.numLoadingC + planModel.numLoadingC}}</span>
   </div>
 </div>

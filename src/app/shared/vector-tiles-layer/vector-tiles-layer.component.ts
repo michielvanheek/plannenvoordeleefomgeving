@@ -1,13 +1,11 @@
 import { AfterContentInit, Component, ContentChildren, Input, OnChanges, QueryList, SimpleChanges, forwardRef } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { VectorTile } from "@mapbox/vector-tile";
-import * as Protobuf from "pbf";
 import { Bounds, BoundsModel, CenterScale, Filter, FocusModel, VectorTileModel } from "ng-niney";
 import { CanvasSymbolizer } from "ng-niney/map-feature-layer/canvas-symbolizer";
 import { MapLayer } from "ng-niney/map/map-layer";
 import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { TilesLayerComponent } from "ng-niney/tiles-layer/tiles-layer.component";
-import { SVGConverter } from "src/app/shared/svg-converter";
+import { SVGConverter } from "../svg-converter";
+import { VectorTileCacheService } from "../vector-tile-cache.service";
 
 @Component({
   selector: "vectortileslayer",
@@ -23,12 +21,11 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
 
   @ContentChildren(CanvasSymbolizer) private contentChildren: QueryList<CanvasSymbolizer>;
 
-  @Input() vectorCaching = true;
   @Input() filter = null;
 
   constructor(
-    private http: HttpClient,
-    protected nineyDefaultService: NineyDefaultService
+    protected nineyDefaultService: NineyDefaultService,
+    private vectorTileCache: VectorTileCacheService
   ) {
     super(nineyDefaultService);
 
@@ -62,6 +59,11 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
     const maxZoomLevelScale = 4762.201724597;
     tileModel.maxZoomLevel = 11;
 
+    const origSetBoundsAndCenterScales = tileModel.setBoundsAndCenterScales;
+    tileModel.setBoundsAndCenterScales = (bounds, centerScale, animationCenterScale, envelope, animationEnvelope) => {
+      this.zoomLevelScale = this.focusModel.srs.getZoomLevel(centerScale.scale).scale;
+      origSetBoundsAndCenterScales.call(tileModel, bounds, centerScale, animationCenterScale, envelope, animationEnvelope);
+    };
     const origSetCenterScale = tileModel.setCenterScale;
     tileModel.setCenterScale = (centerScale, envelope) => {
       this.zoomLevelScale = this.focusModel.srs.getZoomLevel(centerScale.scale).scale;
@@ -80,79 +82,21 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
     };
   
     tileModel.loadTileData = tile => {
-      if (tile.vectorData == null) {
-        const tileZxy = tile.url.match(/(\/\d+\/\d+\/\d+)\.pbf$/)[1];
-        const excludedTileZxys = [
-          "/3/2/5",
-          "/3/3/5",
-          "/3/4/0",
-          "/3/5/0",
-          "/3/5/1",
-          "/3/5/4",
-          "/3/5/5",
-          "/4/4/0",
-          "/4/4/1",
-          "/4/4/2",
-          "/4/4/5",
-          "/4/4/6",
-          "/4/4/10",
-          "/4/5/10",
-          "/4/6/10",
-          "/4/7/10",
-          "/4/7/0",
-          "/4/8/0",
-          "/4/8/1",
-          "/4/8/2",
-          "/4/9/0",
-          "/4/9/1",
-          "/4/9/2",
-          "/4/9/3",
-          "/4/10/0",
-          "/4/10/1",
-          "/4/10/2",
-          "/4/10/3",
-          "/4/10/4",
-          "/4/10/8",
-          "/4/10/9",
-          "/4/10/10",
-        ];
-        if (!excludedTileZxys.includes(tileZxy)) {
-          this.http.get(tile.url, {responseType: "arraybuffer"}).subscribe(
-            response => {
-              if (this.layer == null) {
-                this.tileModel.completeTile(tile, false);
-                return;
-              }
-              const vectorTileLayers = [];
-              ["vlaklocaties", "ontwerp_vlaklocaties"].forEach(layerName => {
-                const vectorTileLayer = new VectorTile(new Protobuf(response)).layers[layerName];
-                if (vectorTileLayer != null) {
-                  vectorTileLayers.push(vectorTileLayer);
-                }
-              });
-              if (vectorTileLayers.length > 0) {
-                this.setTileData(tile, vectorTileLayers);
-              } else {
-                console.warn("Could not instantiate: " + tile.url);
-                this.tileModel.completeTile(tile, false);
-              }
-            },
-            error => {
-              this.tileModel.completeTile(tile, false);
-            }
-          );
-        } else {
-          this.setTileData(tile, [{extent: 4096, length: 0}]);
-        }
-      } else {
-        this.setTileData(tile, tile.vectorData);
-      }
+      this.vectorTileCache.loadTileData(tile, this);
     };
 
     return tileModel;
   }
 
   private setTileData(tile, vectorTileLayers) {
+    if ((vectorTileLayers.reduce((num, vectorTileLayer) => num += vectorTileLayer.length, 0) < 1000) && ((this.childrenFilter == null) || (this.childrenFilter.value.length < 3000))) {
+      this.setVectorTileData(tile, vectorTileLayers);
+    } else {
+      setTimeout(() => this.setVectorTileData(tile, vectorTileLayers));
+    }
+  }
+
+  private setVectorTileData(tile, vectorTileLayers) {
     if (tile.tileWidth != tile.tileHeight) {
       console.warn("Tile width and height are not equal. Image will be distorted.");
     }
@@ -199,9 +143,6 @@ export class VectorTilesLayerComponent extends TilesLayerComponent implements Af
     });
 
     tile.data = canvas;
-    if (this.vectorCaching) {
-      tile.vectorData = vectorTileLayers;
-    }
     this.tileModel.completeTile(tile, true);
   }
 

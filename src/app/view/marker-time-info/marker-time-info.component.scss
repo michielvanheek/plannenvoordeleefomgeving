@@ -1,0 +1,23 @@
+:host {
+  display: flex;
+  margin: 0 -20px;
+  padding: 25px 20px;
+  background-color: #e5e5e5;
+  flex-direction: column;
+}
+h3 {
+  font-size: 1.55rem;
+}
+tr td {
+  padding: 0 8px 8px 0;
+  vertical-align: top;
+  .btn-link {
+    position: relative;
+    top: -4px;
+    height: 20px;
+    border: 0;
+  }
+}
+tr:last-of-type td {
+  padding: 0 8px 0 0;
+}

@@ -27,7 +27,7 @@ a {
   color: #275937;
 }
 
-label {
+label.checkbox {
   position: relative;
   padding-left: calc(24px + 0.5rem);
   cursor: pointer;
@@ -290,7 +290,7 @@ svg:not(:root) {
   display: block
 }
 
-.dso-nav > li > a, .dso-nav > li > a:focus, .dso-nav > li > a:hover, .dso-nav > li > a:visited {
+.dso-nav > li > a, .dso-nav > li > a:focus, .dso-nav > li > a:hover, .dso-nav > li > a:visited, .dso-nav > li > div.disabled {
   color: #275937
 }
 
@@ -299,32 +299,17 @@ svg:not(:root) {
   font-weight: 700
 }
 
-.dso-nav.dso-nav-main {
-  margin-bottom: 8px
+.dso-nav > li > div.disabled {
+  border-bottom: 4px solid #fff;
+  opacity: 0.5;
+  cursor: default;
 }
 
-.dso-nav.dso-nav-main > li {
-  display: block
-}
-
-@media screen and (min-width: 768px) {
-  .dso-nav.dso-nav-main > li {
-    display: inline-block
-  }
-}
-
-.dso-nav.dso-nav-main > li > a {
-  font-size: 1.25em;
-  line-height: 1;
-  margin-top: 8px;
-  padding: 8px 16px 7px
-}
-
-.dso-nav.dso-nav-sub > li {
+.dso-nav > li {
   display: inline-block
 }
 
-.dso-nav.dso-nav-sub > li > a {
+.dso-nav > li > a, .dso-nav > li > div.disabled {
   font-size: 16px;
   margin-top: 4px;
   padding: 4px 8px 3px
@@ -355,16 +340,34 @@ svg:not(:root) {
 }
 a.list-group-item:hover,
 a.list-group-item:focus,
-a.list-group-item.active,
-a.list-group-item.active:hover,
-a.list-group-item.active:focus,
-li.list-group-item:hover,
-li.list-group-item.active,
-li.list-group-item.active:hover {
-  border-color: rgba(0, 0, 0, 0.125);
+a.list-group-item.selected {
   text-decoration: none;
   color: inherit;
   background-color: #f2f2f2;
+  outline: 0;
+}
+a.list-group-item.selectable:hover::before,
+a.list-group-item.selectable:focus::before,
+a.list-group-item.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: rgba(39, 89, 55, 0.5);
+}
+a.list-group-item.selected::before {
+  background-color: rgb(39, 89, 55);
+}
+.list-group-flush a.list-group-item.selectable:hover::before,
+.list-group-flush a.list-group-item.selectable:focus::before,
+.list-group-flush a.list-group-item.selected::before {
+  left: -5px;
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
 }
 .list-group-item.header,
 .list-group-item.header:hover {
@@ -479,4 +482,14 @@ a, .btn-link {
       text-align: center;
     }
   }
+}
+
+.cdk-overlay-container {
+  position: absolute;
+  left: 15px;
+  top: 50px;
+  z-index: 5;
+}
+.cdk-visually-hidden {
+  display: none;
 }

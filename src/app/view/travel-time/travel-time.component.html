@@ -1,0 +1,11 @@
+<h3>Naar een andere tijd reizen</h3>
+<input (dateChange)="setDate($event.value)" [matDatepicker]="picker" [value]="date" style="display: none">
+<mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
+<div class="alert alert-info" style="margin-top: 370px">
+  Kies een datum die in het verleden ligt, of kies voor <a href="javascript:void(0)" (click)="setDate(null)" class="alert-link">vandaag</a> als u niet wilt tijdreizen.
+</div>
+<div>
+  <button (click)="close()" title="Dit paneel sluiten" class="btn btn-default">
+    Annuleren
+  </button>
+</div>

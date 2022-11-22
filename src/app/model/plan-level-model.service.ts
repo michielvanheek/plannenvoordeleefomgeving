@@ -11,7 +11,7 @@ export class PlanLevelModelService {
         return (
           ((val.viewPlanLevel.name == "Gemeente") && (val.typePlan != "structuurvisie") && (val.typePlan != "omgevingsvisie")) ||
           ((val.viewPlanLevel.name == "Provincie") && (val.typePlan != "provinciale verordening") && (val.typePlan != "structuurvisie") && (val.typePlan != "omgevingsverordening") && (val.typePlan != "omgevingsvisie")) ||
-          ((val.viewPlanLevel.name == "Rijk") && (val.typePlan != "amvb") && (val.typePlan != "regeling") && (val.typePlan != "structuurvisie") && (val.typePlan != "AMvB") && (val.typePlan != "ministeriële regeling") && (val.typePlan != "omgevingsvisie"))
+          ((val.viewPlanLevel.name == "Rijk") && (val.typePlan != "amvb") && (val.typePlan != "regeling") && (val.typePlan != "structuurvisie") && (val.typePlan != "AMvB") && (val.typePlan != "ministeriële regeling") && (val.typePlan != "omgevingsvisie") && (val.typePlan != "programma"))
         );
       }
     }, {
@@ -46,12 +46,12 @@ export class PlanLevelModelService {
     {id: 3, name: "Rijk", adjective: "rijksplan", types: [{
       name: "regelgeving",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Rijk") && ((val.typePlan == "AMvB") || (val.typePlan == "ministeriële regeling")) && (val.naam != "Voorlopige oplossing functionele structuur"));
+        return ((val.viewPlanLevel.name == "Rijk") && ((val.typePlan == "AMvB") || (val.typePlan == "ministeriële regeling")) && (val.naam != "Omgevingswet"));
       }
     }, {
       name: "beleid",
       filter: val => {
-        return ((val.viewPlanLevel.name == "Rijk") && (val.typePlan == "omgevingsvisie"));
+        return ((val.viewPlanLevel.name == "Rijk") && ((val.typePlan == "omgevingsvisie") || (val.typePlan == "programma")));
       }
     }]}
   ];

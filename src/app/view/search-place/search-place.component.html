@@ -1,24 +1,25 @@
-<h3>Een plek zoeken
-  <button (click)="stateModel.toggleState()" title="Naar het scherm: Een plan zoeken" class="btn btn-rnd">
-    <span class="fa fa-caret-down"></span>
-  </button>
-</h3>
-<input type="text" placeholder="Adres..." [(ngModel)]="s" (input)="suggest()" class="form-control"/>
+<h3>Een plek zoeken</h3>
+<dso-text-input placeholder="Adres..." [(dsoModel)]="s" (dsoInput)="suggest()"></dso-text-input>
 <ul *ngIf="locaties.length" class="list-group overflow-auto">
-  <a *ngFor="let locatie1 of locaties" (click)="lookup(locatie1.id, locatie1.weergavenaam)" class="list-group-item" [ngClass]="{active: ((locatie && (locatie1.weergavenaam == locatie.weergavenaam)) || (markerModel.name && (locatie1.weergavenaam == markerModel.name)))}">{{locatie1.weergavenaam}}</a>
+  <a [routerLink]="" *ngFor="let locatie1 of locaties" (click)="lookup(locatie1.id, locatie1.weergavenaam)" class="list-group-item" [ngClass]="((locatie && (locatie1.weergavenaam == locatie.weergavenaam)) || (markerModel.name && (locatie1.weergavenaam == markerModel.name)))? 'selected': 'selectable'">{{locatie1.weergavenaam}}</a>
 </ul>
 <div *ngIf="!locaties.length && !locatie && !markerModel.xy" class="alert alert-info">
   Vul een adres in, of wijs een plek aan op de kaart.
   <span *ngIf="!measureModel.geometry">Dat kan door een punt te zetten of door <a href="javascript:void(0)" (click)="measureModel.toggle()" class="alert-link">een gebied te tekenen</a>.</span>
   <span *ngIf="measureModel.geometry">Dat kan door <a href="javascript:void(0)" (click)="measureModel.toggle()" class="alert-link">een punt te zetten</a> of door een gebied te tekenen.</span>
 </div>
-<div *ngIf="!locaties.length && (locatie || markerModel.xy)" class="alert" [ngClass]="markerModel.xy? 'alert-info' : 'alert-warning'">
+<div *ngIf="!locaties.length && (locatie || markerModel.xy)" class="alert" [ngClass]="markerModel.xy? 'alert-info': 'alert-warning'">
   <span *ngIf="!locatie && !markerModel.name">De aangewezen plek is gemarkeerd met een <a href="javascript:void(0)" (click)="markerModel.zoomToMarker()" title="Naar de gemarkeerde plek zoomen" class="alert-link">paarse {{markerModel.polygon? "contour": "stip"}}</a>.</span>
   <span *ngIf="locatie || markerModel.name">De gekozen plek is <a href="javascript:void(0)" *ngIf="locatie" (click)="zoomToLocatie(locatie)" class="alert-link">{{locatie.weergavenaam}}</a><a href="javascript:void(0)" *ngIf="markerModel.name" (click)="markerModel.zoomToMarker()" class="alert-link">{{markerModel.name}}</a><span *ngIf="!markerModel.xy">, maar dat is niet specifiek genoeg om een plan te vinden. Vul een adres in met huisnummer, of wijs een plek aan op de kaart</span>.</span>
-  <span *ngIf="markerModel.xy"><br/><a href="javascript:void(0)" (click)="stateModel.enterSelectPlan()" class="alert-link">Kies een plan</a> op deze plek. Of vul een <span *ngIf="locatie || markerModel.name">ander</span> adres in, of wijs een andere plek aan op de kaart.</span>
+  <span *ngIf="markerModel.xy"><br/><a href="javascript:void(0)" (click)="stateModel.exit()" class="alert-link">Kies een plan</a> op deze plek. Of vul een <span *ngIf="markerModel.name">ander</span> adres in, of wijs een andere plek aan op de kaart. U kunt de gemarkeerde plek ook weer <a href="javascript:void(0)" (click)="markerModel.clear(); stateModel.exit()" class="alert-link">weghalen</a>.</span>
 </div>
-<div *ngIf="!locaties.length && markerModel.xy">
-  <button (click)="stateModel.enterSelectPlan()" [title]="'Op de ' + ((locatie || markerModel.name)? 'gekozen': 'aangewezen') + ' plek een plan kiezen'" class="btn btn-default">
-    Een plan kiezen <span class="fa fa-caret-right"></span>
+<div *ngIf="!locaties.length && init">
+  <button (click)="stateModel.exit()" title="In heel Nederland een plan zoeken" class="btn btn-default">
+    Deze stap overslaan <span class="fa fa-caret-right"></span>
+  </button>
+</div>
+<div *ngIf="!locaties.length && !init">
+  <button (click)="stateModel.exit()" title="Dit paneel sluiten" class="btn btn-default">
+    Annuleren
   </button>
 </div>

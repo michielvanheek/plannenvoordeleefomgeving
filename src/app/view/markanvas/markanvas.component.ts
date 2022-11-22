@@ -1,4 +1,4 @@
-import { Component, DoCheck, ElementRef, EventEmitter, OnInit, Output, ViewChild } from "@angular/core";
+import { Component, DoCheck, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { VectorTile } from "@mapbox/vector-tile";
 import * as Protobuf from "pbf";
@@ -10,8 +10,10 @@ import { ImowModelService } from "src/app/model/imow-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
+import { SelectComponentSetTabScrollTo } from "src/app/action/SelectComponentSetTabScrollTo";
 import { StateModelService } from "src/app/model/state-model.service";
 import { SVGConverter } from "src/app/shared/svg-converter";
+import { TimeModelService } from "src/app/model/time-model.service";
 import { environment } from "../../../environments/environment";
 
 @Component({
@@ -21,10 +23,9 @@ import { environment } from "../../../environments/environment";
 })
 export class MarkanvasComponent implements OnInit, DoCheck {
   private scale = this.nineyDefault.defaultFocusModel.incubationCenterScale.scale;
-  private markerXY = this.markerModel.xy;
   private markerLocaties = this.imowModel.markerLocaties;
-  private numLoading = this.imowModel.numLoading;
-  private planIdentificatie = this.planModel.plan.identificatie;
+  private numLoading = this.imowModel.numLoadingL + this.imowModel.numLoading;
+  private planIdentificatie = this.planModel.plan.technischId || this.planModel.plan.identificatie;
 
   private layer = new Layer("vlaklocaties");
   private refreshToken = 0;
@@ -36,14 +37,16 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
   legal = false;
   specify = false;
-  @Output() close: EventEmitter<any> = new EventEmitter(false);
+  @Input() display;
   @ViewChild("canvas", {static: true}) private canvasRef: ElementRef;
 
   private specificLocaties = {};
   private nonSpecificLocaties = {};
 
-  infos = [[], [], []];
-  orphanLocaties = [];
+  selfInfos = [];
+  otherVersionInfos = [];
+  otherPlanInfos = [];
+  orphanInfos = [];
 
   constructor(
     private http: HttpClient,
@@ -51,6 +54,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     public appService: AppService,
     public highlightModel: HighlightModelService,
     public stateModel: StateModelService,
+    public timeModel: TimeModelService,
     public markerModel: MarkerModelService,
     private omgevingsdocumentModel: OmgevingsdocumentModelService,
     public imowModel: ImowModelService,
@@ -71,23 +75,22 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
   ngDoCheck(): void {
     const scale = this.nineyDefault.defaultFocusModel.incubationCenterScale.scale;
-    if ((this.scale != scale) || (this.markerLocaties != this.imowModel.markerLocaties)) {
-      if (this.scale != scale) {
+    if ((this.specify && (this.scale != scale)) || (this.markerLocaties != this.imowModel.markerLocaties)) {
+      if (this.specify && (this.scale != scale)) {
         this.scale = scale;
       }
       if (this.markerLocaties != this.imowModel.markerLocaties) {
         this.markerLocaties = this.imowModel.markerLocaties;
-        this.markerXY = this.markerModel.xy;
       }
       this.setLocaties();
     }
 
-    if ((this.numLoading != this.imowModel.numLoading) || (this.planIdentificatie != this.planModel.plan.identificatie)) {
-      if (this.numLoading != this.imowModel.numLoading) {
-        this.numLoading = this.imowModel.numLoading;
+    if ((this.numLoading != (this.imowModel.numLoadingL + this.imowModel.numLoading)) || (this.planIdentificatie != (this.planModel.plan.technischId || this.planModel.plan.identificatie))) {
+      if (this.numLoading != (this.imowModel.numLoadingL + this.imowModel.numLoading)) {
+        this.numLoading = this.imowModel.numLoadingL + this.imowModel.numLoading;
       }
-      if (this.planIdentificatie != this.planModel.plan.identificatie) {
-        this.planIdentificatie = this.planModel.plan.identificatie;
+      if (this.planIdentificatie != (this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
+        this.planIdentificatie = this.planModel.plan.technischId || this.planModel.plan.identificatie;
       }
       this.setCollections();
     }
@@ -99,6 +102,27 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     this.setCollections();
   }
 
+  isOntwerp(info) {
+    if ((info.annotation.omgevingsnorm || info.annotation).technischId != null) {
+      return true;
+    }
+    return !!info.teksten && !!info.teksten.length && info.teksten.every(tekst => tekst.technischId);
+  }
+
+  isFuture(info) {
+    if (info.annotation.technischId != null) {
+      return false;
+    }
+
+    const teksten = (info.teksten || []).filter(tekst => !tekst.technischId);
+    const tekstenAreFuture = !!teksten.length && teksten.every(tekst => tekst.geregistreerdMet.beginInwerking > this.timeModel.time);
+    if (info.annotation.betreftEenActiviteit != null) {
+      return tekstenAreFuture;
+    }
+    const annotationIsFuture = ((info.annotation.omgevingsnorm || info.annotation).geregistreerdMet.beginInwerking > this.timeModel.time);
+    return annotationIsFuture || tekstenAreFuture;
+  }
+
   openInfo(info) {
     if ((info.teksten == null) || (info.teksten.length == 0)) {
       return;
@@ -108,8 +132,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     info.teksten.forEach(tekst => index[tekst.documentTechnischId || tekst.documentIdentificatie] = true);
     const planIdentificaties = Object.keys(index);
     if (planIdentificaties.includes(this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
-      this.imowModel.setComponentIdentificaties("filtered", info.teksten, info.label);
-      this.close.emit();
+      new SelectComponentSetTabScrollTo(this.imowModel, this.planModel, this.display, info);
     } else if (planIdentificaties.length == 1) {
       this.planModel.loadPlan(planIdentificaties[0], null, false, false);
     } else {  // planIdentificaties.length > 1
@@ -118,31 +141,14 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private setLocaties() {
-    if (this.markerXY == null) {
-      this.specificLocaties = {};
-      this.nonSpecificLocaties = {};
-      this.setCollections();
-      return;
-    }
-
     if (this.specify) {
       this.loadTile();
     } else {
       this.specificLocaties = {};
       this.nonSpecificLocaties = {};
 
-      this.imowModel.markerLocatieIdentificaties.forEach(identificatie => {
-        const locatie = this.imowModel.locaties[identificatie];
-        if (locatie == null) {
-          return;
-        }
-
+      this.imowModel.markerLocaties.filter(locatie => !this.omgevingsdocumentModel.regelingen.some(regeling => regeling.locatieIdentificatie == (locatie.technischId || locatie.identificatie))).forEach(locatie => {
         this.specificLocaties[locatie.technischId || locatie.identificatie] = locatie;
-        if (locatie.groepen != null) {
-          for (const groep of locatie.groepen) {
-            this.specificLocaties[groep.technischId || groep.identificatie] = groep;
-          }
-        }
       });
 
       this.setCollections();
@@ -154,8 +160,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
 
     const zoomLevel = srs.getZoomLevel(this.scale, this.maxZoomLevel);
     const tileLimit = Math.pow(2, zoomLevel.zoomLevel);
-    const tileX = Math.floor((this.markerXY.x - srs.minX) / zoomLevel.resolution / this.tileSize);
-    const tileY = Math.max(Math.floor((srs.maxY - this.markerXY.y) / zoomLevel.resolution / this.tileSize), 0);
+    const tileX = Math.floor((this.markerModel.xy.x - srs.minX) / zoomLevel.resolution / this.tileSize);
+    const tileY = Math.max(Math.floor((srs.maxY - this.markerModel.xy.y) / zoomLevel.resolution / this.tileSize), 0);
 
     const minX = tileX * this.tileSize * zoomLevel.resolution + srs.minX;
     const maxY = -(tileY * this.tileSize * zoomLevel.resolution - srs.maxY);
@@ -192,8 +198,8 @@ export class MarkanvasComponent implements OnInit, DoCheck {
           b: 0,
           c: 0,
           d: tile.tileHeight / layer.extent,
-          e: (canvasHalf - (this.markerXY.x - srs.minX) / tileResolution % this.tileSize) * rescaleFactor - canvasHalf * (rescaleFactor - 1),
-          f: (canvasHalf - (srs.maxY - this.markerXY.y) / tileResolution % this.tileSize) * rescaleFactor - canvasHalf * (rescaleFactor - 1)
+          e: (canvasHalf - (this.markerModel.xy.x - srs.minX) / tileResolution % this.tileSize) * rescaleFactor - canvasHalf * (rescaleFactor - 1),
+          f: (canvasHalf - (srs.maxY - this.markerModel.xy.y) / tileResolution % this.tileSize) * rescaleFactor - canvasHalf * (rescaleFactor - 1)
         };
 
         const ctx = this.canvasRef.nativeElement.getContext("2d");
@@ -256,7 +262,9 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private setCollections() {
-    this.infos = [[], [], []];  // Specific, non-specific, in other plans.
+    this.selfInfos = [];
+    this.otherVersionInfos = [];
+    this.otherPlanInfos = [];
 
     const locaties = (Object.values(Object.assign({}, this.specificLocaties, this.nonSpecificLocaties)) as any[]);
 
@@ -266,92 +274,149 @@ export class MarkanvasComponent implements OnInit, DoCheck {
       const normwaarden = locaties.reduce((normwaarden, locatie) => normwaarden.concat(locatie.normwaarden || []), []);
 
       gebiedsaanwijzingen.forEach(gebiedsaanwijzing => {
-        const inPlan = gebiedsaanwijzing.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-        const specific = gebiedsaanwijzing.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
-        if (inPlan) {
-          this.infos[specific? 0: 1].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
-        } else {  // !inPlan
-          this.infos[2].push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+        const inSelf = (gebiedsaanwijzing.teksten || []).some(tekst => ((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) && this.annotationTimeMatchesPlanTime(tekst)) && this.annotationTimeMatchesPlanTime(gebiedsaanwijzing);
+        if (inSelf) {
+          this.selfInfos.push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+        } else {
+          const inOtherVersion = (gebiedsaanwijzing.teksten || []).some(tekst => this.planModel.plan.versions.some(version => version.identificatie == tekst.documentIdentificatie));
+          if (inOtherVersion) {
+            this.otherVersionInfos.push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+          } else {
+            this.otherPlanInfos.push(this.gebiedsaanwijzingToInfo(gebiedsaanwijzing));
+          }
         }
       });
 
+      const supers = {};
       activiteitlocatieaanduidingen.forEach(activiteitlocatieaanduiding => {
-        const inPlan = true;
-        const specific = activiteitlocatieaanduiding.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
-        if (inPlan) {
-          const twinfo = this.infos[specific? 0: 1].find(info =>
+        const id = activiteitlocatieaanduiding.super.superId;
+        supers[id] = supers[id] || activiteitlocatieaanduiding.super;
+      });
+      (Object.values(supers) as any[]).forEach(activiteitlocatieaanduiding => {
+        const teksten = activiteitlocatieaanduiding.teksten;
+        const activiteitlocatieaanduidingTo = infos => {
+          const twinfo = infos.find(info =>
             info.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") == activiteitlocatieaanduiding.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort().join("|") &&
-            (info.teksten || []).map(tekst => tekst.technischId || tekst.identificatie).sort().join("|") == (activiteitlocatieaanduiding.teksten || []).map(tekst => tekst.technischId || tekst.identificatie).sort().join("|")
+            info.teksten.map(tekst => tekst.technischId || tekst.identificatie).sort().join("|") == teksten.map(tekst => tekst.technischId || tekst.identificatie).sort().join("|")
           );
           if (twinfo != null) {
-            this.addActiviteitToInfo(twinfo, activiteitlocatieaanduiding);
+            twinfo.text += "<br/>" + activiteitlocatieaanduiding.viewType;
           } else {
-            this.infos[specific? 0: 1].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
+            infos.push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding, teksten));
           }
-        } else {  // !inPlan
-          this.infos[2].push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding));
+        };
+        const inSelf = teksten.some(tekst => ((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) && this.annotationTimeMatchesPlanTime(tekst));
+        if (inSelf) {
+          activiteitlocatieaanduidingTo(this.selfInfos);
+        } else {
+          const inOtherVersion = teksten.some(tekst => this.planModel.plan.versions.some(version => version.identificatie == tekst.documentIdentificatie));
+          if (inOtherVersion) {
+            activiteitlocatieaanduidingTo(this.otherVersionInfos);
+          } else {
+            activiteitlocatieaanduidingTo(this.otherPlanInfos);
+          }
         }
       });
 
       normwaarden.forEach(normwaarde => {
-        const inPlan = normwaarde.omgevingsnorm.teksten.some(tekst => (tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie));
-        const specific = normwaarde.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
-        if (inPlan) {
-          this.infos[specific? 0: 1].push(this.normwaardeToInfo(normwaarde));
-        } else {  // !inPlan
-          this.infos[2].push(this.normwaardeToInfo(normwaarde));
+        const inSelf = (normwaarde.omgevingsnorm.teksten || []).some(tekst => ((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) && this.annotationTimeMatchesPlanTime(tekst)) && this.annotationTimeMatchesPlanTime(normwaarde.omgevingsnorm);
+        if (inSelf) {
+          this.selfInfos.push(this.normwaardeToInfo(normwaarde));
+        } else {
+          const inOtherVersion = (normwaarde.omgevingsnorm.teksten || []).some(tekst => this.planModel.plan.versions.some(version => version.identificatie == tekst.documentIdentificatie));
+          if (inOtherVersion) {
+            this.otherVersionInfos.push(this.normwaardeToInfo(normwaarde));
+          } else {
+            this.otherPlanInfos.push(this.normwaardeToInfo(normwaarde));
+          }
+        }
+      });
+
+      locaties.forEach(locatie => {
+        const locatieMatches = this.annotationTimeMatchesPlanTime(locatie);
+        const selfTeksten = {};
+        const otherVersionTeksten = {};
+        ((locatie.teksten && locatie.teksten[this.planModel.plan.technischId || this.planModel.plan.identificatie]) || []).forEach(tekst => {
+          const tekstMatches = this.annotationTimeMatchesPlanTime(tekst);
+          if (locatieMatches && tekstMatches) {
+            selfTeksten[tekst.technischId || tekst.identificatie] = tekst;
+          } else {
+            otherVersionTeksten[tekst.technischId || tekst.identificatie] = tekst;
+          }
+        });
+        this.selfInfos.forEach(info => info.teksten.forEach(tekst => delete selfTeksten[tekst.technischId || tekst.identificatie]));
+        this.otherVersionInfos.forEach(info => info.teksten.forEach(tekst => delete otherVersionTeksten[tekst.technischId || tekst.identificatie]));
+        if (Object.values(selfTeksten).length > 0) {
+          this.selfInfos.push(this.locatieToInfo(locatie, Object.values(selfTeksten)));
+        }
+        if (Object.values(otherVersionTeksten).length > 0) {
+          this.otherVersionInfos.push(this.locatieToInfo(locatie, Object.values(otherVersionTeksten)));
         }
       });
     } else {
-      locaties.filter(locatie => {
-        const teksten = {};
-        const otherPlansTeksten = {};
-        let specific = false;
+      locaties.forEach(locatie => {
+        const locatieMatches = this.annotationTimeMatchesPlanTime(locatie);
+        const selfTeksten = {};
+        const otherVersionTeksten = {};
+        const otherPlanTeksten = {};
+        const processTekst = (tekst, annotationMatches) => {
+          const tekstMatches = this.annotationTimeMatchesPlanTime(tekst);
+          if (((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) && locatieMatches && annotationMatches && tekstMatches) {
+            selfTeksten[tekst.technischId || tekst.identificatie] = tekst;
+          } else if (this.planModel.plan.versions.some(version => version.identificatie == tekst.documentIdentificatie)) {
+            otherVersionTeksten[tekst.technischId || tekst.identificatie] = tekst;
+          } else {
+            otherPlanTeksten[tekst.technischId || tekst.identificatie] = tekst;
+          }
+        };
 
-        (locatie.gebiedsaanwijzingen || []).concat(locatie.activiteitlocatieaanduidingen || []).concat(locatie.normwaarden || []).forEach(annotation => {
+        (locatie.gebiedsaanwijzingen || []).concat(locatie.normwaarden || []).forEach(annotation => {
+          const annotationMatches = this.annotationTimeMatchesPlanTime(annotation.omgevingsnorm || annotation);
           (annotation.teksten || annotation.omgevingsnorm?.teksten || []).forEach(tekst => {
-            if ((tekst.documentTechnischId || tekst.documentIdentificatie) == (this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
-              teksten[tekst.technischId || tekst.identificatie] = tekst;
-            } else {
-              otherPlansTeksten[tekst.technischId || tekst.identificatie] = tekst;
-            }
+            processTekst(tekst, annotationMatches);
           });
-          specific = specific || annotation.locaties.some(locatie => this.specificLocaties[locatie.technischId || locatie.identificatie]);
+        });
+        (locatie.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => {
+          (activiteitlocatieaanduiding.teksten || []).forEach(tekst => {
+            processTekst(tekst, true);
+          });
+        });
+        ((locatie.teksten && locatie.teksten[this.planModel.plan.technischId || this.planModel.plan.identificatie]) || []).forEach(tekst => {
+          processTekst(tekst, true);
         });
 
-        if (Object.values(teksten).length > 0) {
-          this.infos[specific? 0: 1].push(this.locatieToInfo(locatie, Object.values(teksten)));
-        } else if (Object.values(otherPlansTeksten).length > 0) {
-          this.infos[2].push(this.locatieToInfo(locatie, Object.values(otherPlansTeksten)));
+        if (Object.values(selfTeksten).length > 0) {
+          this.selfInfos.push(this.locatieToInfo(locatie, Object.values(selfTeksten), false));
+        } else if (Object.values(otherVersionTeksten).length > 0) {
+          this.otherVersionInfos.push(this.locatieToInfo(locatie, Object.values(otherVersionTeksten), false));
+        } else if (Object.values(otherPlanTeksten).length > 0) {
+          this.otherPlanInfos.push(this.locatieToInfo(locatie, Object.values(otherPlanTeksten), false));
         }
       });
-
-      this.infos.forEach(infos =>
-        infos.sort((a, b) => (!a.locaties[0].noemer || (a.locaties[0].noemer > b.locaties[0].noemer))? 1: (a.locaties[0].noemer && (a.locaties[0].noemer < b.locaties[0].noemer))? -1: 0)
-      );
     }
 
-    this.orphanLocaties = locaties.filter(locatie => 
-      locatie.gebiedsaanwijzingen && !locatie.gebiedsaanwijzingen.length &&
-      locatie.activiteitlocatieaanduidingen && !locatie.activiteitlocatieaanduidingen.length &&
-      locatie.normwaarden && !locatie.normwaarden.length &&
-      (!locatie.groepen || locatie.groepen.every(groep =>
-        groep.gebiedsaanwijzingen && !groep.gebiedsaanwijzingen.length &&
-        groep.activiteitlocatieaanduidingen && !groep.activiteitlocatieaanduidingen.length &&
-        groep.normwaarden && !groep.normwaarden.length
-      )) &&
-      (!locatie.omvat || locatie.omvat.every(omvatLocatie => {
-        const sublocatie = this.imowModel.locaties[omvatLocatie.technischId || omvatLocatie.identificatie];
-        return sublocatie.normwaarden && !sublocatie.normwaarden.length
-      }))
-    );
+    const byText = (a, b) => (a.text > b.text)? 1: (a.text < b.text)? -1: 0;
+    this.selfInfos.sort(byText);
+    this.otherVersionInfos.sort(byText);
+    this.otherPlanInfos.sort(byText);
+
+    this.orphanInfos = !this.appService.settings.placeInfoShowOrphans? []: locaties.filter(locatie => !(
+      locatie.gebiedsaanwijzingen?.length || locatie.activiteitlocatieaanduidingen?.length || locatie.normwaarden?.length ||
+      (locatie.teksten && locatie.teksten[this.planModel.plan.technischId || this.planModel.plan.identificatie]?.length) ||
+      locatie.groepen?.some(groep =>
+        groep.gebiedsaanwijzingen?.length || groep.activiteitlocatieaanduidingen?.length || groep.normwaarden?.length ||
+        (groep.teksten && groep.teksten[this.planModel.plan.technischId || this.planModel.plan.identificatie]?.length)
+      ) ||
+      locatie.omvat?.some(sublocatie => sublocatie.normwaarden?.length)
+    )).map(locatie => this.locatieToInfo(locatie, null, !this.legal));
   }
 
-  private locatieToInfo(locatie, teksten) {
+  private locatieToInfo(locatie, teksten, showType = true) {
+    const name = !environment.stripQuotes? locatie.viewName: locatie.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + (locatie.noemer? (locatie.noemer[0].toUpperCase() + locatie.noemer.slice(1)): "Naamloze begrenzing") + "</strong><br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, ""),
-      label: locatie.noemer || "naamloze begrenzing",
+      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong>" + (showType? ("<br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, "")): ""),
+      label: locatie.viewName,
       locaties: [locatie],
       teksten: teksten,
       annotation: locatie
@@ -359,30 +424,32 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private gebiedsaanwijzingToInfo(gebiedsaanwijzing) {
+    const name = !environment.stripQuotes? gebiedsaanwijzing.viewName: gebiedsaanwijzing.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + gebiedsaanwijzing.viewName[0].toUpperCase() + gebiedsaanwijzing.viewName.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
-      label: ((gebiedsaanwijzing.viewType == "functie")? "functie ": "") + gebiedsaanwijzing.viewName,
+      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
+      label: gebiedsaanwijzing.viewName,
       locaties: gebiedsaanwijzing.locaties,
       teksten: gebiedsaanwijzing.teksten,
       annotation: gebiedsaanwijzing
     };
   }
 
-  private activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding) {
+  private activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding, teksten) {
+    const name = !environment.stripQuotes? activiteitlocatieaanduiding.viewName: activiteitlocatieaanduiding.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
     return {
-      image: "assets/legend/bouwvlak.png",
-      text: "<strong>" + activiteitlocatieaanduiding.viewName[0].toUpperCase() + activiteitlocatieaanduiding.viewName.slice(1) + "</strong><br/>" + activiteitlocatieaanduiding.viewType,
+      image: "assets/legend/relatie.png",
+      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + ((activiteitlocatieaanduiding.viewType.toLowerCase() != name.toLowerCase())? activiteitlocatieaanduiding.viewType: "activiteit"),
       label: activiteitlocatieaanduiding.viewName,
       locaties: activiteitlocatieaanduiding.locaties,
-      teksten: activiteitlocatieaanduiding.teksten,
+      teksten: teksten,
       annotation: activiteitlocatieaanduiding
     };
   }
 
   private normwaardeToInfo(normwaarde) {
     return {
-      image: "assets/legend/aanduiding.png",
+      image: "assets/legend/relatie.png",
       text: "<strong>" + normwaarde.viewName[0].toUpperCase() + normwaarde.viewName.slice(1) + "</strong><br/>" + normwaarde.viewType + ": " + normwaarde.viewValue,
       label: normwaarde.viewName,
       locaties: normwaarde.locaties,
@@ -391,7 +458,24 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     };
   }
 
-  private addActiviteitToInfo(gebiedsaanwijzingInfo, activiteitlocatieaanduiding) {
-    gebiedsaanwijzingInfo.text += "<br/>" + activiteitlocatieaanduiding.betreftEenActiviteit.naam;
+  private annotationTimeMatchesPlanTime(annotation) {
+    if ((annotation.technischId != null) || (this.planModel.plan.technischId != null)) {
+      return true;
+    }
+
+    const annotationVersion = annotation.geregistreerdMet;
+    const planVersion = this.planModel.plan.geregistreerdMet;
+    if ((annotationVersion != null) && (planVersion != null)) {
+      if ((annotationVersion.beginGeldigheid <= this.timeModel.time) && (planVersion.beginGeldigheid <= this.timeModel.time)) {
+        return true;
+      }
+      if ((annotationVersion.beginGeldigheid <= planVersion.beginGeldigheid) && ((annotationVersion.eindGeldigheid == null) || (annotationVersion.eindGeldigheid > planVersion.beginGeldigheid))) {
+        return true;
+      }
+      if ((planVersion.beginGeldigheid <= annotationVersion.beginGeldigheid) && ((planVersion.eindGeldigheid == null) || (planVersion.beginGeldigheid > annotationVersion.eindGeldigheid))) {
+        return true;
+      }
+    }
+    return false;
   }
 }

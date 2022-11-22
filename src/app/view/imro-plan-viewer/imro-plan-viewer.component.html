@@ -20,7 +20,7 @@
   </p>
   <ul *ngIf="planModel.plan.kaarten.length > 1" class="list-group list-group-flush">
     <li class="list-group-item header" style="top: -1px">kaarten</li>
-    <li *ngFor="let kaart of planModel.plan.kaarten" (click)="planModel.setKaart(kaart); mapsVisible = false" title="Deze kaart kiezen" class="list-group-item" [ngClass]="{active: (kaart == planModel.kaart)}">{{kaart.kaartNummer}}. {{kaart.kaartNaam}}</li>
+    <a [routerLink]="" *ngFor="let kaart of planModel.plan.kaarten" (click)="planModel.setKaart(kaart); mapsVisible = false" title="Deze kaart kiezen" class="list-group-item" [ngClass]="(kaart == planModel.kaart)? 'selected': 'selectable'">{{kaart.kaartNummer}}. {{kaart.kaartNaam}}</a>
   </ul>
   </ng-template>
   <ng-template #foo>
@@ -37,7 +37,7 @@
     <ng-template [ngIf]="infos1.length">
       <li *ngIf="infos1 == infos[0]" class="list-group-item header" style="top: -1px">kaart {{planModel.kaart.kaartNummer}}: {{planModel.kaart.kaartNaam}}</li>
       <li *ngIf="infos1 == infos[1] && infos[0].length" class="list-group-item header" style="top: 30px; bottom: 0">kaart-onafhankelijk (algemene plekinfo)</li>
-      <li *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info)" (mouseout)="highlightModel.setHighlight(null)" class="list-group-item info">
+      <a [routerLink]="" *ngFor="let info of infos1" (mousedown)="$event.preventDefault()" (mouseover)="highlightModel.setHighlight(info)" (mouseout)="highlightModel.setHighlight(null)" (focus)="highlightModel.setHighlight(info)" (blur)="highlightModel.setHighlight(null)" class="list-group-item info">
         <div class="legend"><img [src]="info.viewLegendUrl"/></div>
         <div>
           <div [innerHTML]="info.viewContent"></div>
@@ -52,7 +52,7 @@
           </div>
         </div>
         <div *ngIf="info.viewLinks.length && !info.viewLinksVisible" (click)="openInfo(info)" [title]="'Bijbehorende ' + planTypeAdjective + ' openen (in een apart venster)'" class="overlay"></div>
-      </li>
+      </a>
     </ng-template>
   </ul>
   </ng-template>

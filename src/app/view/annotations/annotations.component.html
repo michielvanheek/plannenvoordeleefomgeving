@@ -4,17 +4,22 @@
       <use href="../assets/dso-icons.svg#times"></use>
     </svg>
   </button>
-  <button *ngIf="!legal" (click)="display.emit('annotationsVisible', 'legal')" title="Annotaties juridisch weergeven" class="btn btn-link close">
+  <button *ngIf="legal" (click)="display.emit('annotationsVisible', 'compact')" title="Alle annotaties compact weergeven&#013;Huidige weergave: juridisch" class="btn btn-link close">
     <svg class="di di-sm">
       <use href="../assets/dso-icons.svg#cultural"></use>
     </svg>
   </button>
-  <button *ngIf="legal" (click)="display.emit('annotationsVisible', true)" title="Annotaties volledig weergeven" class="btn btn-link close">
+  <button *ngIf="compact" (click)="display.emit('annotationsVisible', true)" title="De annotaties uitgebreid weergeven&#013;Huidige weergave: compact" class="btn btn-link close">
+    <svg class="di di-sm">
+      <use href="../assets/dso-icons.svg#air"></use>
+    </svg>
+  </button>
+  <button *ngIf="!compact && !legal" (click)="display.emit('annotationsVisible', 'legal')" title="Alleen de juridisch relevante annotaties weergeven&#013;Huidige weergave: uitgebreid" class="btn btn-link close">
     <svg class="di di-sm">
       <use href="../assets/dso-icons.svg#buildings"></use>
     </svg>
   </button>
-  <strong>{{!legal? "Annotaties": "Geografische begrenzingen"}} {{header}}</strong>
+  <strong>{{!legal? "Annotaties": "Locaties"}} {{header}}</strong>
   <div>{{subheader || "geen annotaties"}}</div>
 </div>
 <div class="content">
@@ -26,45 +31,33 @@
       </div>
     </ng-template>
   </ng-template>
-  <h6 *ngIf="!legal && locaties.length">Werkingsgebied{{locaties.length > 1? "en": ""}}</h6>
-  <div *ngFor="let o of locaties">
-    <label (mouseover)="highlightModel.setHighlight(o.locatie, false)" (mouseout)="highlightModel.setHighlight(null, false)">
-      <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.locatie, 'L')" [checked]="isChecked(o.locatie)"/><span class="checkmark"></span>
-      {{o.locatie.noemer || (!legal? "naamloos werkingsgebied": "naamloze begrenzing")}}
-      <span *ngIf="o.locatie.technischId" class="redalert">ontwerp</span>
-      <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
-    </label>
-  </div>
-  <h6 *ngIf="!legal && gebiedsaanwijzingen.length">Gebiedsaanwijzing{{gebiedsaanwijzingen.length > 1? "en": ""}}</h6>
-  <div *ngFor="let o of gebiedsaanwijzingen">
-    <label (mouseover)="highlightModel.setHighlight(o.gebiedsaanwijzing, false)" (mouseout)="highlightModel.setHighlight(null, false)">
-      <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.gebiedsaanwijzing, 'G')" [disabled]="isGebiedsaanwijzingDisabled(o.gebiedsaanwijzing)" [checked]="isChecked(o.gebiedsaanwijzing)"/><span class="checkmark"></span>
-      {{!legal? o.gebiedsaanwijzing.viewName: (o.gebiedsaanwijzing.locaties[0].noemer || "naamloze begrenzing")}}
-      <span *ngIf="o.gebiedsaanwijzing.technischId" class="redalert">ontwerp</span>
-      <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
-    </label>
-  </div>
-  <h6 *ngIf="!legal && activiteitlocatieaanduidingen.length">Activiteit{{activiteitlocatieaanduidingen.length > 1? "en": ""}}</h6>
-  <div *ngFor="let o of activiteitlocatieaanduidingen">
-    <label (mouseover)="highlightModel.setHighlight(o.activiteitlocatieaanduiding, false)" (mouseout)="highlightModel.setHighlight(null, false)">
-      <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.activiteitlocatieaanduiding, 'A')" [disabled]="isActiviteitlocatieaanduidingDisabled(o.activiteitlocatieaanduiding)" [checked]="isChecked(o.activiteitlocatieaanduiding)"/><span class="checkmark"></span>
-      {{!legal? o.activiteitlocatieaanduiding.viewName: (o.activiteitlocatieaanduiding.locaties[0].noemer || "naamloze begrenzing")}}
-      <span *ngIf="o.activiteitlocatieaanduiding.technischId" class="redalert">ontwerp</span>
-      <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
-    </label>
-  </div>
-  <h6 *ngIf="omgevingsnormen.length">Omgevingsnorm{{omgevingsnormen.length > 1? "en": ""}}</h6>
-  <div *ngFor="let o of omgevingsnormen">
-    <label (mouseover)="highlightModel.setHighlight(o.omgevingsnorm, false)" (mouseout)="highlightModel.setHighlight(null, false)">
-      <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.omgevingsnorm, 'N')" [disabled]="isOmgevingsnormDisabled(o.omgevingsnorm)" [checked]="isChecked(o.omgevingsnorm)"/><span class="checkmark"></span>
-      {{o.omgevingsnorm.viewName}}
-      <span *ngIf="o.omgevingsnorm.technischId" class="redalert">ontwerp</span>
-      <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
-    </label>
-  </div>
-  <div *ngIf="legalWarning">
-    Sommige annotaties konden niet juridisch geduid worden.
-  </div>
+  <ng-template ngFor let-a [ngForOf]="annotations">
+    <h6 *ngIf="a.viewType">{{a.viewType}}</h6>
+    <div *ngFor="let o of a.leaders">
+      <label (mouseover)="highlightModel.setHighlight(o.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="checkbox">
+        <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.annotation)" [disabled]="isDisabled(o.annotation)" [checked]="isChecked(o.annotation)"/><span class="checkmark"></span>
+        <div>
+          {{o.annotation.viewName}}
+          <span *ngIf="o.consumed">(C)</span>
+          <span *ngIf="o.annotation.technischId" class="redalert">ontwerp</span>
+          <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
+        </div>
+        <div *ngIf="(o.locaties.length > 1) || ((o.locaties.length == 1) && (o.locaties[0].viewName.toLowerCase() != o.annotation.viewName.toLowerCase()))" style="color: #8b4a6a;">
+          <span *ngIf="o.locaties.length > 1">locaties:<br/></span>
+          <span *ngFor="let locatie of o.locaties">
+            {{(o.locaties.length == 1)? "locatie:": "&#8226;"}} {{locatie.viewName}}<br/>
+          </span>
+        </div>
+        <div style="color: #8b4a6a;">
+          <span *ngIf="o.activiteitlocatieaanduidingen.length > 1">activiteiten:<br/></span>
+          <span *ngFor="let activiteitlocatieaanduiding of o.activiteitlocatieaanduidingen">
+            {{(o.activiteitlocatieaanduidingen.length == 1)? "activiteit:": "&#8226;"}} {{activiteitlocatieaanduiding.viewActName || activiteitlocatieaanduiding.viewName}}<br/>
+          </span>
+        </div>
+        <div *ngIf="o.annotation.viewActName" style="color: #8b4a6a;">activiteit: {{o.annotation.viewActName}}</div>
+      </label>
+    </div>
+  </ng-template>
 </div>
 <div *ngIf="imowModel.numLoadingD" class="dso-progress-indicator">
   <div class="dso-progress-indicator-bg"></div>

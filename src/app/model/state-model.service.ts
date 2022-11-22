@@ -4,18 +4,18 @@ import { Injectable } from "@angular/core";
   providedIn: "root"
 })
 export class StateModelService {
-  state = "SEARCH_PLACE";
+  state = "ROUTING";
 
-  toggleState() {
-    if (this.state != "SEARCH_PLACE") {
-      this.state = "SEARCH_PLACE";
-    } else {
-      this.state = "SEARCH_PLAN";
-    }
+  enterSearchPlaceInit() {
+    this.state = "SEARCH_PLACE_INIT";
   }
 
-  enterSearchPlan() {
-    this.state = "SEARCH_PLAN";
+  enterSearchPlace() {
+    this.state = "SEARCH_PLACE";
+  }
+
+  enterTravelTime() {
+    this.state = "TRAVEL_TIME";
   }
 
 /*  enterSearchPlanCriteria() {
@@ -23,13 +23,7 @@ export class StateModelService {
     this.state = "SEARCH_PLAN_CRITERIA";
   }*/
 
-  enterSelectPlan() {
-    this.state = "SELECT_PLAN";
-  }
-
-  leaveSelectPlan() {
-    if (this.state == "SELECT_PLAN") {
-      this.state = "SEARCH_PLACE";
-    }
+  exit() {
+    this.state = null;
   }
 }

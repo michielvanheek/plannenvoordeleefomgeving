@@ -1,0 +1,4 @@
+<label *ngIf="label" for="text-input">{{label}}</label>
+<span class="dso-search-icon" aria-hidden="true"></span>
+<input type="text" id="text-input" [placeholder]="placeholder" [(ngModel)]="dsoModel" (keyup)="keyHandler($event)" (input)="write()"/>
+<button *ngIf="dsoModel" (click)="erase()"></button>

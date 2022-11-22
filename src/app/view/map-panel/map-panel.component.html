@@ -8,7 +8,7 @@
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [vectorCaching]="false" [ngStyle]="{opacity: layerModel.planOpacity / 300}">
+  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 300}">
     <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
   </vectortileslayer>
   <vectortileslayer *ngIf="annotationLayersVisible" [layer]="layerModel.layers[5]" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
@@ -21,7 +21,7 @@
       </ng-template>
     </ng-template>
   </vectortileslayer>
-  <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [vectorCaching]="false" [filter]="planModel.plan.locatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
+  <vectortileslayer *ngIf="planModel.plan" [layer]="layerModel.layers[5]" [loader]="loader" [filter]="planModel.plan.locatie" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
     <canvassymbolizer [ngStyle]="highline" style="stroke-linejoin: bevel"></canvassymbolizer>
     <canvassymbolizer [ngStyle]="bumps"></canvassymbolizer>
   </vectortileslayer>
@@ -44,11 +44,11 @@
   </ng-template>
   <geometrylayer [geometry]="measureModel.geometry" [deepwatch]="true" class="measure"></geometrylayer>
 </n-map>
-<div *ngIf="loader.numLoading == 1" class="loader">
+<div *ngIf="numLoading == 1" class="loader">
   <span class="fa fa-spinner"></span> nog 1 plaatje aan het laden...
 </div>
-<div *ngIf="loader.numLoading > 1" class="loader">
-  <span class="fa fa-spinner"></span> {{loader.numLoading}} plaatjes aan het laden...
+<div *ngIf="numLoading > 1" class="loader">
+  <span class="fa fa-spinner"></span> {{numLoading}} plaatjes aan het laden...
 </div>
 <div class="coordinates">
   {{nineyDefaultService.defaultFocusModel.incubationCenterScale.centerX.toFixed(0)}}, {{nineyDefaultService.defaultFocusModel.incubationCenterScale.centerY.toFixed(0)}}

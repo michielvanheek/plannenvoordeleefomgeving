@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { OverheidModelService } from "./overheid-model.service";
 import { PlanLevelModelService } from "./plan-level-model.service";
+import { TimeModelService } from "./time-model.service";
 
 @Injectable({
   providedIn: "root"
@@ -8,6 +9,7 @@ import { PlanLevelModelService } from "./plan-level-model.service";
 export class PlanDecoratorService {
 
   constructor(
+    private timeModel: TimeModelService,
     private overheidModel: OverheidModelService,
     private planLevelModel: PlanLevelModelService
   ) { }
@@ -104,35 +106,43 @@ export class PlanDecoratorService {
     return "onbekend";
   }
 
-  decorateOmgevingsdocument(plan) {
+  decorateRegeling(regeling) {
     // TEMP!!
-    if ((plan.citeerTitel == "Omgevingsbesluit") || (plan.citeerTitel == "Omgevingsregeling")) {
-      plan.inwerkingVanaf = "2022-07-01";
+    if ((regeling.citeerTitel == "Omgevingsbesluit") || (regeling.citeerTitel == "Omgevingsregeling")) {
+      regeling.inwerkingVanaf = "2022-07-01";
     }
 
-    plan.tabFilter = "DSO";
-    plan.typePlan = (plan.type.waarde == "AMvB")? "AMvB": (plan.type.waarde == "Aanwijzingsbesluit N2000")? "aanwijzingsbesluit Natura 2000": plan.type.waarde.toLowerCase();
-    plan.naam = plan.citeerTitel || plan.officieleTitel || plan.opschrift;
-    plan.datum = plan.geregistreerdMet? plan.geregistreerdMet.beginGeldigheid: plan.procedureverloop.bekendOp;
-    plan.naamOverheid = plan.aangeleverdDoorEen.naam;
-    plan.overheidsCode =
-      (plan.aangeleverdDoorEen.bestuurslaag == "ministerie")? "0000": (
-        (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? "9": (plan.aangeleverdDoorEen.bestuurslaag == "provincie")? "99": ""
-      ) + plan.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
-        (plan.aangeleverdDoorEen.bestuurslaag == "waterschap")? 1: 0
+    regeling.tabFilter = "DSO";
+    regeling.typePlan = (regeling.type.waarde == "AMvB")? "AMvB": (regeling.type.waarde == "Aanwijzingsbesluit N2000")? "aanwijzingsbesluit Natura 2000": regeling.type.waarde.toLowerCase();
+    regeling.naamOverheid = regeling.aangeleverdDoorEen.naam.replace(/^Gemeente/, "gemeente").replace(/^Provincie/, "provincie");
+    regeling.naam = regeling.citeerTitel || ((regeling.aangeleverdDoorEen.bestuurslaag == "ministerie") && regeling.opschrift) || (regeling.type.waarde + " " + regeling.naamOverheid);
+    regeling.overheidsCode =
+      (regeling.aangeleverdDoorEen.bestuurslaag == "ministerie")? "0000": (
+        (regeling.aangeleverdDoorEen.bestuurslaag == "waterschap")? "9": (regeling.aangeleverdDoorEen.bestuurslaag == "provincie")? "99": ""
+      ) + regeling.aangeleverdDoorEen.code.replace(/[a-z]+/, "").substring(
+        (regeling.aangeleverdDoorEen.bestuurslaag == "waterschap")? 1: 0
       );
-    plan.planStatus = plan.geregistreerdMet? (plan.datum <= (new Date()).toISOString().split("T")[0])? "geldend": "toekomstig": "ontwerp";
-    plan.dossierId = plan.identificatie;
-    plan.dossierStatus = plan.geregistreerdMet? (plan.datum <= (new Date()).toISOString().split("T")[0])? "geheel in werking": "toekomstig": "in voorbereiding";
-    plan.sourcetable = "dso";
-    plan.vormvrijType = false;
-    plan.kaarten = [];
+    regeling.datum = !regeling.technischId? regeling.geregistreerdMet.beginGeldigheid: regeling.procedureverloop.bekendOp;
 
-    plan.structured = !["projectbesluit", "omgevingsvisie", "instructie", "programma"].includes(plan.typePlan);
-    plan.locatieIdentificatie = (plan._links.heeftRegelingsgebied || plan._links.heeftOntwerpRegelingsgebied).href.match(/locaties\/([^\?]+)/)[1];
+    this.decorateRegelingStatus(regeling);
+
+    regeling.sourcetable = "dso";
+    regeling.vormvrijType = false;
+    regeling.kaarten = [];
+
+    regeling.timeRequested = this.timeModel.time;
+    regeling.structured = !["projectbesluit", "omgevingsvisie", "instructie", "programma"].includes(regeling.typePlan);
+    regeling.locatieIdentificatie = (regeling._links.heeftRegelingsgebied || regeling._links.heeftOntwerpRegelingsgebied).href.match(/locaties\/([^\?]+)/)[1];
+  }
+
+  decorateRegelingStatus(regeling) {
+    regeling.viewStatus = regeling.planStatus = !regeling.technischId? (regeling.geregistreerdMet.beginGeldigheid <= this.timeModel.time)? "geldend": "toekomstig": "ontwerp";
+    regeling.dossierId = null;
+    regeling.dossierStatus = !regeling.technischId? (regeling.geregistreerdMet.beginGeldigheid <= this.timeModel.time)? "geheel in werking": "toekomstig": "in voorbereiding";
   }
 
   decoratePlan(plan, includeStatus) {
+    plan.viewId = plan.technischId || (plan.identificatie + (plan.geregistreerdMet? ("|" + plan.geregistreerdMet.versie): ""));
     plan.viewOverheidName = plan.naamOverheid;
     if ((plan.viewOverheidName == null) || (plan.viewOverheidName == "gemeente")) {
       if (this.overheidModel.overheden[plan.overheidsCode] != null) {
@@ -146,7 +156,6 @@ export class PlanDecoratorService {
       plan.viewStatus = this.status(plan);
     }
 
-    const split = plan.datum.split("-");
-    plan.viewDate = split[2] + "-" + split[1] + "-" + split[0];
+    plan.viewDate = plan.datum.split("-").reverse().join("-");
   }
 }
