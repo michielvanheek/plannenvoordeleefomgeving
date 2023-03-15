@@ -47,6 +47,7 @@ export class StopPlanViewerComponent implements OnInit, OnDestroy, OnChanges, Ap
     unsetDiff: () => {
       if (this.display.allOpen == "diff") {
         this.display.assign({allOpen: "doc"});
+        this.setTabComponents();
       }
     },
     assign: display => {
@@ -116,7 +117,7 @@ export class StopPlanViewerComponent implements OnInit, OnDestroy, OnChanges, Ap
   }
 
   appEventHandler(event: AppEvent): void {
-    if ((event.type == "displayModel.tab") || (event.type == "displayModel.tab.documentComponenten")) {
+    if ((event.type == "displayModel.tab") || (event.type == "displayModel.tab.documentComponenten") || (event.type == "displayModel.tab.diffComponents")) {
       this.setTabComponents();
     } else if (event.type == "displayModel.tab.scrollTop") {
       this.scrollTo();
@@ -145,17 +146,17 @@ export class StopPlanViewerComponent implements OnInit, OnDestroy, OnChanges, Ap
   }
 
   private setTabStatus() {
-      if (this.displayModel.tab.id == 0) {
-        this.completeTab();
-      } else if (!this.displayModel.tabComponents?._embedded?.documentComponenten.length && !this.displayModel.tabComponents?.length) {
-        this.displayModel.tabStatus = "empty";
-        this.resetShader(true);
-      } else if (this.needsBuild()) {
-        this.buildTab();
-      } else {
-        this.pipScrollHandler();
-        this.completeTab();
-      }
+    if (this.displayModel.tab.id == 0) {
+      this.completeTab();
+    } else if (!this.displayModel.tabComponents?._embedded?.documentComponenten.length && !this.displayModel.tabComponents?.length) {
+      this.displayModel.tabStatus = "empty";
+      this.resetShader(true);
+    } else if (this.needsBuild()) {
+      this.buildTab();
+    } else {
+      this.pipScrollHandler();
+      this.completeTab();
+    }
   }
 
   private needsBuild(change = null) {

@@ -45,7 +45,10 @@ export class PlanAccordionComponent {
   }
 
   hasChildren(element) {
-    return (element._embedded.documentComponenten || element._embedded.ontwerpDocumentComponenten).length > 0;
+    return (element._embedded != null) && (
+      ((element._embedded.documentComponenten != null) && (element._embedded.documentComponenten.length > 0)) ||
+      ((element._embedded.ontwerpDocumentComponenten != null) && (element._embedded.ontwerpDocumentComponenten.length > 0))
+    );
   }
 
   hasNoOpschrift(element) {

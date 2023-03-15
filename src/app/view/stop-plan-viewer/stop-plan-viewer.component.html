@@ -48,7 +48,7 @@
       </div>
     </ng-template>
     <div *ngIf="displayModel.tab.id > 1" class="box-sm">
-      <button *ngIf="planModel.plan.predecessor && !planModel.numLoadingC" (click)="display.emit('allOpen', 'diff'); (!displayModel.tabs[2].diffComponents.length? planModel.loadPlan(planModel.plan.predecessor.identificatie, null, false, true): null)" title="Met voorgaande versie vergelijken" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'diff'">
+      <button *ngIf="planModel.plan.predecessor && !planModel.numLoadingC" (click)="display.emit('allOpen', 'diff'); (!displayModel.tabs[2].diffComponents.length? planModel.loadPlan(planModel.plan.predecessor, null, false, true): null)" title="Met voorgaande versie vergelijken" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'diff'">
         <span class="fa fa-copy"></span>
       </button>
       <button (click)="display.emit('allOpen', 'doc')" title="Als document weergeven" class="btn btn-default btn-sm" [class.selected]="display.allOpen == 'doc'">
@@ -89,14 +89,15 @@
 <div *ngIf="(displayModel.tab.id > 1) && displayModel.tab.diffComponents.length && (display.allOpen == 'diff')" class="diffbar">
   <div class="side">
     <strong>{{planModel.diffPlan.naam}}</strong><br/>
-    <span [class.redalert]="planModel.diffPlan.planStatus == 'ontwerp' || planModel.diffPlan.successor">{{!planModel.diffPlan.successor? planModel.diffPlan.planStatus: "historisch"}}</span>
-    <a href="javascript:void(0)" *ngIf="planModel.diffPlan.predecessor" (click)="planModel.loadPlan(planModel.diffPlan.predecessor.identificatie, null, false, true)" class="fa fa-caret-square-left ml-2"></a>
-    ({{planModel.diffPlan.viewDate + (!planModel.diffPlan.successor? "": (" tot " + planModel.diffPlan.successor.viewDate))}})
-    <a href="javascript:void(0)" *ngIf="planModel.diffPlan.successor && planModel.diffPlan.successor != planModel.plan" (click)="planModel.loadPlan(planModel.diffPlan.successor.identificatie, null, false, true)" class="fa fa-caret-square-right"></a>
+    <span [class.redalert]="['ontwerp', 'toekomstig'].includes(planModel.diffPlan.viewStatus)">{{planModel.diffPlan.viewStatus}}</span>
+    <a href="javascript:void(0)" *ngIf="planModel.diffPlan.predecessor" (click)="planModel.loadPlan(planModel.diffPlan.predecessor, null, false, true)" class="fa fa-caret-square-left ml-2"></a>
+    ({{planModel.diffPlan.viewDate}})
+    <!--<a href="javascript:void(0)" *ngIf="planModel.diffPlan.successors && planModel.diffPlan.successors.some(successor => successor != planModel.plan.viewId)" (click)="planModel.loadPlan(planModel.diffPlan.successors.find(successor => successor != planModel.plan.viewId), null, false, true)" class="fa fa-caret-square-right"></a>-->
   </div>
   <div class="side">
     <strong>{{planModel.plan.naam}}</strong><br/>
-    <span [class.redalert]="planModel.plan.planStatus == 'ontwerp'">{{planModel.plan.planStatus}}</span> ({{planModel.plan.viewDate}})
+    <span [class.redalert]="['ontwerp', 'toekomstig'].includes(planModel.plan.viewStatus)">{{planModel.plan.viewStatus}}</span>
+    ({{planModel.plan.viewDate}})
   </div>
   <div class="scroll-cover"></div>
 </div>

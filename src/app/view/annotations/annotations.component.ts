@@ -125,13 +125,16 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       }
     }
 
-    if ((this.component._embedded.documentComponenten || this.component._embedded.ontwerpDocumentComponenten).length > 0) {  // Structured component or divisie with child components.
+    if ((this.component._embedded != null) && (
+      ((this.component._embedded.documentComponenten != null) && (this.component._embedded.documentComponenten.length > 0)) ||
+      ((this.component._embedded.ontwerpDocumentComponenten != null) && (this.component._embedded.ontwerpDocumentComponenten.length > 0))
+    )) {  // Structured component or divisie with child components.
       if (this.header != null) {
         this.header = this.header.replace(/^van /, "in ");
       }
-      const getChildComponents = (component) => {
-        const a = component._embedded.documentComponenten || component._embedded.ontwerpDocumentComponenten || [];
-        return a.reduce((components, component) => components.concat(getChildComponents(component)), a);
+      const getChildComponents = component => {
+        const components = component._embedded?.documentComponenten || component._embedded?.ontwerpDocumentComponenten || [];
+        return components.reduce((components, component) => components.concat(getChildComponents(component)), components);
       };
       this.childComponents = getChildComponents(this.component);
       this.childComponents.forEach(component => {

@@ -8,8 +8,12 @@
 </ul>
 <div *ngIf="navState == 'place-info'" class="tab-content">
   <div *ngIf="(planModel.plan.vormvrijType || (planModel.plan.kaarten.length > 0)) && markerModel.xy" class="btn-container">
-    <button *ngIf="!mapsVisible" (click)="mapsVisible = true" title="Een andere kaart kiezen" class="btn btn-link"><span class="fa fa-edit"></span></button>
-    <button *ngIf="mapsVisible" (click)="mapsVisible = false" title="Kaart kiezen sluiten" class="btn btn-link"><span class="fa fa-times"></span></button>
+    <button *ngIf="!mapsVisible" (click)="mapsVisible = true" title="Een andere kaart kiezen" class="btn btn-link">
+      <span class="fa fa-edit"></span>
+    </button>
+    <button *ngIf="mapsVisible" (click)="mapsVisible = false" title="Kaart kiezen sluiten" class="btn btn-link">
+      <span class="fa fa-times"></span>
+    </button>
   </div>
   <ng-template [ngIf]="(planModel.plan.vormvrijType || (planModel.plan.kaarten.length > 0)) && (mapsVisible || !markerModel.xy)" [ngIfElse]="foo">
   <p *ngIf="planModel.plan.kaarten.length == 0">
@@ -43,9 +47,7 @@
           <div [innerHTML]="info.viewContent"></div>
           <div *ngIf="info.viewLinksVisible" class="links">
             <button (click)="highlightModel.setHighlight(null); info.viewLinksVisible = false" title="Sluiten" class="btn btn-link close">
-              <svg class="di">
-                <use href="../assets/dso-icons.svg#times"></use>
-              </svg>
+              <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
             </button>
             <div>{{info.viewLinks.length}} verwijzingen naar {{planTypeAdjective}}:</div>
             <div *ngFor="let link of info.viewLinks">&#8226; <a [href]="link.url" target="_blank" [title]="'Deze ' + planTypeAdjective + ' openen (in een apart venster)'">{{link.title}}</a></div>

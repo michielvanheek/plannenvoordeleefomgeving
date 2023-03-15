@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Timer } from "ng-niney";
 import { AppEventDispatcher } from "../event/AppEventDispatcher";
+import { DiffBuilderService } from "./diff-builder.service";
 
 @Injectable({
   providedIn: "root"
@@ -20,7 +21,7 @@ export class DisplayModelService extends AppEventDispatcher {
   tabComponents = null;
   component = null;  // Selected documentcomponent.
 
-  constructor() {
+  constructor(private diffBuilder: DiffBuilderService) {
     super();
 
     this.incubationTimer.timerHandler = () => this.tabs.forEach(tab => tab.incubationScrollTop = tab.scrollTop);
@@ -43,6 +44,24 @@ export class DisplayModelService extends AppEventDispatcher {
     if ((this.tab.algo != null) || (this.tab.id == 1)) {
       this.dispatchEvent("displayModel.tab.documentComponenten");
     }
+  }
+
+  setComponents(documentComponenten, diff) {
+    this.tabs.filter(tab => tab.algo).forEach(tab => {
+      if (!diff || (tab.id == 2)) {
+        const components = this.flatten(tab.algo(documentComponenten));
+        if (!diff) {
+          tab.components = components;
+          tab.diffComponents = [];
+        } else {  // tab.id == 2
+          tab.diffComponents = this.diffBuilder.getDiffComponents(components, tab.components);
+
+          if (this.tab.id == 2) {
+            this.dispatchEvent("displayModel.tab.diffComponents");
+          }
+        }
+      }
+    });
   }
 
   setTab(tab, scrollTo) {
@@ -101,5 +120,15 @@ export class DisplayModelService extends AppEventDispatcher {
       }
     }
     return {_embedded: {documentComponenten: slice}};
+  }
+
+  private flatten(documentComponenten, components = []) {
+    if (documentComponenten.identificatie != null) {
+      components.push(documentComponenten);
+    }
+    if (documentComponenten._embedded != null) {
+      (documentComponenten._embedded.documentComponenten || documentComponenten._embedded.ontwerpDocumentComponenten).forEach(component => this.flatten(component, components));
+    }
+    return components;
   }
 }

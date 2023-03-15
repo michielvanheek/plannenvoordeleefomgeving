@@ -1,19 +1,15 @@
 <div *ngIf="!selfInfos.length && !otherVersionInfos.length && !otherPlanInfos.length && !markerModel.xy" class="alert alert-info">
-  U heeft nog geen <span *ngIf="stateModel.state == 'SEARCH_PLACE'">adres ingevuld of plek aangewezen</span><a href="javascript:void(0)" *ngIf="stateModel.state != 'SEARCH_PLACE'" (click)="stateModel.enterSearchPlace()" class="alert-link">adres ingevuld of plek aangewezen</a> op de kaart.
+  U heeft nog geen <span *ngIf="stateModel.state == 'SEARCH_PLACE'">adres ingevuld of plek aangewezen</span><a [routerLink]="" *ngIf="stateModel.state != 'SEARCH_PLACE'" (click)="stateModel.enterSearchPlace()" class="alert-link">adres ingevuld of plek aangewezen</a> op de kaart.
 </div>
 <div *ngIf="!selfInfos.length && !otherVersionInfos.length && !otherPlanInfos.length && markerModel.xy" class="alert alert-info">
   Er is geen plekinformatie beschikbaar op de gemarkeerde plek.
 </div>
 <div *ngIf="selfInfos.length || otherVersionInfos.length || otherPlanInfos.length" class="btn-container">
   <button *ngIf="!legal" (click)="setLegal(true)" title="Alleen de juridisch relevante plekinfo weergeven&#013;Huidige weergave: volledig" class="btn btn-link">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#buildings"></use>
-    </svg>
+    <svg class="di di-sm"><use href="../assets/dso-icons.svg#buildings"></use></svg>
   </button>
   <button *ngIf="legal" (click)="setLegal(false)" title="Plekinfo volledig weergeven&#013;Huidige weergave: juridisch" class="btn btn-link">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#cultural"></use>
-    </svg>
+    <svg class="di di-sm"><use href="../assets/dso-icons.svg#cultural"></use></svg>
   </button>
 </div>
 <ul class="list-group list-group-flush">
@@ -25,25 +21,38 @@
     <li *ngIf="(i == 2) && otherPlanInfos.length" class="list-group-item header" [ngStyle]="{top: (((selfInfos.length? 1: 0) + (otherVersionInfos.length? 1: 0)) * 31 - 1) + 'px', bottom: (orphanInfos.length? 1: 0) * 31 + 'px'}">op deze plek in andere plannen <span class="small light">({{otherPlanInfos.length}})</span></li>
     <div *ngIf="(i == 2) && !selfInfos.length && !otherVersionInfos.length && otherPlanInfos.length && (imowModel.numLoadingL + imowModel.numLoading)" class="empty"></div>
     <li *ngIf="(i == 3) && orphanInfos.length" class="list-group-item header" [ngStyle]="{top: (((selfInfos.length? 1: 0) + (otherVersionInfos.length? 1: 0) + (otherPlanInfos.length? 1: 0)) * 31 - 1) + 'px', bottom: 0}">zonder annotatie <span class="small light">({{orphanInfos.length}})</span></li>
-    <a [routerLink]="" *ngFor="let info of infos1" (mouseover)="highlightModel.setHighlight(info, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="list-group-item info">
+    <a [routerLink]="" *ngFor="let info of infos1" (click)="setHighlight(null); cease($event); openInfo(info)? null: setHighlight(info)" (mouseover)="blurLinks(); setHighlight(info)" (mouseout)="blurLinks(); setHighlight(null)" (focus)="setHighlight(info)" (blur)="setHighlight(null)" class="list-group-item info">
       <div class="legend"><img [src]="info.image"/></div>
       <div>
         <div>
           <span [innerHTML]="info.text"></span>
+          <span *ngIf="info.subinfos?.length == 1">: <span class="subinfo subinfo-single">{{info.subinfos[0].text}}</span></span>
+          <button *ngIf="info.normwaarden?.length > 1" (click)="cease($event); setSub(info, (info.subinfos.length > 1)? 1: 3)" (focus)="setHighlight(info)" (blur)="setHighlight(null)" [title]="(info.subinfos.length > 1)? 'Normwaarden inklappen': 'Normwaarden uitklappen'" class="btn btn-link btn-link-bordered cleanlink">
+            <span [ngClass]="(info.subinfos.length > 1)? 'fa fa-minus': 'fa fa-plus'"></span>
+          </button>
           <span *ngIf="isOntwerp(info)" class="ml-1 redalert">ontwerp</span>
           <span *ngIf="(i &lt; 3) && isFuture(info)" class="ml-1 redalert">toekomstig</span>
         </div>
-        <div *ngIf="info.plannen" class="links">
-          <button (click)="highlightModel.setHighlight(null, false); info.plannen = null" title="Sluiten" class="btn btn-link close">
-            <svg class="di">
-              <use href="../assets/dso-icons.svg#times"></use>
-            </svg>
+        <div *ngIf="info.subinfos?.length > 1" class="subinfo-topcnt">
+          <div class="subinfo-cnt">
+            <a [routerLink]="" *ngFor="let subinfo of info.subinfos" (click)="setHighlight(null); cease($event); openInfo(subinfo)? null: setHighlight(subinfo)" (mouseover)="blurLinks(); setHighlight(subinfo); $event.stopPropagation()" (focus)="setHighlight(subinfo)" (blur)="setHighlight(null)" class="subinfo subinfo-multi" [class.text-right]="subinfo.annotation.kwantitatieveWaarde">{{subinfo.text}}</a>
+          </div>
+          <button (click)="cease($event); setSub(info, info.subinfos.length - 1)" (focus)="setHighlight(info)" (blur)="setHighlight(null)" title="Normwaarden minder ver uitklappen" class="btn btn-link cleanlink">
+            <span class="fa fa-minus"></span>
           </button>
-          <div>komt voor in {{info.plannen.length}} plannen:</div>
-          <div *ngFor="let plan of info.plannen">&#8226; <a href="javascript:void(0)" (click)="highlightModel.setHighlight(null, false); planModel.loadPlan(plan.technischId || plan.identificatie, null, false, false)" title="Dit plan openen">{{plan.naam}}</a></div>
+          <button *ngIf="info.normwaarden.length > info.subinfos.length" (click)="cease($event); setSub(info, info.subinfos.length + 1)" (focus)="setHighlight(info)" (blur)="setHighlight(null)" title="Normwaarden verder uitklappen" class="btn btn-link cleanlink">
+            <span class="fa fa-plus"></span>
+          </button>
+        </div>
+        <div *ngIf="info.plannen" class="alert alert-info">
+          <button (click)="setHighlight(null); cease($event); info.plannen = null" (focus)="setHighlight(info)" (blur)="setHighlight(null)" title="Sluiten" class="btn btn-link cleanlink close">
+            <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
+          </button>
+          <div>Komt voor in {{info.plannen.length}} plannen:</div>
+          <div *ngFor="let plan of info.plannen">&#8226; <a [routerLink]="" (click)="setHighlight(null); cease($event); planModel.loadPlan(plan.viewId, null, false, false)" (focus)="setHighlight(info)" (blur)="setHighlight(null)" title="Dit plan openen" class="alert-link">{{plan.naam}}</a></div>
         </div>
       </div>
-      <div *ngIf="(i &lt; 3) && !info.plannen" (click)="highlightModel.setHighlight(null, false); openInfo(info); $event.preventDefault()" [title]="(i &lt; 2)? 'Bijbehorende regels tonen': 'Bijbehorend plan openen'" class="overlay"></div>
+      <div *ngIf="(i &lt; 3)" [title]="(i &lt; 2)? ('Bijbehorende ' + (!['omgevingsvisie', 'programma'].includes(planModel.plan.typePlan)? 'regels': 'beleidsteksten') + ' tonen'): 'Bijbehorend plan openen'" class="overlay"></div>
     </a>
   </ng-template>
 </ul>

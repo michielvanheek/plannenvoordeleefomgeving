@@ -16,6 +16,7 @@ export const environment = {
 //  dsoUrl: "https://nep-knooppunt-ketenacceptatie.viewer.dso.kadaster.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
 //  dsoUrl: "https://service.acc.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
   dsoUrl: "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
+//  dsoUrl: "https://service.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/",
   dsoOptions: {
     headers: new HttpHeaders({
       "Accept" : "application/json, application/hal+json",
@@ -37,7 +38,9 @@ export const environment = {
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-ketenacc/wmts/v1_0/locaties/EPSG:28992/",
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-acc/wmts/v1_0/locaties/EPSG:28992/",
   locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-pre/wmts/v1_0/locaties/EPSG:28992/",
+//  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L/wmts/v1_0/locaties/EPSG:28992/",
   revGeoUrl: "https://geodata.nationaalgeoregister.nl/locatieserver/revgeo?X=",
+  tweakMnre: false,
   legalAnnotations: true,
   stripQuotes: true
 };

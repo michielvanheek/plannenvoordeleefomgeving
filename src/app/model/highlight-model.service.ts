@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { WKTConverter } from "ng-niney";
+import { AnnotationLayer } from "../domain/annotation-layer";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
 import { environment } from "../../environments/environment";
@@ -12,7 +13,7 @@ export class HighlightModelService {
   private loading = {};
 
   imroHighlight = {};
-  imowHighlight = {locaties: null, locatie: {identificatie: "nothing"}};
+  imowHighlight = {filter: {identificatie: "nothing"}, cssFunction: null, confineFill: false};
 
   constructor(
     private http: HttpClient,
@@ -47,28 +48,46 @@ export class HighlightModelService {
           delete this.loading[identificatie];
         }
       );
-    } else {  // Omgevingsdocument or IMOW info or IMOW annotation (with locaties) or IMOW locatie.
+    } else {  // Regeling or IMOW info or IMOW annotation (with locaties) or IMOW locatie.
       if (planOrInfo == null) {
         this.layerModel.layers[7].visible = false;
         delete this.imowModel.loadLocatieForPlanPostActions["highlightVisible"];
         return;
       }
 
-      if (planOrInfo.locatieIdentificatie != null) {  // Omgevingsdocument.
+      if (planOrInfo.locatieIdentificatie != null) {  // Regeling.
         this.layerModel.layers[7].visible = false;
-        this.imowModel.loadLocatieForPlanPostActions["highlightVisible"] = () => { this.layerModel.layers[7].visible = true; };
+        this.imowModel.loadLocatieForPlanPostActions["highlightVisible"] = () => {
+          this.imowHighlight = {
+            filter: planOrInfo.locatie,
+            cssFunction: null,
+            confineFill: !planOrInfo.locatie.locatieType.indexOf("Lijn")
+          };
+          this.layerModel.layers[7].visible = true;
+        };
         this.imowModel.loadLocatieForPlan(planOrInfo);
-        this.imowHighlight = planOrInfo;
       } else {
         this.layerModel.layers[7].visible = true;
         if (planOrInfo.locaties != null) {           // IMOW info or IMOW annotation (with locaties).
           const locaties = planOrInfo.locaties.concat(planOrInfo.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []));
-          this.imowHighlight = {locaties: locaties, locatie: null};
+          this.imowHighlight = {
+            filter: locaties,
+            cssFunction: (planOrInfo.annotation?.omgevingsnorm || planOrInfo.annotation || planOrInfo.omgevingsnorm)?.layer?.labelCssFunction,
+            confineFill: !locaties[0].locatieType.indexOf("Lijn")
+          };
         } else if (planOrInfo.normwaarde != null) {  // IMOW omgevingsnorm.
           const locaties = planOrInfo.normwaarde.reduce((locaties, normwaarde) => locaties.concat(normwaarde.locaties.concat(normwaarde.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))), []);
-          this.imowHighlight = {locaties: locaties, locatie: null};
+          this.imowHighlight = {
+            filter: locaties,
+            cssFunction: (planOrInfo.layer || new AnnotationLayer(this.imowModel["imowValueModel"], planOrInfo)/* TEMP until OZON supports POST */).labelCssFunction,
+            confineFill: !locaties[0].locatieType.indexOf("Lijn")
+          };
         } else {                                     // IMOW locatie.
-          this.imowHighlight = {locaties: null, locatie: planOrInfo};
+          this.imowHighlight = {
+            filter: planOrInfo,
+            cssFunction: null,
+            confineFill: !planOrInfo.locatieType.indexOf("Lijn")
+          };
         }
       }
     }

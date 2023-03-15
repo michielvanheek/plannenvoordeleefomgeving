@@ -85,10 +85,12 @@
             <ng-template [ngIf]="plan.versions.length > 1" [ngIfElse]="versiion">
               <a [routerLink]="" (click)="loadPlanOrSetupVersion(version)" [title]="((version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop)) || version.confirmationTime)? '': 'Deze versie van het plan openen'" class="list-group-item" [ngClass]="(version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop))? 'selected': 'selectable'" [ngStyle]="((version == (!plan.technischId? plan.geregistreerdMet: plan.procedureverloop)) || version.confirmationTime)? {cursor: 'default'}: null">
                 <ng-container *ngTemplateOutlet="versiion"></ng-container>
-                <div *ngIf="version.confirmationTime" class="alert alert-info alert-dismissible">
+                <div *ngIf="version.confirmationTime" class="alert alert-info">
+                  <button (click)="cancel(version)" title="Annuleren" class="btn btn-link close">
+                    <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
+                  </button>
                   Maak een <a [routerLink]="" (click)="setTimeAndLoadPlan(version)" class="alert-link">tijdreis naar {{version.viewConfirmationTime}}</a><br/>
                   om deze versie te openen.
-                  <button (click)="cancel(version)" title="Annuleren" class="close"><span>&times;</span></button>
                 </div>
               </a>
             </ng-template>
@@ -129,6 +131,9 @@
     <tr *ngIf="plan.ondergrond">
       <td class="font-weight-bold">Ondergrond</td>
       <td colspan="2" style="word-break: break-all">{{plan.ondergrond}}</td>
+    </tr>
+    <tr>
+      <td colspan="3">Dit plan staat ook op <a [href]="plan.publicatieID" target="_blank">Overheid.nl</a>.</td>
     </tr>
   </ng-template>
 </table>

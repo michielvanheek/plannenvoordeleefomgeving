@@ -1,23 +1,15 @@
 <div [class.separator]="subheader && (subheader != '...')">
   <button (click)="display.emit('annotationsVisible', false)" title="Annotaties sluiten" class="btn btn-link close">
-    <svg class="di">
-      <use href="../assets/dso-icons.svg#times"></use>
-    </svg>
+    <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
   </button>
   <button *ngIf="legal" (click)="display.emit('annotationsVisible', 'compact')" title="Alle annotaties compact weergeven&#013;Huidige weergave: juridisch" class="btn btn-link close">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#cultural"></use>
-    </svg>
+    <svg class="di di-sm"><use href="../assets/dso-icons.svg#cultural"></use></svg>
   </button>
   <button *ngIf="compact" (click)="display.emit('annotationsVisible', true)" title="De annotaties uitgebreid weergeven&#013;Huidige weergave: compact" class="btn btn-link close">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#air"></use>
-    </svg>
+    <svg class="di di-sm"><use href="../assets/dso-icons.svg#air"></use></svg>
   </button>
   <button *ngIf="!compact && !legal" (click)="display.emit('annotationsVisible', 'legal')" title="Alleen de juridisch relevante annotaties weergeven&#013;Huidige weergave: uitgebreid" class="btn btn-link close">
-    <svg class="di di-sm">
-      <use href="../assets/dso-icons.svg#buildings"></use>
-    </svg>
+    <svg class="di di-sm"><use href="../assets/dso-icons.svg#buildings"></use></svg>
   </button>
   <strong>{{!legal? "Annotaties": "Locaties"}} {{header}}</strong>
   <div>{{subheader || "geen annotaties"}}</div>
@@ -34,27 +26,28 @@
   <ng-template ngFor let-a [ngForOf]="annotations">
     <h6 *ngIf="a.viewType">{{a.viewType}}</h6>
     <div *ngFor="let o of a.leaders">
-      <label (mouseover)="highlightModel.setHighlight(o.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="checkbox">
+      <label (mouseover)="highlightModel.setHighlight(o.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="checkbox" [class.disabled]="isDisabled(o.annotation)">
         <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.annotation)" [disabled]="isDisabled(o.annotation)" [checked]="isChecked(o.annotation)"/><span class="checkmark"></span>
-        <div>
+        <div class="primary">
           {{o.annotation.viewName}}
           <span *ngIf="o.consumed">(C)</span>
+          <span *ngIf="o.annotation.viewUnit && ((o.annotation.viewUnit.length &lt; 4) || (o.annotation.viewName.indexOf(o.annotation.viewUnit) == -1))">({{o.annotation.viewUnit}})</span>
           <span *ngIf="o.annotation.technischId" class="redalert">ontwerp</span>
           <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
         </div>
-        <div *ngIf="(o.locaties.length > 1) || ((o.locaties.length == 1) && (o.locaties[0].viewName.toLowerCase() != o.annotation.viewName.toLowerCase()))" style="color: #8b4a6a;">
+        <div *ngIf="(o.locaties.length > 1) || ((o.locaties.length == 1) && (o.locaties[0].viewName.toLowerCase() != o.annotation.viewName.toLowerCase()))" class="secondary">
           <span *ngIf="o.locaties.length > 1">locaties:<br/></span>
           <span *ngFor="let locatie of o.locaties">
             {{(o.locaties.length == 1)? "locatie:": "&#8226;"}} {{locatie.viewName}}<br/>
           </span>
         </div>
-        <div style="color: #8b4a6a;">
+        <div class="secondary">
           <span *ngIf="o.activiteitlocatieaanduidingen.length > 1">activiteiten:<br/></span>
           <span *ngFor="let activiteitlocatieaanduiding of o.activiteitlocatieaanduidingen">
             {{(o.activiteitlocatieaanduidingen.length == 1)? "activiteit:": "&#8226;"}} {{activiteitlocatieaanduiding.viewActName || activiteitlocatieaanduiding.viewName}}<br/>
           </span>
         </div>
-        <div *ngIf="o.annotation.viewActName" style="color: #8b4a6a;">activiteit: {{o.annotation.viewActName}}</div>
+        <div *ngIf="o.annotation.viewActName" class="secondary">activiteit: {{o.annotation.viewActName}}</div>
       </label>
     </div>
   </ng-template>

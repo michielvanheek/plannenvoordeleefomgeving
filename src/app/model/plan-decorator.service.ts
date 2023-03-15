@@ -107,14 +107,9 @@ export class PlanDecoratorService {
   }
 
   decorateRegeling(regeling) {
-    // TEMP!!
-    if ((regeling.citeerTitel == "Omgevingsbesluit") || (regeling.citeerTitel == "Omgevingsregeling")) {
-      regeling.inwerkingVanaf = "2022-07-01";
-    }
-
     regeling.tabFilter = "DSO";
     regeling.typePlan = (regeling.type.waarde == "AMvB")? "AMvB": (regeling.type.waarde == "Aanwijzingsbesluit N2000")? "aanwijzingsbesluit Natura 2000": regeling.type.waarde.toLowerCase();
-    regeling.naamOverheid = regeling.aangeleverdDoorEen.naam.replace(/^Gemeente/, "gemeente").replace(/^Provincie/, "provincie");
+    regeling.naamOverheid = regeling.aangeleverdDoorEen.naam?.replace(/^Gemeente/, "gemeente").replace(/^Provincie/, "provincie") || (regeling.aangeleverdDoorEen.bestuurslaag + " zonder naam");
     regeling.naam = regeling.citeerTitel || ((regeling.aangeleverdDoorEen.bestuurslaag == "ministerie") && regeling.opschrift) || (regeling.type.waarde + " " + regeling.naamOverheid);
     regeling.overheidsCode =
       (regeling.aangeleverdDoorEen.bestuurslaag == "ministerie")? "0000": (

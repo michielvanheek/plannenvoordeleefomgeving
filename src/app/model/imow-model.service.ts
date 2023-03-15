@@ -218,10 +218,10 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     }
     if (component.tekst != null) {
       if (component.tekst.typeJuridischeRegels != "...") {
-        this.loadLocatiesForAnnotation(component.tekst, tekstType, "D");
+        this.loadLocatiesForAnnotation(component.tekst, tekstType);
         this.loadGebiedsaanwijzingenForTekst(component.tekst, tekstType);
         if (tekstType.match(/regeltekst$/)) {
-          this.loadActiviteitlocatieaanduidingenForTekst(component.tekst, "D");
+          this.loadActiviteitlocatieaanduidingenForTekst(component.tekst);
           this.loadOmgevingsnormenForTekst(component.tekst);
         } else {
           this.loadHoofdlijnenForTekst(component.tekst);
@@ -230,46 +230,37 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       return;
     }
 
+    component.tekst = {typeJuridischeRegels: "..."};
     const identificatie = component._links[tekstType].href.match(/(regelteksten|divisieannotaties)\/([^\?]+)/)[2];
-    if (this.teksten[identificatie] == null) {
-      component.tekst = {typeJuridischeRegels: "..."};
-      const options = environment.dsoOptions;
-      const url = environment.dsoUrl + (tekstType.match(/tekst$/)? (tekstType + "en/"): (tekstType + "s/")) + identificatie + (!tekstType.match(/^ontwerp/)? ("?" + this.timeModel.futureParams): "");
-      this.numLoadingD++;
-      this.http.get(url, options).subscribe(
-        response => {
-          const tekst: any = response;
-          this.teksten[identificatie] = tekst;
-          tekst.documentIdentificatie = tekst.documentIdentificatie || tekst.documentTechnischId.split("_akn_nl_bill")[0].replace(/_/g, "/");
+    const options = environment.dsoOptions;
+    const url = environment.dsoUrl + tekstType + (tekstType.match(/tekst$/)? "en/": "s/") + identificatie + "?" + this.timeModel.getVersionParams(this.plan, !!tekstType.match(/^ontwerp/));
+    this.numLoadingD++;
+    this.http.get(url, options).subscribe(
+      response => {
+        let tekst: any = response;
+        const id = tekst.technischId || (tekst.identificatie + "|" + tekst.geregistreerdMet.versie);
+        if (this.teksten[id] == null) {
+          this.teksten[id] = tekst;
           tekst.timeRequested = this.timeModel.time;
-          this.loadLocatiesForAnnotation(tekst, tekstType, "D");
-          this.loadGebiedsaanwijzingenForTekst(tekst, tekstType);
-          if (tekstType.match(/regeltekst$/)) {
-            this.loadActiviteitlocatieaanduidingenForTekst(tekst, "D");
-            this.loadOmgevingsnormenForTekst(tekst);
-          } else {
-            this.loadHoofdlijnenForTekst(tekst);
-          }
-          component.tekst = tekst;
-          this.numLoadingD--;
-        },
-        error => {
-          delete component.tekst;
-          this.numLoadingD--;
+          tekst.documentIdentificatie = tekst.documentIdentificatie || tekst.documentTechnischId.split("_akn_nl_bill")[0].replace(/_/g, "/");
         }
-      );
-    } else {
-      const tekst = this.teksten[identificatie];
-      this.loadLocatiesForAnnotation(tekst, tekstType, "D");
-      this.loadGebiedsaanwijzingenForTekst(tekst, tekstType);
-      if (tekstType.match(/regeltekst$/)) {
-        this.loadActiviteitlocatieaanduidingenForTekst(tekst, "D");
-        this.loadOmgevingsnormenForTekst(tekst);
-      } else {
-        this.loadHoofdlijnenForTekst(tekst);
+        tekst = this.teksten[id];
+        this.loadLocatiesForAnnotation(tekst, tekstType);
+        this.loadGebiedsaanwijzingenForTekst(tekst, tekstType);
+        if (tekstType.match(/regeltekst$/)) {
+          this.loadActiviteitlocatieaanduidingenForTekst(tekst);
+          this.loadOmgevingsnormenForTekst(tekst);
+        } else {
+          this.loadHoofdlijnenForTekst(tekst);
+        }
+        component.tekst = tekst;
+        this.numLoadingD--;
+      },
+      error => {
+        delete component.tekst;
+        this.numLoadingD--;
       }
-      component.tekst = tekst;
-    }
+    );
   }
 
   loadInheritedTekstenForComponent(component) {
@@ -279,7 +270,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     }
     if (component.inheritedTeksten != null) {
       component.inheritedTeksten.forEach(inheritedTekst => {
-        this.loadLocatiesForAnnotation(inheritedTekst, tekstType, "D");
+        this.loadLocatiesForAnnotation(inheritedTekst, tekstType);
         this.loadGebiedsaanwijzingenForTekst(inheritedTekst, tekstType);
         this.loadHoofdlijnenForTekst(inheritedTekst);
       });
@@ -288,36 +279,32 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
 
     component.inheritedTeksten = [];
     component._links["inherited" + tekstType[0].toUpperCase() + tekstType.substring(1) + "s"].map(link => link.href.match(/(regelteksten|divisieannotaties)\/([^\?]+)/)[2]).forEach(identificatie => {
-      if (this.teksten[identificatie] == null) {
-        const options = environment.dsoOptions;
-        const url = environment.dsoUrl + (tekstType + "s/") + identificatie + (!tekstType.match(/^ontwerp/)? ("?" + this.timeModel.futureParams): "");
-        this.numLoadingD++;
-        this.http.get(url, options).subscribe(
-          response => {
-            if (component.inheritedTeksten != null) {
-              const inheritedTekst: any = response;
-              this.teksten[identificatie] = inheritedTekst;
-              inheritedTekst.documentIdentificatie = inheritedTekst.documentIdentificatie || inheritedTekst.documentTechnischId.split("_akn_nl_bill")[0].replace(/_/g, "/");
+      const options = environment.dsoOptions;
+      const url = environment.dsoUrl + tekstType + "s/" + identificatie + "?" + this.timeModel.getVersionParams(this.plan, !!tekstType.match(/^ontwerp/));
+      this.numLoadingD++;
+      this.http.get(url, options).subscribe(
+        response => {
+          if (component.inheritedTeksten != null) {
+            let inheritedTekst: any = response;
+            const id = inheritedTekst.technischId || (inheritedTekst.identificatie + "|" + inheritedTekst.geregistreerdMet.versie);
+            if (this.teksten[id] == null) {
+              this.teksten[id] = inheritedTekst;
               inheritedTekst.timeRequested = this.timeModel.time;
-              this.loadLocatiesForAnnotation(inheritedTekst, tekstType, "D");
-              this.loadGebiedsaanwijzingenForTekst(inheritedTekst, tekstType);
-              this.loadHoofdlijnenForTekst(inheritedTekst);
-              component.inheritedTeksten.push(inheritedTekst);
+              inheritedTekst.documentIdentificatie = inheritedTekst.documentIdentificatie || inheritedTekst.documentTechnischId.split("_akn_nl_bill")[0].replace(/_/g, "/");
             }
-            this.numLoadingD--;
-          },
-          error => {
-            delete component.inheritedTeksten;
-            this.numLoadingD--;
+            inheritedTekst = this.teksten[id];
+            this.loadLocatiesForAnnotation(inheritedTekst, tekstType);
+            this.loadGebiedsaanwijzingenForTekst(inheritedTekst, tekstType);
+            this.loadHoofdlijnenForTekst(inheritedTekst);
+            component.inheritedTeksten.push(inheritedTekst);
           }
-        );
-      } else {
-        const inheritedTekst = this.teksten[identificatie];
-        this.loadLocatiesForAnnotation(inheritedTekst, tekstType, "D");
-        this.loadGebiedsaanwijzingenForTekst(inheritedTekst, tekstType);
-        this.loadHoofdlijnenForTekst(inheritedTekst);
-        component.inheritedTeksten.push(inheritedTekst);
-      }
+          this.numLoadingD--;
+        },
+        error => {
+          delete component.inheritedTeksten;
+          this.numLoadingD--;
+        }
+      );
     });
   }
 
@@ -332,8 +319,13 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
           locatie.viewEnvelope = new Envelope(bb.minx, bb.miny, bb.maxx, bb.maxy);
         }
       } else {
-        if (locatie.omvat._embedded != null) {  // Because of inconsistency between direct locaties and embedded locaties.
+        if (locatie.omvatVastgesteld != null) {  // Assuming that omvatVastgesteld only occurs in direct, not in embedded, locaties. And thus that omvat is an array.
+          locatie.omvat = locatie.omvat.concat(locatie.omvatVastgesteld);
+          delete locatie.omvatVastgesteld;
+        }
+        if (locatie.omvat._embedded != null) {  // Because of inconsistency between direct and embedded locaties. In embedded locaties, omvat is not an array.
           locatie.omvat = (locatie.omvat._embedded.locaties || []).concat(locatie.omvat._embedded.ontwerpLocaties || []);
+          delete locatie.omvat._embedded;
         }
         if (locatie.omvat.every(sublocatie => sublocatie.boundingBox)) {
           locatie.viewEnvelope = new GeometryCollection(locatie.omvat.map(sublocatie => {
@@ -458,7 +450,6 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
                   activiteitlocatieaanduiding.timeRequested = this.timeModel.time;
                   this.processLocaties(activiteitlocatieaanduiding);
                   this.decorateActiviteitlocatieaanduiding(activiteitlocatieaanduiding);
-                  this.assignSuper(activiteitlocatieaanduiding);
                 }
                 activiteitlocatieaanduiding = this.activiteitlocatieaanduidingen[id];
                 this.loadTekstenForActiviteitlocatieaanduiding(activiteitlocatieaanduiding, "");
@@ -516,7 +507,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
                   omgevingsnorm.timeRequested = this.timeModel.time;
                   omgevingsnorm.normwaarde.forEach(normwaarde => {
 
-                    if (!normwaarde._embedded) normwaarde._embedded = omgevingsnorm._embedded;  // OZON bug
+                    if (!normwaarde._embedded) normwaarde._embedded = omgevingsnorm._embedded || {locaties: []};  // OZON bug
 
                     this.processLocaties(normwaarde);
                   });
@@ -555,16 +546,6 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     delete annotation._embedded;
 
     this.setMarkerLocaties();
-  }
-
-  private assignSuper(activiteitlocatieaanduiding) {
-    const locatieIdentificaties = activiteitlocatieaanduiding.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort();
-    const id = [activiteitlocatieaanduiding.betreftEenActiviteit.identificatie, activiteitlocatieaanduiding.activiteitregelkwalificatie.waarde].concat(locatieIdentificaties).join("|");
-    if (this.activiteitlocatieaanduidingen[id] == null) {
-      const superActiviteitlocatieaanduiding = Object.assign({}, activiteitlocatieaanduiding, {superId: id, teksten: []});
-      this.activiteitlocatieaanduidingen[id] = superActiviteitlocatieaanduiding;
-    }
-    activiteitlocatieaanduiding.super = this.activiteitlocatieaanduidingen[id];
   }
 
   private loadTekstenForAnnotation(annotation, annotationType, direction) {
@@ -657,15 +638,58 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     if (tekst.gebiedsaanwijzingen != null) {
       tekst.gebiedsaanwijzingen.forEach(gebiedsaanwijzing => {
         this.loadTekstenForAnnotation(gebiedsaanwijzing, !gebiedsaanwijzing.technischId? "gebiedsaanwijzing": "ontwerpgebiedsaanwijzing", "D");
-        this.loadLocatiesForAnnotation(gebiedsaanwijzing, !gebiedsaanwijzing.technischId? "gebiedsaanwijzing": "ontwerpgebiedsaanwijzing", "D");
+        if (tekstType.match(/divisieannotatie|^ontwerp/)) {  // TEMP until OZON supports POST
+          this.loadLocatiesForAnnotation(gebiedsaanwijzing, !gebiedsaanwijzing.technischId? "gebiedsaanwijzing": "ontwerpgebiedsaanwijzing");
+        }
       });
       return;
     }
 
     tekst.gebiedsaanwijzingen = [];
-    (!tekst.technischId? ["gebiedsaanwijzing"]: ["gebiedsaanwijzing", "ontwerpgebiedsaanwijzing"]).forEach(annotationType => {
+    (!this.plan.technischId? ["gebiedsaanwijzing"]: ["gebiedsaanwijzing", "ontwerpgebiedsaanwijzing"]).forEach(annotationType => {
+      if (tekstType.match(/divisieannotatie|^ontwerp/)) {  // TEMP until OZON supports POST
+        this.loadGebiedsaanwijzingenForTekstLegacy(tekst, tekstType, annotationType);
+        return;
+      }
+
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + annotationType + "en?" + tekstType + (!tekst.technischId? ("Identificatie=" + tekst.identificatie): ("TechnischId=" + tekst.technischId)) + "&" + (!annotationType.match(/^ontwerp/)? this.timeModel.getVersionParams(this.plan): this.timeModel.nowParam);
+      const post = {
+        zoekParameters: [{
+          parameter: tekstType + (!tekst.technischId? ".identificatie": ".technischId"),
+          zoekWaarden: [tekst.technischId || tekst.identificatie]
+        }]
+      };
+      const url = environment.dsoUrl + annotationType + "en/_zoek?page=0&size=200&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/)) + "&_expand=true&_expandScope=locaties" + (this.plan.technischId? ",ontwerplocaties": "");
+      this.numLoadingD++;
+      this.http.post(url, post, options).subscribe(
+        response => {
+          if (tekst.gebiedsaanwijzingen != null) {
+            (Object.values(response["_embedded"])[0] as any[]).forEach(gebiedsaanwijzing => {
+              const id = gebiedsaanwijzing.technischId || (gebiedsaanwijzing.identificatie + "|" + gebiedsaanwijzing.geregistreerdMet.versie);
+              if (this.gebiedsaanwijzingen[id] == null) {
+                this.gebiedsaanwijzingen[id] = gebiedsaanwijzing;
+                gebiedsaanwijzing.timeRequested = this.timeModel.time;
+                this.processLocaties(gebiedsaanwijzing);
+                this.decorateGebiedsaanwijzing(gebiedsaanwijzing);
+              }
+              gebiedsaanwijzing = this.gebiedsaanwijzingen[id];
+              this.loadTekstenForAnnotation(gebiedsaanwijzing, annotationType, "D");
+              tekst.gebiedsaanwijzingen.push(gebiedsaanwijzing);
+            });
+          }
+          this.numLoadingD--;
+        },
+        error => {
+          delete tekst.gebiedsaanwijzingen;
+          this.numLoadingD--;
+        }
+      );
+    });
+  }
+
+  private loadGebiedsaanwijzingenForTekstLegacy(tekst, tekstType, annotationType) {
+      const options = environment.dsoOptions;
+      const url = environment.dsoUrl + annotationType + "en?" + tekstType + (!tekst.technischId? ("Identificatie=" + tekst.identificatie): ("TechnischId=" + tekst.technischId)) + "&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/));
       this.numLoadingD++;
       this.http.get(url, options).subscribe(
         response => {
@@ -679,7 +703,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
               }
               gebiedsaanwijzing = this.gebiedsaanwijzingen[id];
               this.loadTekstenForAnnotation(gebiedsaanwijzing, annotationType, "D");
-              this.loadLocatiesForAnnotation(gebiedsaanwijzing, annotationType, "D");
+              this.loadLocatiesForAnnotation(gebiedsaanwijzing, annotationType);
               tekst.gebiedsaanwijzingen.push(gebiedsaanwijzing);
             });
           }
@@ -690,7 +714,6 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
           this.numLoadingD--;
         }
       );
-    });
   }
 
   private decorateGebiedsaanwijzing(gebiedsaanwijzing) {
@@ -709,9 +732,13 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde + " - " + gebiedsaanwijzing.viewName;
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.viewName.replace(/^(\w+) - \1[^\w]{2,}/, "$1 - ");
     }
+
+    if (gebiedsaanwijzing.locaties && gebiedsaanwijzing.locaties.length) {  // TEMP until OZON supports POST
+      gebiedsaanwijzing.layer = new AnnotationLayer(this.imowValueModel, gebiedsaanwijzing);
+    }
   }
 
-  private loadActiviteitlocatieaanduidingenForTekst(tekst, direction) {
+  private loadActiviteitlocatieaanduidingenForTekst(tekst) {
     if ((tekst._links.beschrijftActiviteiten == null) && (tekst._links.beschrijftActiviteitenVastgesteld == null)) {
       return;
     }
@@ -720,44 +747,41 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     }
 
     tekst.activiteitlocatieaanduidingen = [];
-    const options = environment.dsoOptions;
-    const post = {
-      zoekParameters: [{
-        parameter: !tekst.technischId? "regeltekst.identificatie": "ontwerpregeltekst.technischId",
-        zoekWaarden: [tekst.technischId || tekst.identificatie]
-      }]
-    };
-    const url = environment.dsoUrl + (!tekst.technischId? "": "ontwerp") + "activiteitlocatieaanduidingen/_zoek?page=0&size=200" + "&" + (!tekst.technischId? this.timeModel.getVersionParams(this.plan): this.timeModel.nowParam) + "&_expand=true&_expandScope=locaties" + (tekst.technischId? ",ontwerplocaties": "");
-    this["numLoading" + direction]++;
-    this.http.post(url, post, options).subscribe(
-      response => {
-        (Object.values(response["_embedded"])[0] as any[]).forEach(activiteitlocatieaanduiding => {
-
-        //if (tekst.activiteitlocatieaanduidingen != null) {
-
-          const regeltekstIdentificatie = (activiteitlocatieaanduiding._links.kwalificeertVastgesteld || activiteitlocatieaanduiding._links.kwalificeert).href.match(/(ontwerpRegeltekstTechnischId|regeltekstIdentificatie)=([^\&]+)/)[2];
-          const id = regeltekstIdentificatie + "|" + activiteitlocatieaanduiding.identificatie;
-          if (this.activiteitlocatieaanduidingen[id] == null) {
-            this.activiteitlocatieaanduidingen[id] = activiteitlocatieaanduiding;
-            activiteitlocatieaanduiding.timeRequested = this.timeModel.time;
-            this.processLocaties(activiteitlocatieaanduiding);
-            this.decorateActiviteitlocatieaanduiding(activiteitlocatieaanduiding);
-            this.assignSuper(activiteitlocatieaanduiding);
+    (!this.plan.technischId? ["activiteitlocatieaanduiding"]: !tekst.technischId? ["activiteitlocatieaanduiding", "ontwerpactiviteitlocatieaanduiding"]: ["ontwerpactiviteitlocatieaanduiding"]).forEach(annotationType => {
+      const options = environment.dsoOptions;
+      const post = {
+        zoekParameters: [{
+          parameter: !tekst.technischId? "regeltekst.identificatie": "ontwerpregeltekst.technischId",
+          zoekWaarden: [tekst.technischId || tekst.identificatie]
+        }]
+      };
+      const url = environment.dsoUrl + annotationType + "en/_zoek?page=0&size=200&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/)) + "&_expand=true&_expandScope=locaties" + (this.plan.technischId? ",ontwerplocaties": "");
+      this.numLoadingD++;
+      this.http.post(url, post, options).subscribe(
+        response => {
+          if (tekst.activiteitlocatieaanduidingen != null) {
+            (Object.values(response["_embedded"])[0] as any[]).forEach(activiteitlocatieaanduiding => {
+              const regeltekstIdentificatie = (activiteitlocatieaanduiding._links.kwalificeertVastgesteld || activiteitlocatieaanduiding._links.kwalificeert).href.match(/(ontwerpRegeltekstTechnischId|regeltekstIdentificatie)=([^\&]+)/)[2];
+              const id = regeltekstIdentificatie + "|" + activiteitlocatieaanduiding.identificatie;
+              if (this.activiteitlocatieaanduidingen[id] == null) {
+                this.activiteitlocatieaanduidingen[id] = activiteitlocatieaanduiding;
+                activiteitlocatieaanduiding.timeRequested = this.timeModel.time;
+                this.processLocaties(activiteitlocatieaanduiding);
+                this.decorateActiviteitlocatieaanduiding(activiteitlocatieaanduiding);
+              }
+              activiteitlocatieaanduiding = this.activiteitlocatieaanduidingen[id];
+              this.linkActiviteitlocatieaanduidingToTekst(activiteitlocatieaanduiding, tekst);
+              tekst.activiteitlocatieaanduidingen.push(activiteitlocatieaanduiding);
+            });
           }
-          activiteitlocatieaanduiding = this.activiteitlocatieaanduidingen[id];
-          this.linkActiviteitlocatieaanduidingToTekst(activiteitlocatieaanduiding, tekst);
-          tekst.activiteitlocatieaanduidingen.push(activiteitlocatieaanduiding);
-
-        //}
-
-        });
-        this["numLoading" + direction]--;
-      },
-      error => {
-        delete tekst.activiteitlocatieaanduidingen;
-        this["numLoading" + direction]--;
-      }
-    );
+          this.numLoadingD--;
+        },
+        error => {
+          delete tekst.activiteitlocatieaanduidingen;
+          this.numLoadingD--;
+        }
+      );
+    });
   }
 
   private linkActiviteitlocatieaanduidingToTekst(activiteitlocatieaanduiding, tekst) {
@@ -802,6 +826,20 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       .replace(/^verrichten-van-werken-en-werkzaamhedenactiviteit/, "verrichten van werken en werkzaamheden")
       .replace(/^wateronttrekkingsactiviteit/, "onttrekken van water")
       .replace(/^woonactiviteit/, "wonen");
+
+    const locatieIdentificaties = activiteitlocatieaanduiding.locaties.map(locatie => locatie.technischId || locatie.identificatie).sort();
+    const id = [activiteitlocatieaanduiding.betreftEenActiviteit.technischId || activiteitlocatieaanduiding.betreftEenActiviteit.identificatie, activiteitlocatieaanduiding.activiteitregelkwalificatie.waarde].concat(locatieIdentificaties).join("|");
+    if (this.activiteitlocatieaanduidingen[id] == null) {
+      const superActiviteitlocatieaanduiding = Object.assign({}, activiteitlocatieaanduiding, {superId: id, teksten: []});
+      if (id.match(/_akn_nl_bill_/)) {
+        superActiviteitlocatieaanduiding.technischId = "_akn_nl_bill_";
+      }
+      superActiviteitlocatieaanduiding.layer = new AnnotationLayer(this.imowValueModel, superActiviteitlocatieaanduiding);
+      this.activiteitlocatieaanduidingen[id] = superActiviteitlocatieaanduiding;
+    }
+    activiteitlocatieaanduiding.super = this.activiteitlocatieaanduidingen[id];
+
+    activiteitlocatieaanduiding.layer = activiteitlocatieaanduiding.super.layer;
   }
 
   private loadOmgevingsnormenForTekst(tekst) {
@@ -811,16 +849,32 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     if (tekst.omgevingsnormen != null) {
       tekst.omgevingsnormen.forEach(omgevingsnorm => {
         this.loadTekstenForAnnotation(omgevingsnorm, !omgevingsnorm.technischId? "omgevingsnorm": "ontwerpomgevingsnorm", "D");
+        if (tekst.technischId != null) {  // TEMP until OZON supports POST
+          omgevingsnorm.normwaarde.forEach(normwaarde => {
+            this.loadLocatiesForAnnotation(normwaarde, !omgevingsnorm.technischId? "normwaarde": "ontwerpnormwaarde");
+          });
+        }
       });
       return;
     }
 
     tekst.omgevingsnormen = [];
-    (!tekst.technischId? ["omgevingsnorm"]: ["omgevingsnorm", "ontwerpomgevingsnorm"]).forEach(annotationType => {
+    (!this.plan.technischId? ["omgevingsnorm"]: ["omgevingsnorm", "ontwerpomgevingsnorm"]).forEach(annotationType => {
+      if (tekst.technischId != null) {  // TEMP until OZON supports POST
+        this.loadOmgevingsnormenForTekstLegacy(tekst, annotationType);
+        return;
+      }
+
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + annotationType + "en?" + (!tekst.technischId? ("regeltekstIdentificatie=" + tekst.identificatie): ("ontwerpRegeltekstTechnischId=" + tekst.technischId)) + "&" + (!annotationType.match(/^ontwerp/)? this.timeModel.getVersionParams(this.plan): this.timeModel.nowParam);
+      const post = {
+        zoekParameters: [{
+          parameter: !tekst.technischId? "regeltekst.identificatie": "ontwerpregeltekst.technischId",
+          zoekWaarden: [tekst.technischId || tekst.identificatie]
+        }]
+      };
+      const url = environment.dsoUrl + annotationType + "en/_zoek?page=0&size=200&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/)) + "&_expand=true&_expandScope=locaties" + (this.plan.technischId? ",ontwerplocaties": "");
       this.numLoadingD++;
-      this.http.get(url, options).subscribe(
+      this.http.post(url, post, options).subscribe(
         response => {
           if (tekst.omgevingsnormen != null) {
             (Object.values(response["_embedded"])[0] as any[]).forEach(omgevingsnorm => {
@@ -848,25 +902,77 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     });
   }
 
+  private loadOmgevingsnormenForTekstLegacy(tekst, annotationType) {
+      const options = environment.dsoOptions;
+      const url = environment.dsoUrl + annotationType + "en?" + (!tekst.technischId? ("regeltekstIdentificatie=" + tekst.identificatie): ("ontwerpRegeltekstTechnischId=" + tekst.technischId)) + "&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/));
+      this.numLoadingD++;
+      this.http.get(url, options).subscribe(
+        response => {
+          if (tekst.omgevingsnormen != null) {
+            (Object.values(response["_embedded"])[0] as any[]).forEach(omgevingsnorm => {
+              const id = omgevingsnorm.technischId || (omgevingsnorm.identificatie + "|" + omgevingsnorm.geregistreerdMet.versie);
+              if (this.omgevingsnormen[id] == null) {
+                this.omgevingsnormen[id] = omgevingsnorm;
+                omgevingsnorm.timeRequested = this.timeModel.time;
+                omgevingsnorm.normwaarde.forEach(normwaarde => {
+                  if (normwaarde._embedded != null) {
+                    this.processLocaties(normwaarde);
+                  }
+                });
+                this.decorateOmgevingsnorm(omgevingsnorm);
+              }
+              omgevingsnorm = this.omgevingsnormen[id];
+              this.loadTekstenForAnnotation(omgevingsnorm, annotationType, "D");
+              omgevingsnorm.normwaarde.forEach(normwaarde => {
+                this.loadLocatiesForAnnotation(normwaarde, !omgevingsnorm.technischId? "normwaarde": "ontwerpnormwaarde");
+              });
+              tekst.omgevingsnormen.push(omgevingsnorm);
+            });
+          }
+          this.numLoadingD--;
+        },
+        error => {
+          delete tekst.omgevingsnormen;
+          this.numLoadingD--;
+        }
+      );
+  }
+
   private decorateOmgevingsnorm(omgevingsnorm) {
-    omgevingsnorm.viewName = (omgevingsnorm.naam || omgevingsnorm.type.waarde).trim();
+    omgevingsnorm.viewName = (omgevingsnorm.naam?.trim() || omgevingsnorm.type.waarde);
     if ((omgevingsnorm.groep.waarde == "overig") && (omgevingsnorm.type.waarde == omgevingsnorm.viewName)) {
       omgevingsnorm.viewType = "omgevingsnorm";
     } else if (omgevingsnorm.groep.waarde == "overig") {
       omgevingsnorm.viewType = omgevingsnorm.type.waarde;
     } else if (omgevingsnorm.type.waarde == omgevingsnorm.viewName) {
       omgevingsnorm.viewType = omgevingsnorm.groep.waarde;
+    } else if (((omgevingsnorm.eenheid == null) || (omgevingsnorm.eenheid[0].waarde == "aantal")) && omgevingsnorm.type.waarde.match(/^aantal .+/)) {
+      omgevingsnorm.viewType = omgevingsnorm.groep.waarde;
     } else {
       omgevingsnorm.viewType = omgevingsnorm.groep.waarde + ", " + omgevingsnorm.type.waarde;
     }
 
-    if (omgevingsnorm.normwaarde[0].kwantitatieveWaarde != null) {
-      omgevingsnorm.normwaarde.sort((a, b) => (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? -1: 0);
-    } else {
-      omgevingsnorm.normwaarde.sort((a, b) => (a.kwalitatieveWaarde > b.kwalitatieveWaarde)? 1: (a.kwalitatieveWaarde < b.kwalitatieveWaarde)? -1: 0);
-    }
-    if (omgevingsnorm.eenheid != null) {
-      omgevingsnorm.viewUnit = omgevingsnorm.eenheid[0].waarde.replace("aantal", "").replace("vierkante meter", "m²").replace("meter", "m");
+    if ((omgevingsnorm.eenheid != null) && (omgevingsnorm.eenheid[0].waarde != "aantal")) {
+      omgevingsnorm.viewUnit = omgevingsnorm.eenheid[0].waarde
+        .replace("decibel met a-weging", "dB(A)")
+        .replace("decibel", "dB")
+        .replace("graad celsius", "°C")
+        .replace("graad (hoek)", "°")
+        .replace("procent", "%")
+        .replace("kilogram", "kg")
+        .replace("milligram", "mg")
+        .replace("microgram", "µg")
+        .replace("liter", "l")
+        .replace("centimeter", "cm")
+        .replace("millimeter", "mm")
+        .replace("vierkante kilometer", "km²")
+        .replace("kilometer", "km")
+        .replace("kubieke meter", "m³")
+        .replace("vierkante meter", "m²")
+        .replace("meter", "m")
+        .replace(" per ", "/");
+    } else if (omgevingsnorm.type.waarde.match(/^aantal .+/)) {
+      omgevingsnorm.viewUnit = omgevingsnorm.type.waarde.replace(/^aantal /, "");
     } else {
       omgevingsnorm.viewUnit = "";
     }
@@ -878,6 +984,10 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       normwaarde.viewType = omgevingsnorm.viewType;
       normwaarde.viewValue = (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) + (omgevingsnorm.viewUnit? " ": "") + omgevingsnorm.viewUnit;
     });
+
+    if (omgevingsnorm.normwaarde.every(normwaarde => normwaarde.locaties && normwaarde.locaties.length)) {  // TEMP until OZON supports POST
+      omgevingsnorm.layer = new AnnotationLayer(this.imowValueModel, omgevingsnorm);
+    }
   }
 
   private loadHoofdlijnenForTekst(tekst) {
@@ -889,19 +999,20 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     }
 
     tekst.hoofdlijnen = [];
-    (!tekst.technischId? [false]: [false, true]).forEach(ontwerp => {
+    (!this.plan.technischId? ["hoofdlijn"]: ["hoofdlijn", "ontwerphoofdlijn"]).forEach(annotationType => {
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + (ontwerp? "ontwerp": "") + "hoofdlijnen?" + (!tekst.technischId? ("divisieannotatieIdentificatie=" + tekst.identificatie): ("ontwerpdivisieannotatieTechnischId=" + tekst.technischId)) + (!ontwerp? ("&" + this.timeModel.futureParams): "");
+      const url = environment.dsoUrl + annotationType + "en?" + (!tekst.technischId? ("divisieannotatieIdentificatie=" + tekst.identificatie): ("ontwerpdivisieannotatieTechnischId=" + tekst.technischId)) + "&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/));
       this.numLoadingD++;
       this.http.get(url, options).subscribe(
         response => {
           if (tekst.hoofdlijnen != null) {
             (Object.values(response["_embedded"])[0] as any[]).forEach(hoofdlijn => {
-              const identificatie = hoofdlijn.identificatie;
-              if (this.hoofdlijnen[identificatie] == null) {
-                this.hoofdlijnen[identificatie] = hoofdlijn;
+              const id = hoofdlijn.technischId || (hoofdlijn.identificatie + "|" + hoofdlijn.geregistreerdMet.versie);
+              if (this.hoofdlijnen[id] == null) {
+                this.hoofdlijnen[id] = hoofdlijn;
+                hoofdlijn.timeRequested = this.timeModel.time;
               }
-              hoofdlijn = this.hoofdlijnen[identificatie];
+              hoofdlijn = this.hoofdlijnen[id];
               tekst.hoofdlijnen.push(hoofdlijn);
             });
           }
@@ -927,15 +1038,15 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     const ontwerp = !!plan._links.heeftOntwerpRegelingsgebied;
     const identificatie = plan.locatieIdentificatie;
     if ((this.locaties[identificatie] == null) || (this.locaties[identificatie].viewEnvelope == null)) {
-      plan.locatie = {identificatie: "nothing"};
+      plan.locatie = {identificatie: "nothing", locatieType: "Gebied"};
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + (ontwerp? "ontwerp": "") + "locaties/" + identificatie + "?" + (!ontwerp? this.timeModel.getVersionParams(plan): this.timeModel.nowParam);
+      const url = environment.dsoUrl + (ontwerp? "ontwerp": "") + "locaties/" + identificatie + "?" + this.timeModel.getVersionParams(plan, ontwerp);
       this.numLoadingD++;
       this.http.get(url, options).subscribe(
         response => {
-          const bbLocatie: any = response;
-          this.processLocatie(bbLocatie);
-          const locatie = this.locaties[identificatie];
+          let locatie: any = response;
+          this.processLocatie(locatie);
+          locatie = this.locaties[identificatie];
           plan.viewEnvelope = locatie.viewEnvelope;
           plan.locatie = locatie;
           (Object.values(this.loadLocatieForPlanPostActions) as Function[]).forEach(action => action());
@@ -956,21 +1067,29 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     }
   }
 
-  private loadLocatiesForAnnotation(annotation, annotationType, direction) {
+  private loadLocatiesForAnnotation(annotation, annotationType) {
     if (annotation.locaties != null) {
       return;
     }
 
     annotation.locaties = [];
-    (!annotation.technischId && !annotation.omgevingsnorm?.technischId? ["locaties"]: ["locaties", "ontwerplocaties"]).forEach(locatiesType => {
+    (!this.plan.technischId? ["locaties"]: ["locaties", "ontwerplocaties"]).forEach(locatiesType => {
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + locatiesType + "?" + annotationType + (!annotation.technischId? ("Identificatie=" + annotation.identificatie): ("TechnischId=" + annotation.technischId)) + ((annotationType == "activiteitlocatieaanduiding")? ("&activiteitIdentificatie=" + annotation.betreftEenActiviteit.identificatie): "") + ((locatiesType == "locaties")? ("&" + this.timeModel.futureParams): "");
+      const url = environment.dsoUrl + locatiesType + "?" + annotationType + (!annotation.technischId? ("Identificatie=" + annotation.identificatie): ("TechnischId=" + annotation.technischId)) + "&" + this.timeModel.getVersionParams(this.plan, !!locatiesType.match(/^ontwerp/));
       this.numLoadingD++;
       this.http.get(url, options).subscribe(
         response => {
           if (annotation.locaties != null) {
-            const identificaties = (Object.values(response["_embedded"])[0] as any[]).map(locatie => locatie.technischId || locatie.identificatie);
-            this.loadLocaties(annotation, locatiesType, identificaties);
+            (Object.values(response["_embedded"])[0] as any[]).forEach(locatie => {
+              const identificatie = locatie.technischId || locatie.identificatie;
+              if ((this.locaties[identificatie] == null) && locatie.locatieType.match(/groep$/)) {
+                this.loadGroupLocatieForAnnotation(annotation, locatiesType, identificatie);
+              } else {
+                this.processLocatie(locatie);
+                locatie = this.locaties[identificatie];
+                annotation.locaties.push(locatie);
+              }
+            });
           }
           this.numLoadingD--;
         },
@@ -982,17 +1101,9 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     });
   }
 
-  private loadLocaties(annotation, locatiesType, identificaties) {
-    const knownLocaties = identificaties.filter(identificatie => this.locaties[identificatie]).map(identificatie => this.locaties[identificatie]);
-    const unknownIdentificaties = identificaties.filter(identificatie => !this.locaties[identificatie]);
-
-    knownLocaties.forEach(locatie => {
-      annotation.locaties.push(locatie);
-    });
-
-    unknownIdentificaties.forEach(identificatie => {
+  private loadGroupLocatieForAnnotation(annotation, locatiesType, identificatie) {
       const options = environment.dsoOptions;
-      const url = environment.dsoUrl + locatiesType + "/" + identificatie + ((locatiesType == "locaties")? ("?" + this.timeModel.futureParams): "");
+      const url = environment.dsoUrl + locatiesType + "/" + identificatie + "?" + this.timeModel.getVersionParams(this.plan, !!locatiesType.match(/^ontwerp/));
       this.numLoadingD++;
       this.http.get(url, options).subscribe(
         response => {
@@ -1009,7 +1120,6 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
           this.numLoadingD--;
         }
       );
-    });
   }
 
   private loadTekstenForLocaties() {
@@ -1049,7 +1159,10 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
           return;
         }
 
-        (!ontwerp? ["regelteksten"/*, "divisieannotaties"*/, "ontwerpregelteksten"/*, "ontwerpdivisieannotaties"*/]: ["ontwerpregelteksten"/*, "ontwerpdivisieannotaties"*/]).forEach(tekstenType => {
+        (!ontwerp? ["regelteksten", "divisieannotaties", "ontwerpregelteksten", "ontwerpdivisieannotaties"]: ["ontwerpregelteksten", "ontwerpdivisieannotaties"]).forEach(tekstenType => {
+          if (this.plan.structured != !!tekstenType.match(/regelteksten$/)) {
+            return;
+          }
           if (!!this.plan.technischId != !!tekstenType.match(/^ontwerp/)) {
             return;
           }
@@ -1077,6 +1190,10 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     const i = -1 + this.tekstenForLocatiesLoader.subscriptions.push(this.http.post(url, post, options).subscribe(
       response => {
         (Object.values(response["_embedded"])[0] as any[]).forEach(tekst => {
+          if (regelingsgebied && (page > 0)) {
+            tekst._embedded = {locaties: [{identificatie: locatieIdentificaties[0]}]};
+          }
+
           const id = tekst.technischId || (tekst.identificatie + "|" + tekst.geregistreerdMet.versie);
           if (this.teksten[id] == null) {
             this.teksten[id] = tekst;
@@ -1088,11 +1205,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
             this.processLocaties(this.teksten[id]);
           }
           tekst = this.teksten[id];
-          if (!regelingsgebied || (page == 0)) {
-            this.linkLocatiesToTekst(locatieIdentificaties, tekst, planIdentificatie);
-          } else {
-            this.linkLocatiesToTekst([locatieIdentificaties[0]], tekst, planIdentificatie);
-          }
+          this.linkLocatiesToTekst(locatieIdentificaties, tekst, planIdentificatie);
         });
         this.setSpecificComponentIdentificaties();
         const numPages = response["page"].totalPages;
@@ -1256,7 +1369,9 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     if (i > -1) {
       this.allAnnotationLayers.splice(i, 1);
     } else {
-      this.allAnnotationLayers.push(new AnnotationLayer(this.imowValueModel, annotation));
+      const annotationLayer = annotation.layer? annotation.layer: new AnnotationLayer(this.imowValueModel, annotation);
+      annotationLayer.setVisible(true);
+      this.allAnnotationLayers.push(annotationLayer);
     }
 
     this.setAnnotationLayers();

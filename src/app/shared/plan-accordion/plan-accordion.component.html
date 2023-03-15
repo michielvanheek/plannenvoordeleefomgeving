@@ -1,5 +1,5 @@
 <ng-template ngFor let-element [ngForOf]="component._embedded?.documentComponenten || component._embedded?.ontwerpDocumentComponenten || component">
-  <ng-template [ngIf]="element._embedded" [ngIfElse]="diff">
+  <ng-template [ngIf]="!element.left && !element.right" [ngIfElse]="diff">
   <div *ngIf="isVisible(element)" [id]="element.identificatie" (mouseover)="preselect(element); $event.stopPropagation()" (mouseout)="preselect(null); $event.stopPropagation()" (click)="select(element); $event.stopPropagation()" [class]="{supermarker: !toc && hasChildren(element) && isSelected(element)}">
     <ng-template [ngIf]="hasNoOpschrift(element)" [ngIfElse]="mayHaveOpschrift">
       <ng-container *ngTemplateOutlet="content"></ng-container>
@@ -53,9 +53,7 @@
   </ng-template>
   <ng-template #label>
     <button (click)="setAnnotationsVisible()" [title]="toc? 'Van alle onderliggende regels de annotaties tonen': ('Van deze regel de annotaties tonen' + (element.bevatOntwerpInformatie? '; bevat ontwerpannotaties': ''))" class="btn btn-link" [class.trans]="!isPreOrSelected(element.right || element)">
-      <svg class="di di-sm">
-        <use href="../assets/dso-icons.svg#label"></use>
-      </svg>
+      <svg class="di di-sm"><use href="../assets/dso-icons.svg#label"></use></svg>
     </button>
   </ng-template>
 </ng-template>

@@ -12,7 +12,7 @@ import { environment } from "../../../environments/environment";
 })
 export class SearchPlanComponent {
   private httpSubscription = null;
-  private naamSort = (a, b) => (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1;
+  private sort = (a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: (a.naam.replace("'s-", "").toLowerCase() > b.naam.replace("'s-", "").toLowerCase())? 1: -1;
 
   s = "";
   warning = null;
@@ -91,7 +91,7 @@ export class SearchPlanComponent {
 
         const identificatieFilter = regeling => !regeling.identificatie.toLowerCase().indexOf(this.s.toLowerCase());
 
-        this.plannen = this.omgevingsdocumentModel.regelingen.filter(identificatieFilter).sort(this.naamSort);
+        this.plannen = this.omgevingsdocumentModel.regelingen.filter(identificatieFilter).sort(this.sort);
         this.showIdentificatie = true;
         if (this.plannen.length > 0) {
           this.warning = null;
@@ -127,7 +127,7 @@ export class SearchPlanComponent {
         };
         const numPlannen = new Array(keywords.length).fill(0);
 
-        this.plannen = this.omgevingsdocumentModel.regelingen.filter(keywordFilter).sort(this.naamSort);
+        this.plannen = this.omgevingsdocumentModel.regelingen.filter(keywordFilter).sort(this.sort);
         this.showIdentificatie = false;
         this.warning = null;
 
@@ -159,7 +159,7 @@ export class SearchPlanComponent {
             } else {
               const plannen = response["plannen"];
               plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
-              this.plannen = this.plannen.concat(plannen.filter(keywordFilter)).sort(this.naamSort);
+              this.plannen = this.plannen.concat(plannen.filter(keywordFilter)).sort(this.sort);
             }
 
             if (this.plannen.length > 0) {

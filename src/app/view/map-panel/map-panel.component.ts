@@ -20,32 +20,37 @@ export class MapPanelComponent implements DoCheck {
   legendPanelVisible = false;
 
   private baselines = [
-    {fill: "none", "stroke-width": "2px"},
-    {fill: "none", "stroke-width": "1.5px"},
-    {fill: "none", "stroke-width": "1px"},
-    {fill: "none", "stroke-width": "0.3px"},
-    {fill: "none", "stroke-width": "0.1px"}
+    {scale:    892.912823362, css: {fill: "none", stroke: "#222", "stroke-width": "2.0021px"}},
+    {scale:   3571.651293448, css: {fill: "none", stroke: "#444", "stroke-width": "1.5012px"}},
+    {scale:  57146.420695168, css: {fill: "none", stroke: "#555", "stroke-width": "1.006px"}},
+    {scale: 914342.731122689, css: {fill: "none", stroke: "#555", "stroke-width": "0.301px"}},
+    {scale: Number.MAX_VALUE, css: {fill: "none", stroke: "#555", "stroke-width": "0.101px"}}
   ];
   private highlines = [
-    {fill: "none", "stroke-width": "3px"},
-    {fill: "none", "stroke-width": "2.5px"},
-    {fill: "none", "stroke-width": "2px"}
+    {scale:    892.912823362, css: {fill: "none",                 "stroke-width": "3px"}},
+    {scale:   3571.651293448, css: {fill: "none",                 "stroke-width": "2.5px"}},
+    {scale: Number.MAX_VALUE, css: {fill: "none",                 "stroke-width": "2px"}}
   ];
   private underlines = [
-    {fill: "none", "stroke-width": "7px"},
-    {fill: "none", "stroke-width": "6px"},
-    {fill: "none", "stroke-width": "5px"}
+    {scale:    892.912823362, css: {fill: "none", stroke: "#fff", "stroke-width": "7px",   "stroke-linejoin": "round"}},
+    {scale:   3571.651293448, css: {fill: "none", stroke: "#fff", "stroke-width": "6px",   "stroke-linejoin": "round"}},
+    {scale: Number.MAX_VALUE, css: {fill: "none", stroke: "#fff", "stroke-width": "5px",   "stroke-linejoin": "round"}}
   ];
   private bumpses = [
-    {fill: "none", "stroke-width": "10px", "stroke-dasharray": "0 26.05", "stroke-linecap": "round"},
-    {fill: "none", "stroke-width": "8.5px", "stroke-dasharray": "0 21.99", "stroke-linecap": "round"},
-    {fill: "none", "stroke-width": "7px", "stroke-dasharray": "0 15.98", "stroke-linecap": "round"},
-    {fill: "none", "stroke-width": "6px", "stroke-dasharray": "0 14", "stroke-linecap": "round"}
+    {scale:    892.912823362, css: {fill: "none",                 "stroke-width": "10px",  "stroke-dasharray": "0 26.05", "stroke-linecap": "round"}},
+    {scale:   3571.651293448, css: {fill: "none",                 "stroke-width": "8.5px", "stroke-dasharray": "0 21.99", "stroke-linecap": "round"}},
+    {scale:  14286.605173792, css: {fill: "none",                 "stroke-width": "7px",   "stroke-dasharray": "0 15.98", "stroke-linecap": "round"}},
+    {scale: Number.MAX_VALUE, css: {fill: "none",                 "stroke-width": "6px",   "stroke-dasharray": "0 14",    "stroke-linecap": "round"}}
   ];
   private labels = [
-    {fill: "#fff", "stroke-width": 6, "font-size": "25px"},
-    {fill: "#fff", "stroke-width": 4, "font-size": "15px"},
-    {fill: "#fff", "stroke-width": 3, "font-size": "10px"}
+    {scale:    892.912823362, css: {fill: "#fff", stroke: "#222", "stroke-width": "6px",   "stroke-linejoin": "round", "font-size": "25px"}},
+    {scale:   3571.651293448, css: {fill: "#fff", stroke: "#444", "stroke-width": "3.5px", "stroke-linejoin": "round", "font-size": "15px"}},
+    {scale: Number.MAX_VALUE, css: {fill: "#fff", stroke: "#555", "stroke-width": "2px",   "stroke-linejoin": "round", "font-size": "12px"}}
+  ];
+  private graphicSizes = [
+    {scale:    892.912823362, css: {"--graphic-size": "40px"}},
+    {scale:   3571.651293448, css: {"--graphic-size": "25px"}},
+    {scale: Number.MAX_VALUE, css: {"--graphic-size": "20px"}}
   ];
 
   constructor(
@@ -66,67 +71,33 @@ export class MapPanelComponent implements DoCheck {
   }
 
   get baseline() {
-    const focusModel = this.nineyDefaultService.defaultFocusModel;
-    if (focusModel.centerScale.scale < 892.912823362) {
-      return this.baselines[0];
-    }
-    if (focusModel.centerScale.scale < 3571.651293448) {
-      return this.baselines[1];
-    }
-    if (focusModel.centerScale.scale < 57146.420695168) {
-      return this.baselines[2];
-    }
-    if (focusModel.centerScale.scale < 914342.731122689) {
-      return this.baselines[3];
-    }
-    return this.baselines[4];
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.baselines.find(baseline => cs.scale < baseline.scale).css;
   }
 
   get highline() {
-    const focusModel = this.nineyDefaultService.defaultFocusModel;
-    if (focusModel.centerScale.scale < 892.912823362) {
-      return this.highlines[0];
-    }
-    if (focusModel.centerScale.scale < 3571.651293448) {
-      return this.highlines[1];
-    }
-    return this.highlines[2];
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.highlines.find(highline => cs.scale < highline.scale).css;
   }
 
   get underline() {
-    const focusModel = this.nineyDefaultService.defaultFocusModel;
-    if (focusModel.centerScale.scale < 892.912823362) {
-      return this.underlines[0];
-    }
-    if (focusModel.centerScale.scale < 3571.651293448) {
-      return this.underlines[1];
-    }
-    return this.underlines[2];
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.underlines.find(underline => cs.scale < underline.scale).css;
   }
 
   get bumps() {
-    const focusModel = this.nineyDefaultService.defaultFocusModel;
-    if (focusModel.centerScale.scale < 892.912823362) {
-      return this.bumpses[0];
-    }
-    if (focusModel.centerScale.scale < 3571.651293448) {
-      return this.bumpses[1];
-    }
-    if (focusModel.centerScale.scale < 14286.605173792) {
-      return this.bumpses[2];
-    }
-    return this.bumpses[3];
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.bumpses.find(bumps => cs.scale < bumps.scale).css;
   }
 
   get label() {
-    const focusModel = this.nineyDefaultService.defaultFocusModel;
-    if (focusModel.centerScale.scale < 892.912823362) {
-      return this.labels[0];
-    }
-    if (focusModel.centerScale.scale < 3571.651293448) {
-      return this.labels[1];
-    }
-    return this.labels[2];
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.labels.find(label => cs.scale < label.scale).css;
+  }
+
+  get graphicSize() {
+    const cs = this.nineyDefaultService.defaultFocusModel.centerScale;
+    return this.graphicSizes.find(graphicSize => cs.scale < graphicSize.scale).css;
   }
 
   get annotationLayersVisible() {

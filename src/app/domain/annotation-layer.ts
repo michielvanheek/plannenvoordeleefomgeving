@@ -1,4 +1,4 @@
-import { Envelope, Filter } from "ng-niney";
+import { Filter, Geometry, LineString, Polygon, SVGConverter } from "ng-niney";
 
 export class AnnotationLayer {
   private imowValueModel = null;
@@ -14,78 +14,161 @@ export class AnnotationLayer {
   ];
 
   annotation = null;
+  visible = false;
   filter = null;
-  cssFunction = null;
-  labelCssFunction = null;
+  confineFill = false;
   mapStyle = null;
   legendStyle = null;
-  visible = false;
+  cssFunction = null;
+  labelCssFunction = null;
 
+  normwaarden = [];
+  normwaardeColors = {};
   normwaardeObjects = [];
 
   constructor(imowValueModel, annotation) {
     this.imowValueModel = imowValueModel;
     this.annotation = annotation;
-
-    this.setVisible(true);
+    this.init();
   }
 
   setVisible(visible) {
-    if (!visible) {
-      this.visible = false;
-      return;  
-    }
+    this.visible = visible;
+  }
 
+  private init() {
     const annotation = this.annotation;
     if (annotation.locatieType != null) {
       const locatie = annotation;
-      this.setUniformCssFunction(
+      this.setUniform(
         this.getFilter(locatie),
+        !locatie.locatieType.indexOf("Lijn"),
         Object.assign({}, this.imowValueModel.symboolcodes["vag500"], {"border-color": "#f40", "border-width": "2px", stroke: "#f40", "stroke-width": "3px"})
       );
     } else if (annotation.gebiedsaanwijzingType != null) {
       const locaties = annotation.locaties;
-      this.setUniformCssFunction(
+      this.setUniform(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
+        !locaties[0].locatieType.indexOf("Lijn"),
         this.imowValueModel.getSymboolcode(annotation.gebiedsaanwijzingType, annotation.groep)
       );
     } else if (annotation.betreftEenActiviteit != null) {
       const locaties = annotation.locaties;
-      this.setUniformCssFunction(
+      this.setUniform(
         this.getFilter(locaties.concat(locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), []))),
+        !locaties[0].locatieType.indexOf("Lijn"),
         this.imowValueModel.getSymboolcode("Activiteit", annotation.betreftEenActiviteit.groep)
       );
     } else {  // normwaarde
       const omgevingsnorm = annotation;
-      const normwaarden = omgevingsnorm.normwaarde;
+      const kwan = (omgevingsnorm.normwaarde[0].kwantitatieveWaarde != null);
+      
+      this.normwaarden = omgevingsnorm.normwaarde.concat().sort(kwan?
+        ((a, b) => (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? -1: 0):
+        ((a, b) => (a.kwalitatieveWaarde > b.kwalitatieveWaarde)? 1: (a.kwalitatieveWaarde < b.kwalitatieveWaarde)? -1: 0)
+      );
+      this.normwaardeColors = {};
+
+      this.normwaarden.forEach((normwaarde, i) => this.normwaardeColors[normwaarde.identificatie] = kwan?
+        this.getColor(normwaarde.kwantitatieveWaarde, this.normwaarden[0].kwantitatieveWaarde, this.normwaarden[this.normwaarden.length - 1].kwantitatieveWaarde):
+        this.getColor(i, this.normwaarden.length - 1, 0)
+      );
 
       const locaties = [];
       const symbolizations = {};
-      normwaarden.forEach(normwaarde => {
-        const color = this.getColor(normwaarde, omgevingsnorm);
+      this.normwaarden.forEach(normwaarde => {
+        const color = this.normwaardeColors[normwaarde.identificatie];
         normwaarde.locaties.concat(normwaarde.locaties.reduce((locaties, locatie) => locaties.concat(locatie.omvat || []), [])).forEach(locatie => {
           locaties.push(locatie);
           symbolizations[locatie.technischId || locatie.identificatie] = {color: color, text: (normwaarde.kwalitatieveWaarde || normwaarde.kwantitatieveWaarde) + ""};
         });
       });
-      this.setGradientCssFunction(this.getFilter(locaties), symbolizations);
+      this.setGradient(
+        this.getFilter(locaties),
+        !locaties[0].locatieType.indexOf("Lijn"),
+        symbolizations
+      );
 
-      this.normwaardeObjects = normwaarden.map(normwaarde => {
-        return {normwaarde: normwaarde, color: this.getColor(normwaarde, omgevingsnorm)};
-      });
+      this.setNormwaardeObjects(3);
     }
   }
 
-  private setUniformCssFunction(filter, symboolcode) {
-    setTimeout(() => {
-      this.filter = filter;
-      this.mapStyle = Object.assign({}, symboolcode, {background: "none", border: "none"});
-      this.legendStyle = symboolcode;
-      this.visible = true;
+  setNormwaardeObjects(numClasses) {
+    const classifiedNormwaarden = this.getClassifiedNormwaarden(this.normwaarden, numClasses);
+    this.normwaardeObjects = classifiedNormwaarden.map(classifiedNormwaarde => {
+      return {
+        normwaarde: classifiedNormwaarde,
+        colors: classifiedNormwaarde.normwaarden?
+          classifiedNormwaarde.normwaarden.map(normwaarde => this.normwaardeColors[normwaarde.identificatie]):
+          [this.normwaardeColors[classifiedNormwaarde.identificatie]]
+      };
     });
   }
 
-  private setGradientCssFunction(filter, symbolizations) {
+  getClassifiedNormwaarden(normwaarden, numClasses) {
+    if (numClasses == 0) {
+      return [];
+    }
+
+    if (normwaarden[0].kwantitatieveWaarde == null) {  // kwalitatieveWaarde
+      if ((numClasses == 1) && (normwaarden.length == 1)) {
+        return normwaarden;
+      }
+      if (numClasses == 1) {
+        return [];
+      }
+      return normwaarden.concat().sort((a, b) => (a.kwalitatieveWaarde > b.kwalitatieveWaarde)? 1: (a.kwalitatieveWaarde < b.kwalitatieveWaarde)? -1: 0);
+    }
+
+    normwaarden = normwaarden.concat().sort((a, b) => (a.kwantitatieveWaarde < b.kwantitatieveWaarde)? 1: (a.kwantitatieveWaarde > b.kwantitatieveWaarde)? -1: 0);
+    if (normwaarden.length <= numClasses) {
+      return normwaarden;
+    }
+
+    const classifiedNormwaarden = normwaarden.map((normwaarde, i) => {
+      return {
+        i: i,
+        max: normwaarde.kwantitatieveWaarde,
+        min: normwaarde.kwantitatieveWaarde,
+        mean: normwaarde.kwantitatieveWaarde,
+        locaties: normwaarde.locaties,
+        normwaarden: [normwaarde]
+      }
+    });
+
+    while (classifiedNormwaarden.length > numClasses) {
+      let nearest = {i: 0, distance: Number.MAX_SAFE_INTEGER};
+      classifiedNormwaarden.forEach((classifiedNormwaarde, i) => {
+        if ((i > 0) && (classifiedNormwaarden[i - 1].mean - classifiedNormwaarde.mean) < nearest.distance) {
+          nearest = {i: i, distance: (classifiedNormwaarden[i - 1].mean - classifiedNormwaarde.mean)};
+        }
+      });
+      const narrowest = classifiedNormwaarden.splice(nearest.i, 1)[0];
+      const other = classifiedNormwaarden[nearest.i - 1];
+      other.min = narrowest.min;
+      other.mean = other.min + 0.5 * (other.max - other.min);
+      other.locaties = other.locaties.concat(narrowest.locaties);
+      other.normwaarden = other.normwaarden.concat(narrowest.normwaarden);
+    }
+
+    const viewUnit = normwaarden[0].omgevingsnorm.viewUnit;
+    classifiedNormwaarden.forEach(classifiedNormwaarde => {
+      classifiedNormwaarde.kwantitatieveWaarde = true;
+      classifiedNormwaarde.omgevingsnorm = normwaarden[0].omgevingsnorm;
+      classifiedNormwaarde.viewValue = classifiedNormwaarde.min + ((classifiedNormwaarde.min == classifiedNormwaarde.max)? "": (" - " + classifiedNormwaarde.max)) + (viewUnit? " ": "") + viewUnit;
+    });
+
+    return classifiedNormwaarden;
+  }
+
+  private setUniform(filter, confineFill, symboolcode) {
+    this.filter = filter;
+    this.confineFill = confineFill;
+    this.mapStyle = Object.assign({}, symboolcode, {background: "none", border: "none"});
+    this.legendStyle = symboolcode;
+  }
+
+  private setGradient(filter, confineFill, symbolizations) {
     const cssFunction = (css, featureObject) => {
       const symbolization = symbolizations[featureObject.feature.properties.identificatie];
       if (symbolization != null) {
@@ -97,33 +180,34 @@ export class AnnotationLayer {
     const labelCssFunction = (css, featureObject, scaling) => {
       const symbolization = symbolizations[featureObject.feature.properties.identificatie];
       if (symbolization != null) {
-        const envelope = new Envelope(...featureObject.feature.bbox());
-        if ((envelope.maxX - envelope.minX) * (envelope.maxY - envelope.minY) < 12500 / scaling) {
+        const geometry0 = featureObject.feature.geometry;
+        const geometry1 = (geometry0 instanceof Geometry)? geometry0: (new SVGConverter()).pathToGeometry(geometry0);
+        const measurement = (geometry1 instanceof Polygon)? geometry1.getEnvelope(): (geometry1 instanceof LineString)? geometry1.getLength(): Number.MAX_SAFE_INTEGER;
+        if (
+          ((measurement.maxX - measurement.minX) * (measurement.maxY - measurement.minY) < 12500 / scaling) ||
+          (measurement < 50 / scaling)
+        ) {
           return;
         }
         css.labelText = symbolization.text;
-        css.labelPoint = envelope.getCenterPoint();
+        css.labelPoint = geometry1.getLabelPoint(5);
       } else {
         css.labelText = null;
         css.labelPoint = null;
       }
     };
-    setTimeout(() => {
-      this.filter = filter;
-      this.cssFunction = cssFunction;
-      this.labelCssFunction = labelCssFunction;
-      this.visible = true;
-    });
+    this.filter = filter;
+    this.confineFill = confineFill;
+    this.cssFunction = cssFunction;
+    this.labelCssFunction = labelCssFunction;
   }
 
-  private getColor(normwaarde, omgevingsnorm) {
+  private getColor(value, top, base) {
     let rgb;
-    const base = omgevingsnorm.normwaarde[0].kwantitatieveWaarde;
-    const top = omgevingsnorm.normwaarde[omgevingsnorm.normwaarde.length - 1].kwantitatieveWaarde;
     if (base == top) {
       rgb = this.hexToRgb(this.palette[Math.floor(this.palette.length / 2)]);
     } else {
-      const index = (normwaarde.kwantitatieveWaarde - base) / (top - base) * (this.palette.length - 1);
+      const index = (value - base) / (top - base) * (this.palette.length - 1);
       const floor = Math.floor(index);
       const ceil = Math.ceil(index);
       if (floor == ceil) {

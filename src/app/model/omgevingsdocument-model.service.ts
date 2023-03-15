@@ -44,7 +44,7 @@ export class OmgevingsdocumentModelService extends AppEventDispatcher implements
 
   private loadPage(ontwerp, timeType, page) {
     const options = environment.dsoOptions;
-    const url = environment.dsoUrl + (ontwerp? "ontwerp": "") + "regelingen?page=" + page + "&size=200&sort=" + (!ontwerp? "identificatie": "technischId") + "&" + ((timeType == "now")? this.timeModel.nowParams: (timeType == "future")? this.timeModel.futureParams: this.timeModel.nowParam);
+    const url = environment.dsoUrl + (!ontwerp? "regelingen": "ontwerpregelingen") + "?page=" + page + "&size=200&sort=" + (!ontwerp? "identificatie": "technischId") + "&" + ((timeType == "now")? this.timeModel.nowParams: (timeType == "future")? this.timeModel.futureParams: this.timeModel.nowParam);
     this.numLoading++;
     this.http.get(url, options).subscribe(
       response => {
@@ -77,61 +77,70 @@ export class OmgevingsdocumentModelService extends AppEventDispatcher implements
   }
 
   private processRegelingen() {
-    const predecessor: any = {
-      "_links": {
-        "heeftRegelingsgebied": {
-          "href": "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/locaties/nl.imow-mnre1034.ambtsgebied.LND6030B"
-        }
-      },
-      "identificatie": "/akn/nl/act/mnre1034/2019/reg0001_historisch",
-      "aangeleverdDoorEen": {
-        "naam": "Ministerie van Binnenlandse Zaken en Koninkrijksrelaties",
-        "bestuurslaag": "ministerie",
-        "code": "mnre1034"
-      },
-      "geregistreerdMet": {
-        "beginGeldigheid": "2021-06-04",
-        "beginInwerking": "2021-06-04",
-        "tijdstipRegistratie": "2022-05-02T14:15:22.684408",
-        "versie": 1
-      },
-      "type": {
-        "waarde": "Ministeriële Regeling"
-      },
-      "citeerTitel": "Omgevingsregeling (test historisch)",
-      "opschrift": "Omgevingsregeling"
-    };
-    const prepredecessor: any = {
-      "_links": {
-        "heeftRegelingsgebied": {
-          "href": "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/locaties/nl.imow-mnre1034.ambtsgebied.LND6030B"
-        }
-      },
-      "identificatie": "/akn/nl/act/mnre1034/2019/reg0001_historischer",
-      "aangeleverdDoorEen": {
-        "naam": "Ministerie van Binnenlandse Zaken en Koninkrijksrelaties",
-        "bestuurslaag": "ministerie",
-        "code": "mnre1034"
-      },
-      "geregistreerdMet": {
-        "beginGeldigheid": "2021-06-03",
-        "beginInwerking": "2021-06-03",
-        "tijdstipRegistratie": "2022-05-02T14:15:22.684408",
-        "versie": 1
-      },
-      "type": {
-        "waarde": "Ministeriële Regeling"
-      },
-      "citeerTitel": "Omgevingsregeling (test historischer)",
-      "opschrift": "Omgevingsregeling"
-    };
-    this.regelingen.push(predecessor);
-    this.regelingen.push(prepredecessor);
+    if (environment.tweakMnre) {
+      const predecessor: any = {
+        "_links": {
+          "heeftRegelingsgebied": {
+            "href": "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/locaties/nl.imow-mnre1034.ambtsgebied.LND6030B"
+          }
+        },
+        "identificatie": "/akn/nl/act/mnre1034/2019/reg0001_historisch",
+        "aangeleverdDoorEen": {
+          "naam": "Ministerie van Binnenlandse Zaken en Koninkrijksrelaties",
+          "bestuurslaag": "ministerie",
+          "code": "mnre1034"
+        },
+        "geregistreerdMet": {
+          "beginGeldigheid": "2024-01-01",
+          "beginInwerking": "2024-01-01",
+          "tijdstipRegistratie": "2021-06-04T14:15:22.684408",
+          "versie": 1
+        },
+        "type": {
+          "waarde": "Ministeriële Regeling"
+        },
+        "citeerTitel": "Omgevingsregeling (2021-versie)",
+        "predecessor": "/akn/nl/act/mnre1034/2019/reg0001_historischer|1",
+        "successors": ["/akn/nl/act/mnre1034/2019/reg0001|1"]
+      };
+      const prepredecessor: any = {
+        "_links": {
+          "heeftRegelingsgebied": {
+            "href": "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v6/locaties/nl.imow-mnre1034.ambtsgebied.LND6030B"
+          }
+        },
+        "identificatie": "/akn/nl/act/mnre1034/2019/reg0001_historischer",
+        "aangeleverdDoorEen": {
+          "naam": "Ministerie van Binnenlandse Zaken en Koninkrijksrelaties",
+          "bestuurslaag": "ministerie",
+          "code": "mnre1034"
+        },
+        "geregistreerdMet": {
+          "beginGeldigheid": "2024-01-01",
+          "beginInwerking": "2024-01-01",
+          "tijdstipRegistratie": "2021-06-03T14:15:22.684408",
+          "versie": 1
+        },
+        "type": {
+          "waarde": "Ministeriële Regeling"
+        },
+        "citeerTitel": "Omgevingsregeling (2020-versie)",
+        "successors": ["/akn/nl/act/mnre1034/2019/reg0001_historisch|1"]
+      };
+      this.regelingen.push(predecessor);
+      this.regelingen.push(prepredecessor);
+    }
     this.regelingen.forEach(regeling => {
-      if (regeling.identificatie == "/akn/nl/act/mnre1034/2019/reg0001" && !regeling.technischId) {
-        regeling.predecessor = predecessor; predecessor.successor = regeling;
-        predecessor.predecessor = prepredecessor; prepredecessor.successor = predecessor;
-//        console.log(regeling);
+      if (environment.tweakMnre) {
+        if (regeling.identificatie == "/akn/nl/act/mnre1034/2019/reg0001") {
+          regeling.geregistreerdMet.beginGeldigheid = "2024-01-01";
+          regeling.geregistreerdMet.beginInwerking = "2024-01-01";
+          regeling.predecessor = "/akn/nl/act/mnre1034/2019/reg0001_historisch|1";
+        }
+        if (regeling.type.waarde == "AMvB") {
+          regeling.geregistreerdMet.beginGeldigheid = "2024-01-01";
+          regeling.geregistreerdMet.beginInwerking = "2024-01-01";
+        }
       }
       if (regeling.aangeleverdDoorEen == null) {
         console.warn("Regeling " + regeling.identificatie + " has no owner.");
@@ -139,13 +148,13 @@ export class OmgevingsdocumentModelService extends AppEventDispatcher implements
       }
       if (regeling._links.heeftBeoogdeOpvolgers != null) {
         const technischIds = regeling._links.heeftBeoogdeOpvolgers.map(bo => bo.href.match(/\/([^/]+)$/)[1]);
-        const ontwerpSuccessors = technischIds.map(technischId => this.regelingen.find(regeling => regeling.technischId == technischId));
-        if (ontwerpSuccessors.some(ontwerpSuccessor => !ontwerpSuccessor)) {
+        const successors = technischIds.map(technischId => this.regelingen.find(regeling => regeling.technischId == technischId));
+        if (successors.some(successor => !successor)) {
           console.warn("Regeling successor does not exist.", regeling);
           delete regeling._links.heeftBeoogdeOpvolgers;
         } else {
-          regeling.ontwerpSuccessors = ontwerpSuccessors;
-          ontwerpSuccessors.forEach(ontwerpSuccessor => ontwerpSuccessor.predecessor = regeling);
+          regeling.successors = technischIds;
+          successors.forEach(successor => successor.predecessor = regeling.identificatie + "|" + regeling.geregistreerdMet.versie);
           console.log("HEEFT BEOOGD OPVOLGERS", regeling);
         }
       }
@@ -187,6 +196,20 @@ export class OmgevingsdocumentModelService extends AppEventDispatcher implements
   loadVersions(regeling) {
     if (regeling.versions != null) {
       return;
+    }
+
+    if (environment.tweakMnre) {
+      if (regeling.identificatie.indexOf("/akn/nl/act/mnre1034/2019/reg0001") == 0) {
+        regeling.versions = [
+          this.regelingen.find(regeling => regeling.identificatie == "/akn/nl/act/mnre1034/2019/reg0001").geregistreerdMet,
+          this.regelingen.find(regeling => regeling.identificatie == "/akn/nl/act/mnre1034/2019/reg0001_historisch").geregistreerdMet,
+          this.regelingen.find(regeling => regeling.identificatie == "/akn/nl/act/mnre1034/2019/reg0001_historischer").geregistreerdMet
+        ];
+        this.decorateVersion(regeling.versions[0], "/akn/nl/act/mnre1034/2019/reg0001", null);
+        this.decorateVersion(regeling.versions[1], "/akn/nl/act/mnre1034/2019/reg0001_historisch", null);
+        this.decorateVersion(regeling.versions[2], "/akn/nl/act/mnre1034/2019/reg0001_historischer", null);
+        return;
+      }
     }
 
     this.setCurrentAndFutureVersions(regeling);

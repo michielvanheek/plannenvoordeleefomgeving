@@ -1,11 +1,31 @@
 <h3>{{name}}</h3>
 <p>{{planModel.planalysis? planModel.planalysis.planItems.reduce(count, 0): omgevingsdocumentenModel.regelingen.length}} plannen</p>
 <table>
-    <tr>
-      <td class="font-weight-bold"><span class="fa fa-map-marker mr-2" style="width: 14px"></span>Waar</td><td>{{markerModel.name || "in heel Nederland"}}</td><td><button (click)="stateModel.enterSearchPlace()" [title]="'Een ' + (markerModel.name? 'andere': 'specifieke') + ' plek zoeken'" class="btn btn-link"><span class="fa fa-edit mr-2"></span></button></td>
-    </tr>
-    <tr>
-      <td class="font-weight-bold"><span class="fa fa-calendar-week mr-2"></span>Wanneer</td><td>{{timeModel.viewTime}}</td><td><button (click)="stateModel.enterTravelTime()" title="Naar een andere tijd reizen" class="btn btn-link"><span class="fa fa-edit mr-2"></span></button></td>
-    </tr>
+  <tr>
+    <td class="font-weight-bold">
+      <span class="fa fa-map-marker mr-2" style="width: 14px"></span>Waar
+    </td>
+    <td>
+      {{markerModel.name || "in heel Nederland"}}
+    </td>
+    <td>
+      <button (click)="stateModel.enterSearchPlace()" [title]="'Een ' + (markerModel.name? 'andere': 'specifieke') + ' plek zoeken'" class="btn btn-link">
+        <span class="fa fa-edit mr-2"></span>
+      </button>
+    </td>
+  </tr>
+  <tr>
+    <td class="font-weight-bold">
+      <span class="fa fa-calendar-week mr-2"></span>Wanneer
+    </td>
+    <td>
+      {{timeModel.viewTime}} <span *ngIf="timeModel.viewTime != 'vandaag'" class="redalert">tijdreis</span>
+    </td>
+    <td>
+      <button (click)="stateModel.enterTravelTime()" title="Naar een andere tijd reizen" class="btn btn-link">
+        <span class="fa fa-edit mr-2"></span>
+      </button>
+    </td>
+  </tr>
   <!--<span ng-if="planModel.planalysis.planItems[0][0].length > 0">Een <a href="" ng-click="windowModel.toggleVisible(0)">keuzehulp voor bestemmingsplannen</a> is beschikbaar.</span>-->
 </table>

@@ -79,6 +79,10 @@ label.checkbox {
     display: inline;
   }
 }
+label.checkbox.disabled {
+  cursor: default;
+  pointer-events: none;
+}
 
 .fa, .fab, .fad, .fal, .far, .fas {
   -moz-osx-font-smoothing: grayscale;
@@ -441,9 +445,19 @@ table {
 a, .btn-link {
   padding: 0;
   color: #39870c;
-  &:hover {
+  &:hover,
+  &:focus {
     color: #275937;
   }
+  &.cleanlink {
+    * {
+      pointer-events: none;
+    }
+  }
+}
+
+.alert {
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
 }
 
 .redalert {

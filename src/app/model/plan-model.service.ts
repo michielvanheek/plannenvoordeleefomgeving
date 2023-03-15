@@ -6,7 +6,6 @@ import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { AppEvent } from "../event/AppEvent";
 import { AppEventDispatcher } from "../event/AppEventDispatcher";
 import { AppEventListener } from "../event/AppEventListener";
-import { DiffBuilderService } from "./diff-builder.service";
 import { DisplayModelService } from "./display-model.service";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
@@ -59,7 +58,6 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
     private planDecorator: PlanDecoratorService,
-    private diffBuilder: DiffBuilderService,
     public regelingModel: OmgevingsdocumentModelService,
     private imowModel: ImowModelService
   ) {
@@ -151,16 +149,6 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
   }
 
   loadPlan(viewId, dossierSet, zoomToPlan, local) {
-    if ((this.plan != null) && !this.plan.identificatie.match(/^NL\.IMRO/) && (this.plan.viewId == viewId) && !this.isPlanInvalid(this.plan)) {
-      this.planDecorator.decorateRegelingStatus(this.plan);  // If after a time change, the plan is still valid, its status may need a reset.
-      this.regelingModel.resetVersions(this.plan);           // And its version info.
-      this.resetComponents(this.plan);                       // And the annotations of its components.
-      return;
-    }
-    if ((this.diffPlan != null) && (this.diffPlan.viewId == viewId) && local) {
-      return;
-    }
-
     if (dossierSet == "CURRENT") {
       dossierSet = this.dossierSet;
     } else if (dossierSet == "PLANALYSIS") {
@@ -204,6 +192,16 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
         });
       });
     } else {  // AKN.
+      if ((this.plan != null) && (this.plan.viewId == viewId) && !this.isPlanInvalid(this.plan)) {
+        this.planDecorator.decorateRegelingStatus(this.plan);  // If after a time change, the plan is still valid, its status may need a reset.
+        this.regelingModel.resetVersions(this.plan);           // And its version info.
+        this.resetComponents(this.plan);                       // And the annotations of its components.
+        return;
+      }
+      if ((this.diffPlan != null) && (this.diffPlan.viewId == viewId) && local) {
+        return;
+      }
+
       if (this.regelingModel.regelingen.length == 0) {
         const plan: any = (viewId[0] != "_")?
           {identificatie: viewId.replace(/\|.+$/, "")}:
@@ -215,10 +213,11 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
       }
 
       let plan = this.regelingModel.regelingen.find(regeling => regeling.viewId == viewId);
-      if ((plan == null) && (this.plan != null)) {
-        const regelingen = this.regelingModel.regelingen.filter(regeling => !regeling.technischId && (regeling.identificatie == this.plan.identificatie));
+      if (plan == null) {
+        const identificatie = (viewId[0] != "_")? viewId.replace(/\|.+$/, ""): viewId.split("_akn_nl_bill")[0].replace(/_/g, "/");
+        const regelingen = this.regelingModel.regelingen.filter(regeling => !regeling.technischId && (regeling.identificatie == identificatie));
         if (regelingen.length > 0) {
-          const versie = this.plan.predecessor?.geregistreerdMet.versie || this.plan.geregistreerdMet.versie || Number.MAX_SAFE_INTEGER;
+          const versie = (viewId[0] != "_")? parseInt(viewId.replace(/^[^|]+\|/, "")): Number.MAX_SAFE_INTEGER;
           regelingen.sort((a, b) => (Math.abs(a.geregistreerdMet.versie - versie) < Math.abs(b.geregistreerdMet.versie - versie))? 1: (Math.abs(a.geregistreerdMet.versie - versie) > Math.abs(b.geregistreerdMet.versie - versie))? -1: 0);
           plan = regelingen[0];
         }
@@ -264,9 +263,9 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
       return;
     }
 
-    const underscoredDocumentId = plan.viewId.replace(/\|.+$/, "").replace(/[^a-zA-Z0-9]/g, "_");
+    const underscoredIdentificatie = plan.technischId || plan.identificatie.replace(/[^a-zA-Z0-9]/g, "_");
     const options = environment.dsoOptions;
-    const url = local? `/assets/${underscoredDocumentId}.json`: environment.dsoUrl + (!plan.technischId? "regelingen/": "ontwerpregelingen/") + underscoredDocumentId + "/" + (!plan.technischId? ("documentcomponenten?" + plan._links.documentstructuur.href.replace(/^.+\?/, "")): "ontwerpdocumentcomponenten");
+    const url = local? `/assets/${underscoredIdentificatie}.json`: environment.dsoUrl + (!plan.technischId? "regelingen/": "ontwerpregelingen/") + underscoredIdentificatie + "/" + (!plan.technischId? "documentcomponenten?": "ontwerpdocumentcomponenten?") + this.timeModel.getVersionParams(plan, !!plan.technischId);
     this.numLoadingC++;
     this.http.get(url, options).subscribe(
       response => {
@@ -274,9 +273,10 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
         const eid2wid = this.getEid2wid(plan.documentComponenten);
         this.convertToHtml(plan.documentComponenten, eid2wid);
 
-        this.setDocumentComponenten(plan, local);
-
         this.numLoadingC--;
+        if (this.numLoadingC == 0) {
+          this.setDocumentComponenten(plan, local);
+        }
       },
       error => {
         this.numLoadingC--;
@@ -289,17 +289,7 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
       this.displayModel.setDocumentComponenten(plan.documentComponenten);
     }
 
-    this.displayModel.tabs.filter(tab => tab.algo).forEach((tab, i) => {
-      if (!local || (i == 0)) {
-        const components = this.getComponents(tab.algo(plan.documentComponenten));
-        if (!local) {
-          tab.components = components;
-          tab.diffComponents = [];
-        } else {  // i == 0
-          tab.diffComponents = this.diffBuilder.getDiffComponents(components, tab.components);
-        }
-      }
-    });
+    this.displayModel.setComponents(plan.documentComponenten, local);
 
     if (plan == this.plan) {
       this.dispatchEvent("planModel.plan.documentComponenten");
@@ -458,25 +448,6 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
       }
     }
     processComponent(documentComponenten, null);
-  }
-
-  private getComponents(documentComponenten) {
-    const components = [];
-    const processComponent = component => {
-      if (component.identificatie != null) {
-        components.push(component);
-      }
-
-      if (component._embedded != null) {
-        if (component._embedded.documentComponenten != null) {
-          component._embedded.documentComponenten.forEach(childComponent => processComponent(childComponent));
-        } else if (component._embedded.ontwerpDocumentComponenten != null) {
-          component._embedded.ontwerpDocumentComponenten.forEach(childComponent => processComponent(childComponent));
-        }
-      }
-    }
-    processComponent(documentComponenten);
-    return components;
   }
 
   setPlan(plan, dossierSet) {

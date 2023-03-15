@@ -1,19 +1,13 @@
 <div class="inner" [class.wide]="wide">
   <div class="header">
     <button (click)="close.emit()" title="Legenda sluiten" class="btn btn-link close">
-      <svg class="di">
-        <use href="../assets/dso-icons.svg#times"></use>
-      </svg>
+      <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
     </button>
     <button *ngIf="!wide" (click)="wide = true" title="Legenda breder maken" class="btn btn-link close">
-      <svg class="di">
-        <use href="../assets/dso-icons.svg#chevron-left"></use>
-      </svg>
+      <svg class="di"><use href="../assets/dso-icons.svg#chevron-left"></use></svg>
     </button>
     <button *ngIf="wide" (click)="wide = false" title="Legenda smaller maken" class="btn btn-link close">
-      <svg class="di">
-        <use href="../assets/dso-icons.svg#chevron-right"></use>
-      </svg>
+      <svg class="di"><use href="../assets/dso-icons.svg#chevron-right"></use></svg>
     </button>
     <ul class="dso-nav dso-nav-sub">
       <li (click)="tab = 'legend'" role="tab" class="dso-outline" [class.dso-active]="tab == 'legend'">
@@ -29,9 +23,7 @@
     <a href="javascript:void(0)" *ngIf="imowModel.annotationLayers.length > 1" (click)="imowModel.removeAnnotationLayers()"><span class="fa fa-angle-right mr-2"></span>alle kaartlagen verwijderen</a>
     <div *ngFor="let annotationLayer of imowModel.annotationLayers; index as i">
       <button (click)="imowModel.removeAnnotationLayer(annotationLayer)" title="Deze kaartlaag uit de legenda verwijderen" class="btn btn-link close">
-        <svg class="di">
-          <use href="../assets/dso-icons.svg#times"></use>
-        </svg>
+        <svg class="di"><use href="../assets/dso-icons.svg#times"></use></svg>
       </button>
       <label class="checkbox">
         <input type="checkbox" (change)="annotationLayer.setVisible($event.target.checked)" [checked]="annotationLayer.visible"><span class="checkmark"></span>
@@ -39,8 +31,12 @@
       </label>
       <div *ngIf="annotationLayer.visible" class="up-down-grid">
         <div class="up-down">
-          <button *ngIf="i &lt; imowModel.annotationLayers.length - 1" (click)="imowModel.moveAnnotationLayer(annotationLayer, +1)" title="Deze kaartlaag een positie laten stijgen in de legenda" class="btn btn-link"><span class="fa fa-long-arrow-alt-up"></span></button>
-          <button *ngIf="i > 0" (click)="imowModel.moveAnnotationLayer(annotationLayer, -1)" title="Deze kaartlaag een positie laten zakken in de legenda" class="btn btn-link"><span class="fa fa-long-arrow-alt-down"></span></button>
+          <button *ngIf="i &lt; imowModel.annotationLayers.length - 1" (click)="imowModel.moveAnnotationLayer(annotationLayer, +1)" title="Deze kaartlaag een positie laten stijgen in de legenda" class="btn btn-link">
+            <span class="fa fa-long-arrow-alt-up"></span>
+          </button>
+          <button *ngIf="i > 0" (click)="imowModel.moveAnnotationLayer(annotationLayer, -1)" title="Deze kaartlaag een positie laten zakken in de legenda" class="btn btn-link">
+            <span class="fa fa-long-arrow-alt-down"></span>
+          </button>
         </div>
         <div class="grid">
           <div *ngIf="!annotationLayer.annotation.normwaarde; else normGrid" class="cell">
@@ -48,9 +44,15 @@
             <div (mouseover)="highlightModel.setHighlight(annotationLayer.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
           </div>
           <ng-template #normGrid>
-            <div *ngFor="let normwaardeObject of annotationLayer.normwaardeObjects" class="cell">
-              <span class="legend" [ngStyle]="{'background-color': normwaardeObject.color}"></span>
+            <div *ngFor="let normwaardeObject of annotationLayer.normwaardeObjects; let last = last" class="cell">
+              <span class="legend" [ngStyle]="{'background-image': 'linear-gradient(to bottom left, ' + normwaardeObject.colors[0] + ', ' + normwaardeObject.colors[normwaardeObject.colors.length - 1] + ')'}"></span>
               <span>{{normwaardeObject.normwaarde.viewValue}}</span>
+              <button *ngIf="last && (annotationLayer.annotation.normwaarde.length > annotationLayer.normwaardeObjects.length)" (click)="annotationLayer.setNormwaardeObjects(annotationLayer.normwaardeObjects.length + 1)" title="Normwaarden verder uitklappen" class="btn btn-link close">
+                <svg class="di"><use href="../assets/dso-icons.svg#plus"></use></svg>
+              </button>
+              <button *ngIf="last && (annotationLayer.annotation.normwaarde[0].kwantitatieveWaarde != null) && (annotationLayer.normwaardeObjects.length > 1)" (click)="annotationLayer.setNormwaardeObjects(annotationLayer.normwaardeObjects.length - 1)" title="Normwaarden minder ver uitklappen" class="btn btn-link close">
+                <svg class="di"><use href="../assets/dso-icons.svg#minus"></use></svg>
+              </button>
               <div (mouseover)="highlightModel.setHighlight(normwaardeObject.normwaarde, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="overlay"></div>
             </div>
           </ng-template>

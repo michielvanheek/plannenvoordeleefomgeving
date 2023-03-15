@@ -216,11 +216,11 @@ export class DiffBuilderService {
       }
     });
     diffComponents.filter(diffComponent => !diffComponent.action).reverse().forEach(diffComponent => {
-      if ((diffComponent.left?._embedded.documentComponenten || diffComponent.left?._embedded.ontwerpDocumentComponenten || []).some(component => leftActionExpressies[component.expressie])) {
+      if ((diffComponent.left?._embedded?.documentComponenten || diffComponent.left?._embedded?.ontwerpDocumentComponenten || []).some(component => leftActionExpressies[component.expressie])) {
         leftActionExpressies[diffComponent.left.expressie] = true;
         diffComponent.action = "trail";
       }
-      if ((diffComponent.right?._embedded.documentComponenten || diffComponent.right?._embedded.ontwerpDocumentComponenten || []).some(component => rightActionExpressies[component.expressie])) {
+      if ((diffComponent.right?._embedded?.documentComponenten || diffComponent.right?._embedded?.ontwerpDocumentComponenten || []).some(component => rightActionExpressies[component.expressie])) {
         rightActionExpressies[diffComponent.right.expressie] = true;
         diffComponent.action = "trail";
       }

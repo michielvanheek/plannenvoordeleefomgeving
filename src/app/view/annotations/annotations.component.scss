@@ -38,6 +38,13 @@ strong {
   div:last-child label {
     min-height: 25px;
   }
+  .primary > span {
+    margin-right: 0.25rem;
+    white-space: nowrap;
+  }
+  .secondary {
+    color: #8b4a6a;
+  }
 }
 .dso-progress-indicator {
   top: 5px;

@@ -46,8 +46,9 @@
       }
       .grid {
         display: flex;
+        flex-grow: 1;
         margin-left: 0.5rem;
-        flex-direction: column-reverse;
+        flex-direction: column;
         .cell {
           position: relative;
           .legend {
@@ -55,6 +56,10 @@
             width: 24px;
             height: 13px;
             margin-right: 0.5rem;
+          }
+          .btn-link {
+            position: relative;
+            z-index: 1;
           }
           .overlay {
             position: absolute;
