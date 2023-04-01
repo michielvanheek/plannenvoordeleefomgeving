@@ -23,6 +23,7 @@ export const environment = {
       "Accept-CRS": "EPSG:28992",
       "Content-CRS": "EPSG:28992",
       "X-Api-Key": "297a74b1-6941-4174-b058-94bfb72f9615"
+//      "X-Api-Key": "307c52d5-59ca-4396-99a9-3f5f50a07b59"
     })
   },
   ihr: false,
@@ -41,7 +42,7 @@ export const environment = {
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L/wmts/v1_0/locaties/EPSG:28992/",
   revGeoUrl: "https://geodata.nationaalgeoregister.nl/locatieserver/revgeo?X=",
   tweakMnre: false,
-  legalAnnotations: true,
+  legalAnnotations: false,
   stripQuotes: true
 };
 

@@ -99,29 +99,27 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     } else if (
       (this.component._links.divisieannotatie != null) || (this.component._links.ontwerpdivisieannotatie != null) ||
       (this.component._links.inheritedDivisieannotaties != null) || (this.component._links.inheritedOntwerpdivisieannotaties != null)
-    ) {  // Divisietekst or divisie with annotations and/or with inherited annotations. Divisie may have child components, but will only come here if it has own and/or inherited annotations.
+    ) {  // Divisietekst/divisie with own annotations and/or with inherited annotations. Divisie may or may not have child components.
       if (this.component.nummer != null) {
-        this.header = "van " + (!this.component.nummer.match(/\..+/)? "hoofdstuk ": "paragraaf ") + this.component.nummer.replace(/\.$/, "");
+        this.header = "van " + (this.component.label? this.component.label.toLowerCase(): "onderdeel") + " " + this.component.nummer.replace(/\.$/, "");
       } else if (this.component.divisieNummer != null) {
-        this.header = "van de geselecteerde tekst in " + (!this.component.divisieNummer.match(/\..+/)? "hoofdstuk ": "paragraaf ") + this.component.divisieNummer.replace(/\.$/, "");
+        this.header = "van de geselecteerde tekst in " + (this.component.label? this.component.label.toLowerCase(): "onderdeel") + " " + this.component.divisieNummer.replace(/\.$/, "");
       } else {
         this.header = "van de geselecteerde tekst";
       }
       this.imowModel.loadTekstForComponent(this.component);
       this.imowModel.loadInheritedTekstenForComponent(this.component);
-    } else {
-      if (this.titleSymbols[this.component.type] != null) {
-        if (this.component.nummer != null) {
-          this.header = "van " + this.titleSymbols[this.component.type].noun + " " + this.component.nummer.replace(/\.$/, "");
-        } else {
-          this.header = "van " + this.titleSymbols[this.component.type].article + " geselecteerde " + this.titleSymbols[this.component.type].noun;
-        }
+    } else if (this.titleSymbols[this.component.type] != null) {  // Artikel without annotations, or structured component. Structured component may or may not have child components.
+      if (this.component.nummer != null) {
+        this.header = "van " + this.titleSymbols[this.component.type].noun + " " + this.component.nummer.replace(/\.$/, "");
       } else {
-        if (this.component.nummer != null) {
-          this.header = "van " + (!this.component.nummer.match(/\..+/)? "hoofdstuk ": "paragraaf ") + this.component.nummer.replace(/\.$/, "");
-        } else {
-          this.header = "van de geselecteerde paragraaf";
-        }
+        this.header = "van " + this.titleSymbols[this.component.type].article + " geselecteerde " + this.titleSymbols[this.component.type].noun;
+      }
+    } else {  // Lid without annotations, or divisietekst/divisie without own/inherited annotations. Divisie may or may not have child components.
+      if (this.component.nummer != null) {
+        this.header = "van " + (this.component.label? this.component.label.toLowerCase(): "onderdeel") + " " + this.component.nummer.replace(/\.$/, "");
+      } else {
+        this.header = "van de geselecteerde tekst";
       }
     }
 
@@ -216,18 +214,26 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     if (this.component.tekst == null) {
       return;
     }
+    const tekst = this.component.tekst;
+    if (!(tekst.locaties?.length || tekst.gebiedsaanwijzingen?.length || tekst.activiteitlocatieaanduidingen?.length || tekst.omgevingsnormen?.length || tekst.hoofdlijnen?.length)) {
+      return;
+    }
 
-    this.subheader = !this.component.type.match(/^DIVISIE/)? this.component.tekst.typeJuridischeRegels: this.component.type.toLowerCase();
+    this.subheader = !this.component.type.match(/^DIVISIE/)? tekst.typeJuridischeRegels: this.component.type.toLowerCase();
 
-    (this.component.tekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "own"));
-    (this.component.tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "own"));
-    (this.component.tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addAnnotation(activiteitlocatieaanduiding, "own"));
-    (this.component.tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addAnnotation(omgevingsnorm, "own"));
-    (this.component.tekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "own"));
+    (tekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "own"));
+    (tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "own"));
+    (tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addAnnotation(activiteitlocatieaanduiding, "own"));
+    (tekst.omgevingsnormen || []).forEach(omgevingsnorm => this.addAnnotation(omgevingsnorm, "own"));
+    (tekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "own"));
   }
 
   private setInherited() {
     if (this.component.inheritedTeksten == null) {
+      return;
+    }
+    const inheritedTeksten = this.component.inheritedTeksten.filter(tekst => tekst.locaties?.length || tekst.gebiedsaanwijzingen?.length || tekst.hoofdlijnen?.length);
+    if (inheritedTeksten.length == 0) {
       return;
     }
 
@@ -235,7 +241,7 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       this.subheader = "van bovenliggende divisie";
     }
 
-    this.component.inheritedTeksten.forEach(inheritedTekst => {
+    inheritedTeksten.forEach(inheritedTekst => {
       (inheritedTekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "inherited"));
       (inheritedTekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "inherited"));
       (inheritedTekst.hoofdlijnen || []).forEach(hoofdlijn => this.addHoofdlijn(hoofdlijn, "inherited"));
@@ -246,8 +252,11 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
     if (this.childComponents == null) {
       return;
     }
-    const childComponents = this.childComponents.filter(component => component.tekst);
-    if (childComponents.length == 0) {
+    const regelteksten = this.childComponents.filter(component => !component.type.match(/^DIVISIE/) && component.tekst).map(component => component.tekst).filter(tekst => tekst.locaties?.length || tekst.gebiedsaanwijzingen?.length || tekst.activiteitlocatieaanduidingen?.length || tekst.omgevingsnormen?.length || tekst.hoofdlijnen?.length);
+    const divisies = this.childComponents.filter(component => (component.type == "DIVISIE") && component.tekst).map(component => component.tekst).filter(tekst => tekst.locaties?.length || tekst.gebiedsaanwijzingen?.length || tekst.hoofdlijnen?.length);
+    const divisieteksten = this.childComponents.filter(component => (component.type == "DIVISIETEKST") && component.tekst).map(component => component.tekst).filter(tekst => tekst.locaties?.length || tekst.gebiedsaanwijzingen?.length || tekst.hoofdlijnen?.length);
+    const teksten = regelteksten.concat(divisies).concat(divisieteksten);
+    if (teksten.length == 0) {
       return;
     }
 
@@ -257,23 +266,17 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       this.subheader += " + ";
     }
 
-    const numRegelteksten = childComponents.filter(component => !component.type.match(/^DIVISIE/)).length;
-    if (numRegelteksten > 0) {
-      this.subheader = numRegelteksten + ((numRegelteksten == 1)? " regeltekst": " regelteksten");
-    } else {
-      const numDivisies = childComponents.filter(component => component.type == "DIVISIE").length;
-      const numDivisieteksten = childComponents.filter(component => component.type == "DIVISIETEKST").length;
-      if ((numDivisies > 0) && (numDivisieteksten > 0)) {
-        this.subheader += numDivisies + ((numDivisies == 1)? " onderliggende divisie": " onderliggende divisies")
-          + " + " + numDivisieteksten + ((numDivisieteksten == 1)? " divisietekst": " divisieteksten");
-      } else if (numDivisies > 0) {
-        this.subheader += numDivisies + ((numDivisies == 1)? " onderliggende divisie": " onderliggende divisies");
-      } else if (numDivisieteksten > 0) {
-        this.subheader += numDivisieteksten + ((numDivisieteksten == 1)? " onderliggende divisietekst": " onderliggende divisieteksten");
-      }
+    if (regelteksten.length > 0) {
+      this.subheader = regelteksten.length + " regeltekst" + ((regelteksten.length > 1)? "en": "");
+    } else if ((divisies.length > 0) && (divisieteksten.length > 0)) {
+      this.subheader += (divisies.length + divisieteksten.length) + " onderliggende divisies/divisieteksten";
+    } else if (divisies.length > 0) {
+      this.subheader += divisies.length + " onderliggende divisie" + ((divisies.length > 1)? "s": "");
+    } else if (divisieteksten.length > 0) {
+      this.subheader += divisieteksten.length + " onderliggende divisietekst" + ((divisieteksten.length > 1)? "en": "");
     }
 
-    childComponents.map(component => component.tekst).forEach(tekst => {
+    teksten.forEach(tekst => {
       (tekst.locaties || []).forEach(locatie => this.addAnnotation(locatie, "offspring"));
       (tekst.gebiedsaanwijzingen || []).forEach(gebiedsaanwijzing => this.addAnnotation(gebiedsaanwijzing, "offspring"));
       (tekst.activiteitlocatieaanduidingen || []).forEach(activiteitlocatieaanduiding => this.addAnnotation(activiteitlocatieaanduiding, "offspring"));

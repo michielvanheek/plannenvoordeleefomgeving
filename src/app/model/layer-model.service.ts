@@ -12,7 +12,7 @@ export class LayerModelService {
     null,                        // 2 WMTS: selected vormvrij-plan contents
     new Layer("bp_grenzen_all"), // 3 WMTS
     new Layer("SelectionLayer"), // 4 MF: selected bestemmingsplan or vormvrij-plan boundaries
-    new Layer(null),             // 5 MVT: all omgevingsdocument contents & boundaries
+    new Layer(null),             // 5 MVT: all regeling contents & boundaries
     new Layer("HighlightLayer"), // 6 MF: IMRO highlight
     new Layer(null)              // 7 MVT: IMOW highlight
   ];

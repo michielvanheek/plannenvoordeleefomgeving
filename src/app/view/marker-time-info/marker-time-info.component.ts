@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { MarkerModelService } from "src/app/model/marker-model.service";
-import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
+import { RegelingModelService } from "src/app/model/regeling-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
 import { StateModelService } from "src/app/model/state-model.service";
 import { TimeModelService } from "src/app/model/time-model.service";
@@ -25,7 +25,7 @@ export class MarkerTimeInfoComponent {
     public stateModel: StateModelService,
     public timeModel: TimeModelService,
     public markerModel: MarkerModelService,
-    public omgevingsdocumentenModel: OmgevingsdocumentModelService,
+    public regelingModel: RegelingModelService,
     public planModel: PlanModelService
   ) { }
 }

@@ -10,7 +10,7 @@ import { DisplayModelService } from "./display-model.service";
 import { ImowModelService } from "./imow-model.service";
 import { LayerModelService } from "./layer-model.service";
 import { MarkerModelService } from "./marker-model.service";
-import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
+import { RegelingModelService } from "src/app/model/regeling-model.service";
 import { ParapluModelService } from "./paraplu-model.service";
 import { Planalysis } from "../domain/planalysis"
 import { PlanDecoratorService } from "./plan-decorator.service";
@@ -58,7 +58,7 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
     private markerModel: MarkerModelService,
     private planLevelModel: PlanLevelModelService,
     private planDecorator: PlanDecoratorService,
-    public regelingModel: OmgevingsdocumentModelService,
+    public regelingModel: RegelingModelService,
     private imowModel: ImowModelService
   ) {
     super();
@@ -422,6 +422,8 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
         if ((component.nummer != null) || (component.opschrift == null)) {
           if (this.titleSymbols[component.type] != null) {
             component.viewHeader += "<div>" + this.titleSymbols[component.type] + "</div>";
+          } else if (component.label != null) {
+            component.viewHeader += "<div>" + component.label + "</div>";
           }
           component.viewHeader += "<div>" + (component.nummer || "[ongenummerd]") + "</div>";
         }
@@ -487,7 +489,7 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
         styleURL = environment.websiteUrl + "web-roo/remote-sld/b-plangebied.jsp?plangebied=" + this.plan.identificatie;
       }
       layers[5].visible = false;
-    } else {  // Omgevingsdocument.
+    } else {  // Regeling.
       layers[1] = null;
       this.setKaart(null);
       layers[3].visible = false;

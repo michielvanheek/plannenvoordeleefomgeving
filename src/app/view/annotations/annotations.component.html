@@ -18,8 +18,10 @@
   <ng-template [ngIf]="!legal">
     <ng-template ngFor let-h [ngForOf]="hoofdlijnen">
       <h6>Hoofdlijn {{h.soort}}</h6>
-      <div *ngFor="let o of h.hoofdlijnen">
-        {{o.hoofdlijn.naam}} <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
+      <div *ngFor="let o of h.hoofdlijnen" class="primary mt-1">
+        {{o.hoofdlijn.naam}}
+        <span *ngIf="o.hoofdlijn.technischId" class="redalert">ontwerp</span>
+        <span *ngIf="!o.own">(<span *ngIf="o.inherited" class="fa fa-level-up-alt"></span><span *ngIf="o.offspring" class="fa fa-level-down-alt"></span>)</span>
       </div>
     </ng-template>
   </ng-template>

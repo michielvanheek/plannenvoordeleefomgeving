@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
-import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
+import { RegelingModelService } from "src/app/model/regeling-model.service";
 import { PlanLevelModelService } from "src/app/model/plan-level-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
 import { StateModelService } from "src/app/model/state-model.service";
@@ -20,7 +20,7 @@ export class SelectPlanComponent {
   constructor(
     public stateModel: StateModelService,
     public highlightModel: HighlightModelService,
-    public regelingModel: OmgevingsdocumentModelService,
+    public regelingModel: RegelingModelService,
     public planLevelModel: PlanLevelModelService,
     public planModel: PlanModelService
   ) {

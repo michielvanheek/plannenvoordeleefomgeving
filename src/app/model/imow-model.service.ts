@@ -8,7 +8,7 @@ import { AppEventListener } from "../event/AppEventListener";
 import { DisplayModelService } from "./display-model.service";
 import { ImowValueModelService } from "src/app/model/imow-value-model.service";
 import { MarkerModelService } from "./marker-model.service";
-import { OmgevingsdocumentModelService } from "./omgevingsdocument-model.service";
+import { RegelingModelService } from "./regeling-model.service";
 import { TimeModelService } from "./time-model.service";
 import { environment } from "../../environments/environment";
 
@@ -65,7 +65,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     private displayModel: DisplayModelService,
     private timeModel: TimeModelService,
     private markerModel: MarkerModelService,
-    private regelingModel: OmgevingsdocumentModelService,
+    private regelingModel: RegelingModelService,
     private imowValueModel: ImowValueModelService
   ) {
     super();
@@ -154,7 +154,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       }
     };
     [false, true].forEach(ontwerp => {
-      const url = environment.dsoUrl + (!ontwerp? ("locatieidentificaties/_zoek" + "?" + this.timeModel.futureParams): "ontwerplocaties/technischids/_zoek");
+      const url = environment.dsoUrl + (!ontwerp? ("locatieidentificaties/toekomstig/_zoek?" + this.timeModel.sinceParams): ("ontwerplocaties/technischids/_zoek?" + this.timeModel.nowParam));
       const i = -1 + this.markerLocatieIdentificatiesLoader.subscriptions.push(this.http.post(url, post, options).subscribe(
         response => {
           locatieIdentificaties = locatieIdentificaties.concat(Object.values(response["_embedded"])[0] as any[]);
@@ -992,14 +992,14 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
 
   private loadHoofdlijnenForTekst(tekst) {
     if ((tekst._links.bevat == null) && (tekst._links.bevatVastgesteld == null)) {
-      return;
+//      return;
     }
     if (tekst.hoofdlijnen != null) {
       return;
     }
 
     tekst.hoofdlijnen = [];
-    (!this.plan.technischId? ["hoofdlijn"]: ["hoofdlijn", "ontwerphoofdlijn"]).forEach(annotationType => {
+    (!this.plan.technischId? ["hoofdlijn"]: [/*"hoofdlijn", */"ontwerphoofdlijn"]).forEach(annotationType => {
       const options = environment.dsoOptions;
       const url = environment.dsoUrl + annotationType + "en?" + (!tekst.technischId? ("divisieannotatieIdentificatie=" + tekst.identificatie): ("ontwerpdivisieannotatieTechnischId=" + tekst.technischId)) + "&" + this.timeModel.getVersionParams(this.plan, !!annotationType.match(/^ontwerp/));
       this.numLoadingD++;

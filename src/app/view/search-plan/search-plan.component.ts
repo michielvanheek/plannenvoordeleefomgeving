@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
+import { RegelingModelService } from "src/app/model/regeling-model.service";
 import { PlanDecoratorService } from "src/app/model/plan-decorator.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
 import { environment } from "../../../environments/environment";
@@ -23,7 +23,7 @@ export class SearchPlanComponent {
   constructor(
     private http: HttpClient,
     private planDecorator: PlanDecoratorService,
-    private omgevingsdocumentModel: OmgevingsdocumentModelService,
+    private regelingModel: RegelingModelService,
     public planModel: PlanModelService
   ) { }
 
@@ -91,7 +91,7 @@ export class SearchPlanComponent {
 
         const identificatieFilter = regeling => !regeling.identificatie.toLowerCase().indexOf(this.s.toLowerCase());
 
-        this.plannen = this.omgevingsdocumentModel.regelingen.filter(identificatieFilter).sort(this.sort);
+        this.plannen = this.regelingModel.regelingen.filter(identificatieFilter).sort(this.sort);
         this.showIdentificatie = true;
         if (this.plannen.length > 0) {
           this.warning = null;
@@ -127,7 +127,7 @@ export class SearchPlanComponent {
         };
         const numPlannen = new Array(keywords.length).fill(0);
 
-        this.plannen = this.omgevingsdocumentModel.regelingen.filter(keywordFilter).sort(this.sort);
+        this.plannen = this.regelingModel.regelingen.filter(keywordFilter).sort(this.sort);
         this.showIdentificatie = false;
         this.warning = null;
 

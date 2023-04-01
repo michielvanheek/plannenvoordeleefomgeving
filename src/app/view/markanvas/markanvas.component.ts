@@ -8,7 +8,7 @@ import { AppService } from "../../app.service";
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
-import { OmgevingsdocumentModelService } from "src/app/model/omgevingsdocument-model.service";
+import { RegelingModelService } from "src/app/model/regeling-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
 import { SelectComponentSetTabScrollTo } from "src/app/action/SelectComponentSetTabScrollTo";
 import { StateModelService } from "src/app/model/state-model.service";
@@ -56,7 +56,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     public stateModel: StateModelService,
     public timeModel: TimeModelService,
     public markerModel: MarkerModelService,
-    private omgevingsdocumentModel: OmgevingsdocumentModelService,
+    private regelingModel: RegelingModelService,
     public imowModel: ImowModelService,
     public planModel: PlanModelService
   ) {
@@ -129,7 +129,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     if (planIdentificaties.includes(this.planModel.plan.technischId || this.planModel.plan.identificatie)) {
       new SelectComponentSetTabScrollTo(this.imowModel, this.planModel, this.display, info);
     } else {
-      const plannen = planIdentificaties.map(identificatie => this.omgevingsdocumentModel.regelingen.find(regeling => (regeling.technischId || regeling.identificatie) == identificatie));
+      const plannen = planIdentificaties.map(identificatie => this.regelingModel.regelingen.find(regeling => (regeling.technischId || regeling.identificatie) == identificatie));
       if (plannen.length == 1) {
         this.planModel.loadPlan(plannen[0].viewId, null, false, false);
       } else {
@@ -172,7 +172,7 @@ export class MarkanvasComponent implements OnInit, DoCheck {
       this.specificLocaties = {};
       this.nonSpecificLocaties = {};
 
-      this.imowModel.markerLocaties.filter(locatie => !this.omgevingsdocumentModel.regelingen.some(regeling => regeling.locatieIdentificatie == (locatie.technischId || locatie.identificatie))).forEach(locatie => {
+      this.imowModel.markerLocaties.filter(locatie => !this.regelingModel.regelingen.some(regeling => regeling.locatieIdentificatie == (locatie.technischId || locatie.identificatie))).forEach(locatie => {
         this.specificLocaties[locatie.technischId || locatie.identificatie] = locatie;
       });
 

@@ -10,7 +10,7 @@ import { environment } from "../../environments/environment";
 @Injectable({
   providedIn: "root"
 })
-export class OmgevingsdocumentModelService extends AppEventDispatcher implements AppEventListener {
+export class RegelingModelService extends AppEventDispatcher implements AppEventListener {
 
   numLoading = 0;
 

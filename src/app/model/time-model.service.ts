@@ -20,6 +20,10 @@ export class TimeModelService extends AppEventDispatcher {
     return "beschikbaarOp=" + this.timeFull + "&geldigOp=" + this.time + "&inWerkingOp=" + this.time;
   }
 
+  get sinceParams() {
+    return "beschikbaarOp=" + this.timeFull + "&vanaf=" + this.time;
+  }
+
   get futureParams() {
     return "beschikbaarOp=" + this.timeFull + "&geldigOp=" + this.future + "&inWerkingOp=" + this.future;
   }
