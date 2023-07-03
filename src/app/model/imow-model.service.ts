@@ -717,7 +717,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
   }
 
   private decorateGebiedsaanwijzing(gebiedsaanwijzing) {
-    gebiedsaanwijzing.viewType = gebiedsaanwijzing.label.toLowerCase()
+    gebiedsaanwijzing.viewType = gebiedsaanwijzing.viewPrename = gebiedsaanwijzing.label.toLowerCase()
       .replace("ontwerp", "")
       .replace("gebiedsaanwijzingen", "")
       .replace("beperkingengebieden", "beperkingengebied")
@@ -725,12 +725,9 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       .replace("functies", "functie")
       .replace("ruimtelijkg", "ruimtelijk g")
       .replace("water-en-", "water en ");
-    gebiedsaanwijzing.viewName = (gebiedsaanwijzing.naam || gebiedsaanwijzing.groep.waarde).trim();
-    if (gebiedsaanwijzing.viewName.toLowerCase() == gebiedsaanwijzing.groep.waarde) {
+    gebiedsaanwijzing.viewName = gebiedsaanwijzing.naam?.trim() || gebiedsaanwijzing.groep.waarde;
+    if (gebiedsaanwijzing.viewName.toLowerCase() == gebiedsaanwijzing.groep.waarde.toLowerCase()) {
       gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde;
-    } else if ((gebiedsaanwijzing.groep.waarde != "overig") && !gebiedsaanwijzing.viewName.includes(gebiedsaanwijzing.groep.waarde)) {
-      gebiedsaanwijzing.viewName = gebiedsaanwijzing.groep.waarde + " - " + gebiedsaanwijzing.viewName;
-      gebiedsaanwijzing.viewName = gebiedsaanwijzing.viewName.replace(/^(\w+) - \1[^\w]{2,}/, "$1 - ");
     }
 
     if (gebiedsaanwijzing.locaties && gebiedsaanwijzing.locaties.length) {  // TEMP until OZON supports POST
@@ -800,12 +797,12 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     const activiteit = activiteitlocatieaanduiding.betreftEenActiviteit;
     const activiteitregelkwalificatie = activiteitlocatieaanduiding.activiteitregelkwalificatie;
     if (activiteitregelkwalificatie.waarde != "anders geduid") {
-      activiteitlocatieaanduiding.viewName = (activiteit.naam || activiteit.groep.waarde).trim() + " - " + activiteitregelkwalificatie.waarde;
+      activiteitlocatieaanduiding.viewName = (activiteit.naam?.trim() || activiteit.groep.waarde) + " - " + activiteitregelkwalificatie.waarde;
     } else if ((activiteitlocatieaanduiding.locaties.length > 1) || this.regelingModel.regelingen.some(regeling => regeling.locatieIdentificatie == (activiteitlocatieaanduiding.locaties[0].technischId || activiteitlocatieaanduiding.locaties[0].identificatie)) || (activiteitlocatieaanduiding.locaties[0].noemer == null)) {
-      activiteitlocatieaanduiding.viewName = (activiteit.naam || activiteit.groep.waarde).trim();
+      activiteitlocatieaanduiding.viewName = activiteit.naam?.trim() || activiteit.groep.waarde;
     } else {
       activiteitlocatieaanduiding.viewName = activiteitlocatieaanduiding.locaties.map(locatie => locatie.noemer).join(", ");
-      activiteitlocatieaanduiding.viewActName = (activiteit.naam || activiteit.groep.waarde).trim();
+      activiteitlocatieaanduiding.viewActName = activiteit.naam?.trim() || activiteit.groep.waarde;
     }
     activiteitlocatieaanduiding.viewType = activiteit.groep.waarde
       .replace(/^bouwactiviteit ruimtelijk/, "bouwen als ruimtelijke activiteit")
@@ -939,7 +936,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
   }
 
   private decorateOmgevingsnorm(omgevingsnorm) {
-    omgevingsnorm.viewName = (omgevingsnorm.naam?.trim() || omgevingsnorm.type.waarde);
+    omgevingsnorm.viewName = omgevingsnorm.naam?.trim() || omgevingsnorm.type.waarde;
     if ((omgevingsnorm.groep.waarde == "overig") && (omgevingsnorm.type.waarde == omgevingsnorm.viewName)) {
       omgevingsnorm.viewType = "omgevingsnorm";
     } else if (omgevingsnorm.groep.waarde == "overig") {

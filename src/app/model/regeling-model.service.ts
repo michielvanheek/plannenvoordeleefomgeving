@@ -52,7 +52,7 @@ export class RegelingModelService extends AppEventDispatcher implements AppEvent
           this.regelingen = this.regelingen.concat(response["_embedded"].ontwerpRegelingen);
         } else {
           response["_embedded"].regelingen.forEach(regeling => {
-            if (!this.regelingen.some(regeling1 => (regeling.identificatie == regeling1.identificatie) && regeling1.geregistreerdMet && (regeling.geregistreerdMet.versie == regeling1.geregistreerdMet.versie))) {
+            if (!this.regelingen.some(regeling1 => !regeling1.technischId && (regeling.identificatie == regeling1.identificatie) && (regeling.geregistreerdMet.versie == regeling1.geregistreerdMet.versie))) {
               this.regelingen.push(regeling);
             }
           });
@@ -146,6 +146,7 @@ export class RegelingModelService extends AppEventDispatcher implements AppEvent
         console.warn("Regeling " + regeling.identificatie + " has no owner.");
         return;
       }
+      delete regeling.heeftTijdelijkDeel;
       if (regeling._links.heeftBeoogdeOpvolgers != null) {
         const technischIds = regeling._links.heeftBeoogdeOpvolgers.map(bo => bo.href.match(/\/([^/]+)$/)[1]);
         const successors = technischIds.map(technischId => this.regelingen.find(regeling => regeling.technischId == technischId));
@@ -173,18 +174,49 @@ export class RegelingModelService extends AppEventDispatcher implements AppEvent
       this.planDecorator.decorateRegeling(regeling);
       this.planDecorator.decoratePlan(regeling, true);
     });
+    this.regelingen.forEach(regeling => {
+      if (regeling._links.tijdelijkDeelVan != null) {
+        const underscoredIdentificatie = regeling._links.tijdelijkDeelVan.href.match(/\/([^/]+)\?/)[1];
+        const mps = this.regelingen.filter(r => r.technischId? (r.technischId == underscoredIdentificatie): (r.identificatie.replace(/[^a-zA-Z0-9]/g, "_") == underscoredIdentificatie));
+        if (mps.length > 0) {
+          mps.forEach(mp => {
+            mp.heeftTijdelijkDeel = mp.heeftTijdelijkDeel || [];
+            mp.heeftTijdelijkDeel.push(regeling);
+            mp.heeftTijdelijkDeel.sort((a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: 0);
+          });
+          regeling.tijdelijkDeelVan = mps.concat().sort((a, b) => (a.datum < b.datum)? 1: (a.datum > b.datum)? -1: 0);
+          if (mps.length > 1) {
+            console.log("Tijdelijk deel " + (regeling.technischId || (regeling.identificatie + "|" + regeling.geregistreerdMet.versie)) + " verwijst naar regeling " + underscoredIdentificatie + ", en daar zijn " + mps.length + " versies van.");
+          }
+        } else {
+          console.warn("Tijdelijk deel " + (regeling.technischId || (regeling.identificatie + "|" + regeling.geregistreerdMet.versie)) + " verwijst naar regeling " + underscoredIdentificatie + ", maar daarvan kunnen geen versies gevonden worden.");
+        }
+      }
+    });
     this.identificaties = this.regelingen.map(regeling => regeling.identificatie);
 
     this.dispatchEvent("regelingModel.regelingen");
+  }
+
+  resetTijdelijkDeel(regeling) {
+    const regeling1 = this.regelingen.find(regeling1 => regeling1.viewId == regeling.viewId);
+    if (regeling1.heeftTijdelijkDeel != null) {
+      regeling.heeftTijdelijkDeel = regeling1.heeftTijdelijkDeel;
+    } else {
+      delete regeling.heeftTijdelijkDeel;
+    }
+    if (regeling1.tijdelijkDeelVan != null) {
+      regeling.tijdelijkDeelVan = regeling1.tijdelijkDeelVan;
+    } else {
+      delete regeling.tijdelijkDeelVan;
+    }
   }
 
   resetVersions(regeling) {
     const historicVersions = regeling.versions.filter(version => (version.eindGeldigheid != null) && (version.eindGeldigheid <= this.timeModel.time));
 
     const regeling1 = this.regelingen.find(regeling1 => regeling1.viewId == regeling.viewId);
-    if (regeling.geregistreerdMet != null) {
-      regeling.geregistreerdMet = regeling1.geregistreerdMet;
-    }
+    regeling.geregistreerdMet = regeling1.geregistreerdMet;
     if (regeling.procedureverloop != null) {
       regeling.procedureverloop = regeling1.procedureverloop;
     }

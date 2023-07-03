@@ -43,5 +43,6 @@ export const environment = {
   revGeoUrl: "https://geodata.nationaalgeoregister.nl/locatieserver/revgeo?X=",
   tweakMnre: true,
   legalAnnotations: true,
+  gebiedsaanwijzingGroep: false,
   stripQuotes: true
 };

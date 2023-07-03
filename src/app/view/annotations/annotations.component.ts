@@ -2,6 +2,7 @@ import { Component, DoCheck, Input, OnChanges, OnDestroy, SimpleChanges } from "
 import { HighlightModelService } from "src/app/model/highlight-model.service";
 import { ImowModelService } from "src/app/model/imow-model.service";
 import { PlanModelService } from "src/app/model/plan-model.service";
+import { environment } from "../../../environments/environment";
 
 @Component({
   selector: "dso-annotations",
@@ -81,6 +82,20 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
 
   ngOnDestroy() {
     this.display.emit("annotationsVisible", false);
+  }
+
+  isTypeVisible(annotation) {
+    if (annotation.viewPrename == null) {
+      return false;
+    }
+    return (annotation.viewName.toLowerCase().match(/^(\w+)[^\w]{2,}/)?.[1] != annotation.viewPrename.toLowerCase());
+  }
+
+  isGroepVisible(annotation) {
+    if (!environment.gebiedsaanwijzingGroep) {
+      return false;
+    }
+    return (annotation.viewName.toLowerCase().match(/(^|[^\w]{2,})(\w+)[^\w]{2,}/)?.[2] != annotation.groep.waarde.toLowerCase());
   }
 
   private setComponents() {

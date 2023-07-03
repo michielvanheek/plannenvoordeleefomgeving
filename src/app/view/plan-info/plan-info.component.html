@@ -1,3 +1,4 @@
+<div class="header-maintable">
 <div class="header">
   <h4>{{plan.naam}}</h4>
   <button *ngIf="plan.viewEnvelope" (click)="planModel.zoomTo(plan)" title="Op de kaart naar dit plan zoomen" appTippy [tippyOptions]="{arrow: true, theme: 'dso'}" class="btn btn-link">
@@ -137,6 +138,29 @@
     </tr>
   </ng-template>
 </table>
+</div>
 <div *ngIf="planModel.dossierSet && (planModel.dossierSet.mainPlan.identificatie != plan.identificatie)" class="alert alert-warning">
   Van dit plan is een <a [routerLink]="" (click)="planModel.loadPlan(planModel.dossierSet.mainPlan.identificatie, 'CURRENT', false, false)" class="alert-link">nieuwere versie</a> beschikbaar.
+</div>
+<div *ngIf="plan.heeftTijdelijkDeel?.length" class="alert alert-warning">
+  <div>Bij dit plan
+    <span *ngIf="plan.heeftTijdelijkDeel.length == 1">hoort de tijdelijke regeling <a [routerLink]="" (click)="planModel.loadPlan(plan.heeftTijdelijkDeel[0].viewId, null, false, false)" class="alert-link">{{plan.heeftTijdelijkDeel[0].naam}}</a>, <span [ngClass]="{redalert: ['ontwerp', 'toekomstig'].includes(plan.heeftTijdelijkDeel[0].viewStatus)}">{{plan.heeftTijdelijkDeel[0].viewStatus}}</span> ({{plan.heeftTijdelijkDeel[0].viewDate}}).</span>
+    <span *ngIf="plan.heeftTijdelijkDeel.length > 1">horen tijdelijke regelingen:</span>
+  </div>
+  <ul *ngIf="plan.heeftTijdelijkDeel.length > 1">
+    <li *ngFor="let td of plan.heeftTijdelijkDeel">
+      <a [routerLink]="" (click)="planModel.loadPlan(td.viewId, null, false, false)" class="alert-link">{{td.naam}}, <span [ngClass]="{redalert: ['ontwerp', 'toekomstig'].includes(td.viewStatus)}">{{td.viewStatus}}</span> ({{td.viewDate}})</a>
+    </li>
+  </ul>
+</div>
+<div *ngIf="plan.tijdelijkDeelVan?.length" class="alert alert-warning">
+  <div>Dit is een tijdelijke regeling bij het plan
+    <span *ngIf="plan.tijdelijkDeelVan.length == 1"><a [routerLink]="" (click)="planModel.loadPlan(plan.tijdelijkDeelVan[0].viewId, null, false, false)" class="alert-link">{{plan.tijdelijkDeelVan[0].naam}}</a>, <span [ngClass]="{redalert: ['ontwerp', 'toekomstig'].includes(plan.tijdelijkDeelVan[0].viewStatus)}">{{plan.tijdelijkDeelVan[0].viewStatus}}</span> ({{plan.tijdelijkDeelVan[0].viewDate}}).</span>
+    <span *ngIf="plan.tijdelijkDeelVan.length > 1"><strong>{{plan.tijdelijkDeelVan[0].naam}}</strong>. Dat plan heeft meerdere versies:</span>
+  </div>
+  <ul *ngIf="plan.tijdelijkDeelVan.length > 1">
+    <li *ngFor="let mp of plan.tijdelijkDeelVan">
+      <a [routerLink]="" (click)="planModel.loadPlan(mp.viewId, null, false, false)" class="alert-link"><span [ngClass]="{redalert: ['ontwerp', 'toekomstig'].includes(mp.viewStatus)}">{{mp.viewStatus}}</span> ({{mp.viewDate}})</a>
+    </li>
+  </ul>
 </div>

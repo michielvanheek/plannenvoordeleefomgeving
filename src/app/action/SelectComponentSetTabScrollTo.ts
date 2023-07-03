@@ -29,7 +29,7 @@ export class SelectComponentSetTabScrollTo implements AppEventListener {
   }
 
   private perform() {
-    this.imowModel.setComponentIdentificaties("filtered", this.info.teksten, this.info.label);
+    this.imowModel.setComponentIdentificaties("filtered", this.info.teksten, this.info.annotation.viewName);
     this.display.setTab("default", "selected");
   }
 }

@@ -28,7 +28,7 @@ export class TimeModelService extends AppEventDispatcher {
     return "beschikbaarOp=" + this.timeFull + "&geldigOp=" + this.future + "&inWerkingOp=" + this.future;
   }
 
-  getVersionParams(plan, ontwerpEndpoint = false) {
+  getVersionParams(plan, ontwerpEndpoint) {
     if (plan.technischId != null) {
       return !ontwerpEndpoint? this.nowParams: this.nowParam;
     }

@@ -31,7 +31,8 @@
       <label (mouseover)="highlightModel.setHighlight(o.annotation, false)" (mouseout)="highlightModel.setHighlight(null, false)" class="checkbox" [class.disabled]="isDisabled(o.annotation)">
         <input type="checkbox" (change)="imowModel.toggleAnnotationLayer(o.annotation)" [disabled]="isDisabled(o.annotation)" [checked]="isChecked(o.annotation)"/><span class="checkmark"></span>
         <div class="primary">
-          {{o.annotation.viewName}}
+          <span *ngIf="isTypeVisible(o.annotation)">{{o.annotation.viewPrename}} -<span *ngIf="isGroepVisible(o.annotation)"> {{o.annotation.groep.waarde}} -</span></span>
+          <span>{{o.annotation.viewName}}</span>
           <span *ngIf="o.consumed">(C)</span>
           <span *ngIf="o.annotation.viewUnit && ((o.annotation.viewUnit.length &lt; 4) || (o.annotation.viewName.indexOf(o.annotation.viewUnit) == -1))">({{o.annotation.viewUnit}})</span>
           <span *ngIf="o.annotation.technischId" class="redalert">ontwerp</span>

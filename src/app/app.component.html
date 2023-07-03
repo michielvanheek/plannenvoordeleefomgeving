@@ -24,7 +24,7 @@
 </div>
 <div class="disclaimer">
   De informatie die u hier ziet is niet volledig en heeft géén juridische status. Raadpleeg <a href="https://www.ruimtelijkeplannen.nl/" target="_blank" class="extern">www.ruimtelijkeplannen.nl</a> voor de juiste informatie.
-  Deze omgeving is nog in ontwikkeling, en maakt deel uit van het digitaal stelsel voor de Omgevingswet.
+  Plannen voor de leefomgeving is nog in ontwikkeling en maakt gebruik van het digitaal stelsel voor de Omgevingswet.
   <div (click)="settingsVisible = !settingsVisible" class="setting-btn">Instellingen</div>
 </div>
 <div *ngIf="settingsVisible" class="setting-ct">
@@ -39,6 +39,12 @@
     <label class="checkbox">
       <input type="checkbox" [(ngModel)]="environment.legalAnnotations"/><span class="checkmark"></span>
       Juridische weergave
+    </label>
+  </div>
+  <div>
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="environment.gebiedsaanwijzingGroep"/><span class="checkmark"></span>
+      Gebiedsaanwijzinggroepen
     </label>
   </div>
   <div>

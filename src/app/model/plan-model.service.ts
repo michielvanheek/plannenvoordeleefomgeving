@@ -194,6 +194,7 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
     } else {  // AKN.
       if ((this.plan != null) && (this.plan.viewId == viewId) && !this.isPlanInvalid(this.plan)) {
         this.planDecorator.decorateRegelingStatus(this.plan);  // If after a time change, the plan is still valid, its status may need a reset.
+        this.regelingModel.resetTijdelijkDeel(this.plan);      // And its tijdelijk deel references.
         this.regelingModel.resetVersions(this.plan);           // And its version info.
         this.resetComponents(this.plan);                       // And the annotations of its components.
         return;
@@ -353,6 +354,17 @@ export class PlanModelService extends AppEventDispatcher implements AppEventList
         component.artikelNummer = parentComponent.nummer;
       } else if ((component.type == "DIVISIETEKST") && (component.nummer == null)) {
         component.divisieNummer = parentComponent.nummer;
+      } else if ((component.type == "LICHAAM") && (component.conditieArtikel != null)) {
+        const conditieArtikel = component.conditieArtikel;
+        delete component.conditieArtikel;
+        conditieArtikel._links = {};
+        conditieArtikel.identificatie = "cond";
+        conditieArtikel.expressie = component.expressie.replace(/body$/, "") + "cond";
+        conditieArtikel.type = "ARTIKEL";
+        conditieArtikel.geregistreerdMet = component.geregistreerdMet;
+        conditieArtikel.inhoud = '<div class="od-Al">' + conditieArtikel.inhoud + '</div class="od-Al">';
+        component._embedded = component._embedded || {documentComponenten: []};
+        component._embedded.documentComponenten.unshift(conditieArtikel);
       } else if ((component.type == "ALGEMENE_TOELICHTING") || (component.type == "ARTIKELGEWIJZE_TOELICHTING")) {
         component.opschrift = component.type.replace("_", " ");
         component.type = "DIVISIE";

@@ -453,7 +453,6 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong>" + (showType? ("<br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, "")): ""),
-      label: locatie.viewName,
       locaties: [locatie],
       teksten: teksten,
       annotation: locatie
@@ -465,7 +464,6 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
-      label: gebiedsaanwijzing.viewName,
       locaties: gebiedsaanwijzing.locaties,
       teksten: gebiedsaanwijzing.teksten,
       annotation: gebiedsaanwijzing
@@ -477,7 +475,6 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + ((activiteitlocatieaanduiding.viewType.toLowerCase() != name.toLowerCase())? activiteitlocatieaanduiding.viewType: "activiteit"),
-      label: activiteitlocatieaanduiding.viewName,
       locaties: activiteitlocatieaanduiding.locaties,
       teksten: teksten,
       annotation: activiteitlocatieaanduiding
@@ -488,7 +485,6 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: "<strong>" + omgevingsnorm.viewName[0].toUpperCase() + omgevingsnorm.viewName.slice(1) + "</strong>" + (showType? ("<br/>" + omgevingsnorm.viewType): ""),
-      label: omgevingsnorm.viewName,
       locaties: normwaarden.reduce((locaties, normwaarde) => locaties.concat(normwaarde.locaties), []),
       teksten: omgevingsnorm.teksten,
       annotation: omgevingsnorm,
@@ -500,7 +496,6 @@ export class MarkanvasComponent implements OnInit, DoCheck {
     return {
       image: "assets/legend/relatie.png",
       text: normwaarde.viewValue,
-      label: normwaarde.viewName,
       locaties: normwaarde.locaties,
       teksten: normwaarde.omgevingsnorm.teksten,
       annotation: normwaarde

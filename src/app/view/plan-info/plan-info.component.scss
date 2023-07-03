@@ -1,5 +1,7 @@
 :host {
   display: block;
+}
+.header-maintable {
   margin: 0 -20px;
   padding: 25px 20px;
   background-color: #e5e5e5;
@@ -68,6 +70,12 @@ tr:last-of-type td {
     padding: 0.5rem 1.25rem;
   }
 }
-.alert {
+.alert.alert-info {
   margin: 7px 0 0;
+}
+.alert.alert-warning {
+  margin: 1rem 0 0;
+  ul {
+    margin: 0;
+  }
 }
