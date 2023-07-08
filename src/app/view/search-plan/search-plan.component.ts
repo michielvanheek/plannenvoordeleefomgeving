@@ -134,45 +134,49 @@ export class SearchPlanComponent {
         const url = environment.websiteProxyUrl + "web-roo/rest/search/plannen/naam/" + s;
         this.httpSubscription = this.http.get(url).subscribe(
           response => {
-            this.httpSubscription = null;
-
-            if (response["ErrorType"] == "NO_PLANS_FOUND") {
-              const split = s.split(/[^a-zA-Z0-9]+/);
-              if (split.length == 1) {
-                this.warning = "NO_PLANS_FOUND_BY_NAME";
-              } else {
-                split.pop();
-                const join = split.join(" ");
-                if (join.length < 4) {
-                  this.warning = "NO_PLANS_FOUND_BY_NAME";
-                } else {
-                  this.search(join);
-                  return;
-                }
-              }
-            } else if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
-              if (s != this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "")) {
-                this.warning = "NO_PLANS_FOUND_BY_NAME";
-              } else {
-                this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
-              }
-            } else {
-              const plannen = response["plannen"];
-              plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
-              this.plannen = this.plannen.concat(plannen.filter(keywordFilter)).sort(this.sort);
-            }
-
-            if (this.plannen.length > 0) {
-              this.warning = null;
-            } else if (numPlannen[0] > 0) {
-              this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
-            }
+            this.handleSearchByName(response, s, keywords, keywordFilter, numPlannen);
           },
           error => {
-            this.httpSubscription = null;
+            this.handleSearchByName(error.error, s, keywords, keywordFilter, numPlannen);
           }
         );
       }
+    }
+  }
+
+  private handleSearchByName(response, s, keywords, keywordFilter, numPlannen) {
+    this.httpSubscription = null;
+
+    if (response["ErrorType"] == "NO_PLANS_FOUND") {
+      const split = s.split(/[^a-zA-Z0-9]+/);
+      if (split.length == 1) {
+        this.warning = "NO_PLANS_FOUND_BY_NAME";
+      } else {
+        split.pop();
+        const join = split.join(" ");
+        if (join.length < 4) {
+          this.warning = "NO_PLANS_FOUND_BY_NAME";
+        } else {
+          this.search(join);
+          return;
+        }
+      }
+    } else if (response["ErrorType"] == "TOO_MANY_PLANS_FOUND") {
+      if (s != this.s.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "")) {
+        this.warning = "NO_PLANS_FOUND_BY_NAME";
+      } else {
+        this.warning = "TOO_MANY_PLANS_FOUND_BY_NAME";
+      }
+    } else {
+      const plannen = response["plannen"];
+      plannen.forEach(plan => this.planDecorator.decoratePlan(plan, false));
+      this.plannen = this.plannen.concat(plannen.filter(keywordFilter)).sort(this.sort);
+    }
+
+    if (this.plannen.length > 0) {
+      this.warning = null;
+    } else if (numPlannen[0] > 0) {
+      this.warning = "FOUND_BUT_FILTERED:" + keywords.slice(0, numPlannen.indexOf(0)).join(" ") + ":" + keywords[numPlannen.indexOf(0)];
     }
   }
 }

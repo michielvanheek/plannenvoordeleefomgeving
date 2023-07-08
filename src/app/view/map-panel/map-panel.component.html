@@ -8,7 +8,7 @@
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="highline"></canvassymbolizer>
     <canvassymbolizer [geometry]="planModel.plan.geometrie" [ngStyle]="bumps"></canvassymbolizer>
   </mapfeaturelayer>
-  <vectortileslayer [layer]="layerModel.layers[5]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 300}">
+  <vectortileslayer [layer]="(nineyDefaultService.defaultFocusModel.animationCenterScale.scale > 38097.613796779)? null: layerModel.layers[5]" [loader]="loader" [ngStyle]="{opacity: layerModel.planOpacity / 300}">
     <canvassymbolizer [ngStyle]="baseline"></canvassymbolizer>
   </vectortileslayer>
   <vectortileslayer *ngIf="annotationLayersVisible" [layer]="layerModel.layers[5]" [ngStyle]="{opacity: layerModel.planOpacity / 100}">
