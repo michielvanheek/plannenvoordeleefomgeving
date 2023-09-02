@@ -87,7 +87,7 @@ export class MarkerModelService extends AppEventDispatcher {
   }
 
   private loadName(xy, polygon) {
-    const url = environment.revGeoUrl + xy.x + "&Y=" + xy.y + "&type=adres&type=gemeente&distance=1000";
+    const url = environment.geocoderUrl + "reverse?X=" + xy.x + "&Y=" + xy.y + "&type=adres&type=gemeente&distance=1000";
     this.http.get(url).subscribe(response => {
       const adres = !polygon? response["response"].docs.find(doc => doc.type == "adres"): null;
       if (adres != null) {

@@ -40,7 +40,7 @@ export const environment = {
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-acc/wmts/v1_0/locaties/EPSG:28992/",
   locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L-pre/wmts/v1_0/locaties/EPSG:28992/",
 //  locatiesUrl: "https://service.pdok.nl/omgevingswet/omgevingsdocumenten$L/wmts/v1_0/locaties/EPSG:28992/",
-  revGeoUrl: "https://geodata.nationaalgeoregister.nl/locatieserver/revgeo?X=",
+  geocoderUrl: "https://api.pdok.nl/bzk/locatieserver/search/v3_1/",
   tweakMnre: true,
   legalAnnotations: true,
   gebiedsaanwijzingGroep: false,

@@ -5,6 +5,7 @@ import { NineyDefaultService } from "ng-niney/niney-default.service";
 import { MarkerModelService } from "src/app/model/marker-model.service";
 import { MeasureModelService } from "src/app/model/measure-model.service";
 import { StateModelService } from "src/app/model/state-model.service";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "dso-search-place",
@@ -43,7 +44,7 @@ export class SearchPlaceComponent implements DoCheck {
       return;
     }
 
-    const url = "https://geodata.nationaalgeoregister.nl/locatieserver/suggest?q=" + this.s;
+    const url = environment.geocoderUrl + "suggest?q=" + this.s;
     this.http.get(url).subscribe(response => {
       if (response["response"] == null) {
         this.locaties = [];
@@ -57,7 +58,7 @@ export class SearchPlaceComponent implements DoCheck {
     this.s = locatieWeergavenaam;
     this.locaties = [];
 
-    const url = "https://geodata.nationaalgeoregister.nl/locatieserver/lookup?fl=id,weergavenaam,boundingbox_rd,geometrie_rd&id=" + locatieId;
+    const url = environment.geocoderUrl + "lookup?fl=id,weergavenaam,geometrie_rd&id=" + locatieId;
     this.http.get(url).subscribe(response => {
       const locatie = response["response"].docs[0];
       locatie.geometry = (new WKTConverter()).wktToGeometry(locatie.geometrie_rd);
