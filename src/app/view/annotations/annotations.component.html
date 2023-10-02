@@ -47,10 +47,9 @@
         <div class="secondary">
           <span *ngIf="o.activiteitlocatieaanduidingen.length > 1">activiteiten:<br/></span>
           <span *ngFor="let activiteitlocatieaanduiding of o.activiteitlocatieaanduidingen">
-            {{(o.activiteitlocatieaanduidingen.length == 1)? "activiteit:": "&#8226;"}} {{activiteitlocatieaanduiding.viewActName || activiteitlocatieaanduiding.viewName}}<br/>
+            {{(o.activiteitlocatieaanduidingen.length == 1)? "activiteit:": "&#8226;"}} {{activiteitlocatieaanduiding.viewName}}<br/>
           </span>
         </div>
-        <div *ngIf="o.annotation.viewActName" class="secondary">activiteit: {{o.annotation.viewActName}}</div>
       </label>
     </div>
   </ng-template>

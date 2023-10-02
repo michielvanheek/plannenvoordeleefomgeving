@@ -209,7 +209,7 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
       (a.annotation.viewName.toLowerCase() > b.annotation.viewName.toLowerCase())? 1: 
       (a.annotation.viewName.toLowerCase() < b.annotation.viewName.toLowerCase())? -1: 0;
     const onViewName = (a, b) => (a.annotation.viewName.toLowerCase() > b.annotation.viewName.toLowerCase())? 1: (a.annotation.viewName.toLowerCase() < b.annotation.viewName.toLowerCase())? -1: 0;
-    const onViewActNameOrViewName = (a, b) => ((a.viewActName || a.viewName).toLowerCase() > (b.viewActName || b.viewName).toLowerCase())? 1: ((a.viewActName || a.viewName).toLowerCase() < (b.viewActName || b.viewName).toLowerCase())? -1: 0;
+    const onDirectViewName = (a, b) => (a.viewName.toLowerCase() > b.viewName.toLowerCase())? 1: (a.viewName.toLowerCase() < b.viewName.toLowerCase())? -1: 0;
     this.annotations.forEach(c => {
       if (c.leaders.length > 1) {
         if ((c.viewType == null) || (c.viewType == "Werkingsgebieden")) {
@@ -219,8 +219,8 @@ export class AnnotationsComponent implements OnChanges, DoCheck, OnDestroy {
         }
       }
       c.leaders.forEach(o => {
-        o.locaties.sort(onViewActNameOrViewName);  // For now don't sort on plan locatie.
-        o.activiteitlocatieaanduidingen.sort(onViewActNameOrViewName);
+        o.locaties.sort(onDirectViewName);  // For now don't sort on plan locatie.
+        o.activiteitlocatieaanduidingen.sort(onDirectViewName);
       });
     });
   }

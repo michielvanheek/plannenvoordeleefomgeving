@@ -6,12 +6,15 @@
       <span class="fa fa-map-marker mr-2" style="width: 14px"></span>Waar
     </td>
     <td>
-      {{markerModel.name || "in heel Nederland"}}
-    </td>
-    <td>
       <button (click)="stateModel.enterSearchPlace()" [title]="'Een ' + (markerModel.name? 'andere': 'specifieke') + ' plek zoeken'" class="btn btn-link">
-        <span class="fa fa-edit mr-2"></span>
+        <span class="flat">{{markerModel.name || "in heel Nederland"}}</span>
+        <span class="fa fa-edit ml-2"></span>
       </button>
+      <ng-template [ngIf]="markerModel.xy">
+        <button (click)="markerModel.clear()" title="De gemarkeerde plek weghalen" class="btn btn-link">
+          <span class="fa fa-times ml-2"></span>
+        </button>
+      </ng-template>
     </td>
   </tr>
   <tr>
@@ -19,12 +22,16 @@
       <span class="fa fa-calendar-week mr-2"></span>Wanneer
     </td>
     <td>
-      {{timeModel.viewTime}} <span *ngIf="timeModel.viewTime != 'vandaag'" class="redalert">tijdreis</span>
-    </td>
-    <td>
       <button (click)="stateModel.enterTravelTime()" title="Naar een andere tijd reizen" class="btn btn-link">
-        <span class="fa fa-edit mr-2"></span>
+        <span class="flat">{{timeModel.viewTime}}</span>
+        <span class="fa fa-edit ml-2"></span>
       </button>
+      <ng-template [ngIf]="timeModel.viewTime != 'vandaag'">
+        <button (click)="timeModel.setTime(null)" title="Terug naar vandaag" class="btn btn-link">
+          <span class="fa fa-calendar-day ml-2"></span>
+        </button>
+        <span class="redalert ml-2">tijdreis</span>
+      </ng-template>
     </td>
   </tr>
   <!--<span ng-if="planModel.planalysis.planItems[0][0].length > 0">Een <a href="" ng-click="windowModel.toggleVisible(0)">keuzehulp voor bestemmingsplannen</a> is beschikbaar.</span>-->

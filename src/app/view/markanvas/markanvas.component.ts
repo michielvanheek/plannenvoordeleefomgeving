@@ -347,7 +347,14 @@ export class MarkanvasComponent implements OnInit, DoCheck {
             info.teksten.map(tekst => tekst.technischId || tekst.identificatie).sort().join("|") == teksten.map(tekst => tekst.technischId || tekst.identificatie).sort().join("|")
           );
           if (twinfo != null) {
-            twinfo.text += "<br/>" + activiteitlocatieaanduiding.viewType;
+            const split = twinfo.text.split("</strong><br/>");
+            const names = {};
+            split[0].replace("<strong>", "").split("<br/>").forEach(name => names[name] = true);
+            names[this.getName(activiteitlocatieaanduiding)] = true;
+            const types = {};
+            split[1].split("<br/>").forEach(type => types[type] = true);
+            types[activiteitlocatieaanduiding.viewType] = true;
+            twinfo.text = "<strong>" + Object.keys(names).sort().join("<br/>") + "</strong><br/>" + Object.keys(types).sort().join("<br/>");
           } else {
             infos.push(this.activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding, teksten));
           }
@@ -449,10 +456,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private locatieToInfo(locatie, teksten, showType = true) {
-    const name = !environment.stripQuotes? locatie.viewName: locatie.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
+    const name = this.getName(locatie);
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong>" + (showType? ("<br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, "")): ""),
+      text: "<strong>" + name + "</strong>" + (showType? ("<br/>" + locatie.locatieType.toLowerCase().replace(/engroep$/, "")): ""),
       locaties: [locatie],
       teksten: teksten,
       annotation: locatie
@@ -460,10 +467,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private gebiedsaanwijzingToInfo(gebiedsaanwijzing) {
-    const name = !environment.stripQuotes? gebiedsaanwijzing.viewName: gebiedsaanwijzing.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
+    const name = this.getName(gebiedsaanwijzing);
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + gebiedsaanwijzing.viewType,
+      text: "<strong>" + name + "</strong><br/>" + gebiedsaanwijzing.viewType,
       locaties: gebiedsaanwijzing.locaties,
       teksten: gebiedsaanwijzing.teksten,
       annotation: gebiedsaanwijzing
@@ -471,10 +478,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private activiteitlocatieaanduidingToInfo(activiteitlocatieaanduiding, teksten) {
-    const name = !environment.stripQuotes? activiteitlocatieaanduiding.viewName: activiteitlocatieaanduiding.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
+    const name = this.getName(activiteitlocatieaanduiding);
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + name[0].toUpperCase() + name.slice(1) + "</strong><br/>" + ((activiteitlocatieaanduiding.viewType.toLowerCase() != name.toLowerCase())? activiteitlocatieaanduiding.viewType: "activiteit"),
+      text: "<strong>" + name + "</strong><br/>" + ((activiteitlocatieaanduiding.viewType.toLowerCase() != name.toLowerCase())? activiteitlocatieaanduiding.viewType: "activiteit"),
       locaties: activiteitlocatieaanduiding.locaties,
       teksten: teksten,
       annotation: activiteitlocatieaanduiding
@@ -482,9 +489,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
   }
 
   private omgevingsnormToInfo(omgevingsnorm, normwaarden, showType = true) {
+    const name = omgevingsnorm.viewName[0].toUpperCase() + omgevingsnorm.viewName.slice(1);
     return {
       image: "assets/legend/relatie.png",
-      text: "<strong>" + omgevingsnorm.viewName[0].toUpperCase() + omgevingsnorm.viewName.slice(1) + "</strong>" + (showType? ("<br/>" + omgevingsnorm.viewType): ""),
+      text: "<strong>" + name + "</strong>" + (showType? ("<br/>" + omgevingsnorm.viewType): ""),
       locaties: normwaarden.reduce((locaties, normwaarde) => locaties.concat(normwaarde.locaties), []),
       teksten: omgevingsnorm.teksten,
       annotation: omgevingsnorm,
@@ -521,5 +529,10 @@ export class MarkanvasComponent implements OnInit, DoCheck {
       }
     }
     return false;
+  }
+
+  private getName(annotation) {
+    const name = !environment.stripQuotes? annotation.viewName: annotation.viewName.replace(/^(aanduiding|functie)[ '"]+([^'"]+)[ '"]+$/g, "$2");
+    return name[0].toUpperCase() + name.slice(1);
   }
 }

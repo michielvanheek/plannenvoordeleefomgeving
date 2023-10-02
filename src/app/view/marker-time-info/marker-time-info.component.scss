@@ -16,6 +16,9 @@ tr td {
     top: -4px;
     height: 20px;
     border: 0;
+    .flat:not(:hover) {
+      color: #191919;
+    }
   }
 }
 tr:last-of-type td {

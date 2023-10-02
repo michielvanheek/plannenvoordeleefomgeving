@@ -96,7 +96,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
   private isTekstInvalid(tekst, time) {
     return this.isAnnotationInvalid(tekst, time) ||
       tekst.gebiedsaanwijzingen?.some(gebiedsaanwijzing => this.isAnnotationInvalid(gebiedsaanwijzing, time)) ||
-      //tekst.activiteitlocatieaanduidingen?.some(activiteitlocatieaanduiding => this.isAnnotationInvalid(activiteitlocatieaanduiding, time)) ||
+      tekst.activiteitlocatieaanduidingen?.some(activiteitlocatieaanduiding => this.isAnnotationInvalid(activiteitlocatieaanduiding, time)) ||
       tekst.omgevingsnormen?.some(omgevingsnorm => this.isAnnotationInvalid(omgevingsnorm, time));
   }
 
@@ -798,11 +798,8 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
     const activiteitregelkwalificatie = activiteitlocatieaanduiding.activiteitregelkwalificatie;
     if (activiteitregelkwalificatie.waarde != "anders geduid") {
       activiteitlocatieaanduiding.viewName = (activiteit.naam?.trim() || activiteit.groep.waarde) + " - " + activiteitregelkwalificatie.waarde;
-    } else if ((activiteitlocatieaanduiding.locaties.length > 1) || this.regelingModel.regelingen.some(regeling => regeling.locatieIdentificatie == (activiteitlocatieaanduiding.locaties[0].technischId || activiteitlocatieaanduiding.locaties[0].identificatie)) || (activiteitlocatieaanduiding.locaties[0].noemer == null)) {
-      activiteitlocatieaanduiding.viewName = activiteit.naam?.trim() || activiteit.groep.waarde;
     } else {
-      activiteitlocatieaanduiding.viewName = activiteitlocatieaanduiding.locaties.map(locatie => locatie.noemer).join(", ");
-      activiteitlocatieaanduiding.viewActName = activiteit.naam?.trim() || activiteit.groep.waarde;
+      activiteitlocatieaanduiding.viewName = activiteit.naam?.trim() || activiteit.groep.waarde;
     }
     activiteitlocatieaanduiding.viewType = activiteit.groep.waarde
       .replace(/^bouwactiviteit ruimtelijk/, "bouwen als ruimtelijke activiteit")
@@ -816,6 +813,7 @@ export class ImowModelService extends AppEventDispatcher implements AppEventList
       .replace(/^in-stand-houden-van-bouwwerkenactiviteit/, "in stand houden van bouwwerken")
       .replace(/^kampeeractiviteit/, "kamperen")
       .replace(/^landinrichtingsactiviteit/, "landinrichting")
+      .replace(/^overig$/, "activiteit")
       .replace(/^parkeeractiviteit/, "parkeren")
       .replace(/^planologische gebruiksactiviteit/, "planologisch gebruik")
       .replace(/^recreatieactiviteit/, "recreatie")
